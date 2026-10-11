@@ -1,0 +1,11 @@
+target/
+*.class
+_backup_*/
+*.db
+*.mv.db
+*.trace.db
+collegeclub-data/
+*.log
+.vscode/
+.idea/
+*.iml
