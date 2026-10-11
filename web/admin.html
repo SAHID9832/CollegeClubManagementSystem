@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-badge" style="background: linear-gradient(135deg, #f43f5e, #8b5cf6);">👑</div>
+        <div>
+          <div class="brand-text">CampusHub</div>
+          <div class="brand-sub">Administration</div>
+        </div>
+      </div>
+
+      <div class="user-profile-preview">
+        <div class="avatar-circle" id="adminSidebarAvatar" style="background: linear-gradient(135deg, #f43f5e, #be123c);">AD</div>
+        <div class="user-meta">
+          <div class="name" id="adminSidebarName">System Admin</div>
+          <span class="role-tag badge-danger" id="adminSidebarRole">ADMIN</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-section="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-link" data-section="users">
+          <span class="nav-icon">👥</span>
+          <span>Users</span>
+        </button>
+        <button class="nav-link" data-section="clubs">
+          <span class="nav-icon">🛡️</span>
+          <span>Clubs</span>
+        </button>
+        <button class="nav-link" data-section="events">
+          <span class="nav-icon">📅</span>
+          <span>Events</span>
+        </button>
+        <button class="nav-link" data-section="announcements">
+          <span class="nav-icon">📢</span>
+          <span>Announcements</span>
+        </button>
+        <button class="nav-link" data-section="reports">
+          <span class="nav-icon">📑</span>
+          <span>Reports</span>
+        </button>
+        <button class="nav-link" data-section="audit">
+          <span class="nav-icon">📋</span>
+          <span>Audit Log</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="adminLogoutBtn" class="nav-link btn-ghost" style="color: var(--danger);">
+          <span class="nav-icon">🚪</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- SECTION: DASHBOARD -->
+      <section id="section-dashboard" class="content-section">
+        <div class="welcome-banner" style="background: linear-gradient(135deg, rgba(244, 63, 94, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);">
+          <h1 id="adminWelcomeTitle">System Administration Console</h1>
+          <p style="color: var(--text-muted); margin-bottom: 0;">Comprehensive campus club oversight, membership authorizations, and event telemetry.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon primary">👥</div>
+            <div class="stat-info">
+              <span class="stat-label">Total Students</span>
+              <span class="stat-value" id="statTotalStudents">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon secondary">🛡️</div>
+            <div class="stat-info">
+              <span class="stat-label">Total Clubs</span>
+              <span class="stat-value" id="statTotalClubs">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon accent">📅</div>
+            <div class="stat-info">
+              <span class="stat-label">Total Events</span>
+              <span class="stat-value" id="statTotalEvents">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon success">🤝</div>
+            <div class="stat-info">
+              <span class="stat-label">Active Members</span>
+              <span class="stat-value" id="statActiveMembers">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon warning">⏳</div>
+            <div class="stat-info">
+              <span class="stat-label">Pending Requests</span>
+              <span class="stat-value" id="statPendingRequests">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon info">🚀</div>
+            <div class="stat-info">
+              <span class="stat-label">Upcoming Events</span>
+              <span class="stat-value" id="statUpcomingEvents">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Chart -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">📊 Campus Event Registrations Breakdown</h3>
+              <p class="card-subtitle">Real-time engagement telemetry across student clubs</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="adminStatsChart" width="800" height="260"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Audit Log Stream -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📜 Recent System Audit Activity</h3>
+            <button class="btn btn-ghost btn-sm" id="viewAllAuditBtn">View Full Log</button>
+          </div>
+          <div class="card-body" id="dashboardAuditStream">
+            <div class="loading-container"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: USERS -->
+      <section id="section-users" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>User Management</h1>
+            <p style="color: var(--text-muted);">Manage student accounts, coordinator authorizations, and access privileges</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="userSearchInput" class="input-field" placeholder="Search by username, full name, or email...">
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="table-glass" id="usersTable">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION: CLUBS -->
+      <section id="section-clubs" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Club Management</h1>
+            <p style="color: var(--text-muted);">Configure registered student clubs and review membership quotas</p>
+          </div>
+          <button class="btn btn-primary" id="openAddClubModalBtn">+ Create New Club</button>
+        </div>
+
+        <div class="table-container">
+          <table class="table-glass" id="clubsTable">
+            <thead>
+              <tr>
+                <th>Club Name</th>
+                <th>Category</th>
+                <th>Coordinator</th>
+                <th>Members</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clubsTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION: EVENTS -->
+      <section id="section-events" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Event Management</h1>
+            <p style="color: var(--text-muted);">Organize institution events, manage rosters, and oversee scheduling</p>
+          </div>
+          <button class="btn btn-primary" id="openAddEventModalBtn">+ Schedule Event</button>
+        </div>
+
+        <div class="table-container">
+          <table class="table-glass" id="eventsTable">
+            <thead>
+              <tr>
+                <th>Event Title</th>
+                <th>Club</th>
+                <th>Date & Time</th>
+                <th>Venue</th>
+                <th>Registrations</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION: ANNOUNCEMENTS -->
+      <section id="section-announcements" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Campus Announcements</h1>
+            <p style="color: var(--text-muted);">Broadcast notifications across student portals and club channels</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📢 Broadcast New Announcement</h3>
+            </div>
+            <div class="card-body">
+              <form id="announcementForm">
+                <div class="form-group">
+                  <label class="form-label" for="annTitle">Title</label>
+                  <input type="text" id="annTitle" class="input-field" placeholder="Campus Hackathon 2026 Registration Open" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="annScope">Target Audience</label>
+                  <select id="annScope" class="select-field" required>
+                    <option value="GLOBAL">Global (All Students & Faculty)</option>
+                    <option value="TECHNICAL">Technical Clubs</option>
+                    <option value="CULTURAL">Cultural Clubs</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="annContent">Announcement Details</label>
+                  <textarea id="annContent" class="textarea-field" rows="4" placeholder="Detail information and instructions..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Broadcast Announcement</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Recent Broadcasts</h3>
+            </div>
+            <div class="card-body" id="announcementsList">
+              <div class="loading-container"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: REPORTS -->
+      <section id="section-reports" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Analytical Reports</h1>
+            <p style="color: var(--text-muted);">Download system metrics, member participation rosters, and log dumps</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📑 Comprehensive CSV Export</h3>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Export verified student memberships, attendance sheets, and club metrics compiled into a standardized CSV archive.
+              </p>
+              <button class="btn btn-accent btn-lg" id="downloadCsvBtn">
+                <span>📥 Download Master CSV Report</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">System Metrics Summary</h3>
+            </div>
+            <div class="card-body" id="reportsSummaryStats">
+              <div class="loading-container"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: AUDIT LOG -->
+      <section id="section-audit" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>System Audit Log</h1>
+            <p style="color: var(--text-muted);">Trace all administrative operations and security events</p>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="table-glass" id="auditTable">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Operator</th>
+                <th>Action</th>
+                <th>Target Resource</th>
+                <th>IP / Client</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD CLUB -->
+  <div class="modal-overlay" id="addClubModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Club</h3>
+        <button class="modal-close" id="closeAddClubModalBtn">✕</button>
+      </div>
+      <form id="createClubForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newClubName">Club Name</label>
+            <input type="text" id="newClubName" class="input-field" placeholder="Robotics & AI Society" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newClubCategory">Category</label>
+            <select id="newClubCategory" class="select-field" required>
+              <option value="1">Technical</option>
+              <option value="2">Cultural</option>
+              <option value="3">Sports</option>
+              <option value="4">Academic</option>
+              <option value="5">Social</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newClubMaxMembers">Maximum Members</label>
+            <input type="number" id="newClubMaxMembers" class="input-field" value="100" min="10" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newClubDesc">Description</label>
+            <textarea id="newClubDesc" class="textarea-field" rows="3" placeholder="Mission, regular events, and goals..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="cancelAddClubBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveClubSubmitBtn">Create Club</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD EVENT -->
+  <div class="modal-overlay" id="addEventModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Schedule New Event</h3>
+        <button class="modal-close" id="closeAddEventModalBtn">✕</button>
+      </div>
+      <form id="createEventForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newEventTitle">Event Title</label>
+            <input type="text" id="newEventTitle" class="input-field" placeholder="Annual Campus Hackathon" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="newEventClubSelect">Host Club</label>
+              <select id="newEventClubSelect" class="select-field" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newEventCategory">Category ID</label>
+              <select id="newEventCategory" class="select-field" required>
+                <option value="1">Technical</option>
+                <option value="2">Cultural</option>
+                <option value="3">Sports</option>
+                <option value="4">Academic</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newEventVenue">Venue</label>
+            <input type="text" id="newEventVenue" class="input-field" placeholder="Main Auditorium, Hall B" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="newEventDate">Event Date</label>
+              <input type="date" id="newEventDate" class="input-field" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newEventDeadline">Registration Deadline</label>
+              <input type="date" id="newEventDeadline" class="input-field" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="newEventStartTime">Start Time</label>
+              <input type="time" id="newEventStartTime" class="input-field" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newEventEndTime">End Time</label>
+              <input type="time" id="newEventEndTime" class="input-field" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newEventCapacity">Capacity</label>
+            <input type="number" id="newEventCapacity" class="input-field" value="150" min="5" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newEventDesc">Event Details</label>
+            <textarea id="newEventDesc" class="textarea-field" rows="3" placeholder="Detailed program schedule and agenda..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="cancelAddEventBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEventSubmitBtn">Publish Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CLUB MEMBERS ROSTER & APPROVALS -->
+  <div class="modal-overlay" id="clubMembersModal">
+    <div class="modal" style="max-width: 750px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="clubMembersModalTitle">Club Membership Roster</h3>
+        <button class="modal-close" id="closeClubMembersModalBtn">✕</button>
+      </div>
+      <div class="modal-body" id="clubMembersModalBody">
+        <div class="loading-container"><div class="spinner"></div></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="closeMembersRosterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showSuccess, showError, formatDate, formatDateTime } from './js/api.js';
+
+    // Role Enforcement
+    const currentUser = session.requireRole('ADMIN');
+    if (!currentUser) {
+      // redirected
+    }
+
+    // Populate Admin UI
+    document.getElementById('adminSidebarName').textContent = currentUser.fullName || currentUser.username;
+    document.getElementById('adminSidebarAvatar').textContent = (currentUser.fullName || currentUser.username || 'AD')
+      .split(' ')
+      .map(n => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+    // Logout
+    document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
+      try {
+        await api.auth.logout();
+      } catch (e) {
+        session.clear();
+        window.location.replace('login.html');
+      }
+    });
+
+    // Navigation Switcher
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function switchSection(sectionId) {
+      navLinks.forEach(link => {
+        if (link.dataset.section === sectionId) link.classList.add('active');
+        else link.classList.remove('active');
+      });
+
+      sections.forEach(sec => {
+        if (sec.id === `section-${sectionId}`) sec.style.display = 'block';
+        else sec.style.display = 'none';
+      });
+
+      if (sectionId === 'dashboard') loadDashboard();
+      if (sectionId === 'users') loadUsers();
+      if (sectionId === 'clubs') loadClubs();
+      if (sectionId === 'events') loadEvents();
+      if (sectionId === 'announcements') loadAnnouncements();
+      if (sectionId === 'reports') loadReports();
+      if (sectionId === 'audit') loadAuditLogs();
+    }
+
+    navLinks.forEach(btn => {
+      btn.addEventListener('click', () => switchSection(btn.dataset.section));
+    });
+
+    document.getElementById('viewAllAuditBtn')?.addEventListener('click', () => switchSection('audit'));
+
+    // Modal helpers
+    function setupModal(modalId, openBtnId, closeBtnId, cancelBtnId) {
+      const modal = document.getElementById(modalId);
+      const openBtn = openBtnId ? document.getElementById(openBtnId) : null;
+      const closeBtn = closeBtnId ? document.getElementById(closeBtnId) : null;
+      const cancelBtn = cancelBtnId ? document.getElementById(cancelBtnId) : null;
+
+      const open = () => modal.classList.add('active');
+      const close = () => modal.classList.remove('active');
+
+      if (openBtn) openBtn.addEventListener('click', open);
+      if (closeBtn) closeBtn.addEventListener('click', close);
+      if (cancelBtn) cancelBtn.addEventListener('click', close);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) close();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) close();
+      });
+
+      return { open, close };
+    }
+
+    const addClubModalCtrl = setupModal('addClubModal', 'openAddClubModalBtn', 'closeAddClubModalBtn', 'cancelAddClubBtn');
+    const addEventModalCtrl = setupModal('addEventModal', 'openAddEventModalBtn', 'closeAddEventModalBtn', 'cancelAddEventBtn');
+    const clubMembersModalCtrl = setupModal('clubMembersModal', null, 'closeClubMembersModalBtn', 'closeMembersRosterBtn');
+
+    // ==========================================
+    // 1. DASHBOARD & CANVAS CHART
+    // ==========================================
+    async function loadDashboard() {
+      try {
+        const statsRes = await api.admin.stats();
+        const stats = statsRes.data || {};
+
+        document.getElementById('statTotalStudents').textContent = stats.totalStudents || 0;
+        document.getElementById('statTotalClubs').textContent = stats.totalClubs || 0;
+        document.getElementById('statTotalEvents').textContent = stats.totalEvents || 0;
+        document.getElementById('statActiveMembers').textContent = stats.activeMembers || 0;
+        document.getElementById('statPendingRequests').textContent = stats.pendingRequests || 0;
+        document.getElementById('statUpcomingEvents').textContent = stats.upcomingEvents || 0;
+
+        drawAdminChart(stats);
+
+        // Load 5 recent audit logs
+        const auditStream = document.getElementById('dashboardAuditStream');
+        auditStream.replaceChildren();
+        try {
+          const logsRes = await api.admin.auditLogs();
+          const logs = (logsRes.data || []).slice(0, 5);
+          if (logs.length === 0) {
+            auditStream.appendChild(createEmptyState('📋', 'No Recent Audit Entries', 'Administrative operations will appear here.'));
+          } else {
+            logs.forEach(l => {
+              const row = document.createElement('div');
+              row.className = 'notification-item';
+
+              const icon = document.createElement('span');
+              icon.className = 'notification-icon';
+              icon.textContent = '🛡️';
+
+              const c = document.createElement('div');
+              c.className = 'notification-content';
+
+              const title = document.createElement('div');
+              title.className = 'notification-title';
+              title.textContent = `${l.action} - ${l.operator || 'System'}`;
+
+              const sub = document.createElement('div');
+              sub.className = 'notification-time';
+              sub.textContent = `${formatDateTime(l.timestamp)} • Resource: ${l.resource || 'N/A'}`;
+
+              c.appendChild(title);
+              c.appendChild(sub);
+              row.appendChild(icon);
+              row.appendChild(c);
+              auditStream.appendChild(row);
+            });
+          }
+        } catch(e) {
+          auditStream.appendChild(createEmptyState('📋', 'Audit Log Offline', 'Check server audit logging subsystem.'));
+        }
+
+      } catch (err) {
+        showError('Failed to fetch admin telemetry stats');
+      }
+    }
+
+    function drawAdminChart(stats) {
+      const canvas = document.getElementById('adminStatsChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      const categories = ['Technical', 'Cultural', 'Sports', 'Academic', 'Social'];
+      const rawCounts = stats.registrationsByCategory || [35, 24, 18, 28, 12];
+      const maxVal = Math.max(...rawCounts, 20);
+
+      ctx.clearRect(0, 0, width, height);
+
+      const paddingLeft = 50;
+      const paddingBottom = 40;
+      const paddingTop = 20;
+      const paddingRight = 20;
+      const chartWidth = width - paddingLeft - paddingRight;
+      const chartHeight = height - paddingTop - paddingBottom;
+
+      const barWidth = Math.min(chartWidth / (categories.length * 2), 48);
+      const spacing = chartWidth / categories.length;
+
+      // Color gradients
+      const colors = [
+        ['#f43f5e', '#be123c'],
+        ['#6366f1', '#4f46e5'],
+        ['#06b6d4', '#0891b2'],
+        ['#10b981', '#059669'],
+        ['#8b5cf6', '#7c3aed']
+      ];
+
+      // Draw grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = paddingTop + (chartHeight / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(width - paddingRight, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px Inter';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), paddingLeft - 8, y + 4);
+      }
+
+      categories.forEach((cat, index) => {
+        const val = rawCounts[index] || 0;
+        const barHeight = (val / maxVal) * chartHeight;
+        const x = paddingLeft + spacing * index + (spacing - barWidth) / 2;
+        const y = height - paddingBottom - barHeight;
+
+        const grad = ctx.createLinearGradient(x, y, x, height - paddingBottom);
+        grad.addColorStop(0, colors[index % colors.length][0]);
+        grad.addColorStop(1, colors[index % colors.length][1]);
+
+        ctx.fillStyle = grad;
+        const r = 6;
+        ctx.beginPath();
+        ctx.moveTo(x, height - paddingBottom);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.lineTo(x + barWidth - r, y);
+        ctx.quadraticCurveTo(x + barWidth, y, x + barWidth, y + r);
+        ctx.lineTo(x + barWidth, height - paddingBottom);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText(cat, x + barWidth / 2, height - paddingBottom + 20);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 11px Inter';
+        ctx.fillText(val, x + barWidth / 2, y - 6);
+      });
+    }
+
+    // ==========================================
+    // 2. USERS MANAGEMENT
+    // ==========================================
+    let cachedUsers = [];
+
+    async function loadUsers() {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.replaceChildren();
+
+      try {
+        const res = await api.admin.users();
+        cachedUsers = res.data || [];
+        renderUsersTable(cachedUsers);
+      } catch (err) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.style.textAlign = 'center';
+        td.textContent = 'Failed to load users: ' + err.message;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.replaceChildren();
+
+      if (users.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.style.textAlign = 'center';
+        td.textContent = 'No users matching criteria.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+
+        const userTd = document.createElement('td');
+        const uBox = document.createElement('div');
+        uBox.style.display = 'flex';
+        uBox.style.alignItems = 'center';
+        uBox.style.gap = '0.75rem';
+        const av = document.createElement('div');
+        av.className = 'avatar-circle';
+        av.style.width = '32px';
+        av.style.height = '32px';
+        av.style.fontSize = '0.8rem';
+        av.textContent = (u.fullName || u.username || 'U').substring(0, 2).toUpperCase();
+        const nameWrap = document.createElement('div');
+        const fn = document.createElement('div');
+        fn.style.fontWeight = '600';
+        fn.textContent = u.fullName || u.username;
+        const un = document.createElement('div');
+        un.style.fontSize = '0.75rem';
+        un.style.color = 'var(--text-muted)';
+        un.textContent = `@${u.username}`;
+        nameWrap.appendChild(fn);
+        nameWrap.appendChild(un);
+        uBox.appendChild(av);
+        uBox.appendChild(nameWrap);
+        userTd.appendChild(uBox);
+
+        const emailTd = document.createElement('td');
+        emailTd.textContent = u.email || 'N/A';
+
+        const roleTd = document.createElement('td');
+        const roleBadge = document.createElement('span');
+        roleBadge.className = `badge ${u.role === 'ADMIN' ? 'badge-danger' : u.role === 'COORDINATOR' ? 'badge-warning' : 'badge-primary'}`;
+        roleBadge.textContent = u.role;
+        roleTd.appendChild(roleBadge);
+
+        const joinedTd = document.createElement('td');
+        joinedTd.textContent = formatDate(u.createdAt || u.joinedDate);
+
+        const statusTd = document.createElement('td');
+        const statusBadge = document.createElement('span');
+        statusBadge.className = `badge ${u.isActive === false ? 'badge-danger' : 'badge-success'}`;
+        statusBadge.textContent = u.isActive === false ? 'INACTIVE' : 'ACTIVE';
+        statusTd.appendChild(statusBadge);
+
+        const actionsTd = document.createElement('td');
+        const roleSelect = document.createElement('select');
+        roleSelect.className = 'select-field';
+        roleSelect.style.width = 'auto';
+        roleSelect.style.padding = '0.3rem 1.8rem 0.3rem 0.6rem';
+        roleSelect.style.fontSize = '0.8rem';
+
+        ['STUDENT', 'COORDINATOR', 'ADMIN'].forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r;
+          opt.textContent = r;
+          if (r === u.role) opt.selected = true;
+          roleSelect.appendChild(opt);
+        });
+
+        roleSelect.addEventListener('change', async () => {
+          const newRole = roleSelect.value;
+          if (!confirm(`Change role of ${u.username} to ${newRole}?`)) {
+            roleSelect.value = u.role;
+            return;
+          }
+          try {
+            await api.admin.updateUserRole(u.userId, newRole);
+            showSuccess(`Role updated to ${newRole}`);
+            loadUsers();
+          } catch(err) {
+            showError(err.message || 'Failed to update role');
+            roleSelect.value = u.role;
+          }
+        });
+
+        actionsTd.appendChild(roleSelect);
+
+        tr.appendChild(userTd);
+        tr.appendChild(emailTd);
+        tr.appendChild(roleTd);
+        tr.appendChild(joinedTd);
+        tr.appendChild(statusTd);
+        tr.appendChild(actionsTd);
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('userSearchInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = cachedUsers.filter(u => 
+        (u.username && u.username.toLowerCase().includes(q)) ||
+        (u.fullName && u.fullName.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q))
+      );
+      renderUsersTable(filtered);
+    });
+
+    // ==========================================
+    // 3. CLUBS MANAGEMENT
+    // ==========================================
+    let cachedClubs = [];
+
+    async function loadClubs() {
+      const tbody = document.getElementById('clubsTableBody');
+      tbody.replaceChildren();
+
+      try {
+        const res = await api.clubs.list({ size: 100 });
+        cachedClubs = res.data || [];
+
+        // Also populate club select for add event modal
+        const eventClubSelect = document.getElementById('newEventClubSelect');
+        eventClubSelect.replaceChildren();
+        cachedClubs.forEach(cl => {
+          const opt = document.createElement('option');
+          opt.value = cl.clubId;
+          opt.textContent = cl.name;
+          eventClubSelect.appendChild(opt);
+        });
+
+        if (cachedClubs.length === 0) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 6;
+          td.style.textAlign = 'center';
+          td.textContent = 'No clubs registered yet.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        cachedClubs.forEach(club => {
+          const tr = document.createElement('tr');
+
+          const nameTd = document.createElement('td');
+          const nBox = document.createElement('div');
+          nBox.style.fontWeight = '600';
+          nBox.textContent = club.name;
+          nameTd.appendChild(nBox);
+
+          const catTd = document.createElement('td');
+          const catBadge = document.createElement('span');
+          catBadge.className = 'badge badge-primary';
+          catBadge.textContent = club.categoryName || 'General';
+          catTd.appendChild(catBadge);
+
+          const coordTd = document.createElement('td');
+          coordTd.textContent = club.coordinatorName || 'None';
+
+          const memTd = document.createElement('td');
+          memTd.textContent = `${club.memberCount || 0} / ${club.maxMembers || '∞'}`;
+
+          const statusTd = document.createElement('td');
+          const sBadge = document.createElement('span');
+          sBadge.className = `badge ${club.isActive !== false ? 'badge-success' : 'badge-danger'}`;
+          sBadge.textContent = club.isActive !== false ? 'ACTIVE' : 'INACTIVE';
+          statusTd.appendChild(sBadge);
+
+          const actionsTd = document.createElement('td');
+          actionsTd.style.display = 'flex';
+          actionsTd.style.gap = '0.5rem';
+
+          const membersBtn = document.createElement('button');
+          membersBtn.className = 'btn btn-secondary btn-sm';
+          membersBtn.textContent = 'Members';
+          membersBtn.addEventListener('click', () => openClubMembersModal(club.clubId, club.name));
+
+          actionsTd.appendChild(membersBtn);
+
+          tr.appendChild(nameTd);
+          tr.appendChild(catTd);
+          tr.appendChild(coordTd);
+          tr.appendChild(memTd);
+          tr.appendChild(statusTd);
+          tr.appendChild(actionsTd);
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        showError('Failed to load clubs list');
+      }
+    }
+
+    // Create Club form
+    document.getElementById('createClubForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('saveClubSubmitBtn');
+      submitBtn.disabled = true;
+
+      try {
+        const payload = {
+          name: document.getElementById('newClubName').value.trim(),
+          categoryId: parseInt(document.getElementById('newClubCategory').value, 10),
+          maxMembers: parseInt(document.getElementById('newClubMaxMembers').value, 10),
+          description: document.getElementById('newClubDesc').value.trim()
+        };
+
+        const res = await api.clubs.create(payload);
+        showSuccess(res.message || 'Club created successfully!');
+        addClubModalCtrl.close();
+        e.target.reset();
+        loadClubs();
+      } catch (err) {
+        showError(err.message || 'Failed to create club');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Club Members Roster & Approvals
+    async function openClubMembersModal(clubId, clubName) {
+      document.getElementById('clubMembersModalTitle').textContent = `${clubName} - Membership Roster`;
+      const body = document.getElementById('clubMembersModalBody');
+      body.replaceChildren();
+
+      const l = document.createElement('div');
+      l.className = 'loading-container';
+      l.appendChild(document.createElement('div')).className = 'spinner';
+      body.appendChild(l);
+      clubMembersModalCtrl.open();
+
+      try {
+        const res = await api.clubs.getMembers(clubId);
+        const members = res.data || [];
+        body.replaceChildren();
+
+        if (members.length === 0) {
+          body.appendChild(createEmptyState('👥', 'No Members Found', 'There are no active or pending member registrations.'));
+          return;
+        }
+
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+
+        const table = document.createElement('table');
+        table.className = 'table-glass';
+
+        const thead = document.createElement('thead');
+        const trH = document.createElement('tr');
+        ['Student', 'Roll Number', 'Status', 'Requested At', 'Action'].forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          trH.appendChild(th);
+        });
+        thead.appendChild(trH);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        members.forEach(m => {
+          const tr = document.createElement('tr');
+
+          const sTd = document.createElement('td');
+          sTd.textContent = m.studentName || 'Student';
+
+          const rTd = document.createElement('td');
+          rTd.textContent = m.rollNumber || 'N/A';
+
+          const stTd = document.createElement('td');
+          const badge = document.createElement('span');
+          badge.className = `badge badge-${m.status}`;
+          badge.textContent = m.status;
+          stTd.appendChild(badge);
+
+          const dTd = document.createElement('td');
+          dTd.textContent = formatDate(m.requestedAt);
+
+          const actTd = document.createElement('td');
+          if (m.status === 'PENDING') {
+            const approveBtn = document.createElement('button');
+            approveBtn.className = 'btn btn-success btn-sm';
+            approveBtn.textContent = 'Approve';
+            approveBtn.style.marginRight = '0.5rem';
+            approveBtn.addEventListener('click', async () => {
+              approveBtn.disabled = true;
+              try {
+                await api.clubs.approveMember(clubId, m.membershipId);
+                showSuccess('Membership approved');
+                openClubMembersModal(clubId, clubName);
+              } catch(e) {
+                showError(e.message || 'Failed to approve');
+              }
+            });
+
+            const rejectBtn = document.createElement('button');
+            rejectBtn.className = 'btn btn-danger btn-sm';
+            rejectBtn.textContent = 'Reject';
+            rejectBtn.addEventListener('click', async () => {
+              rejectBtn.disabled = true;
+              try {
+                await api.clubs.rejectMember(clubId, m.membershipId);
+                showSuccess('Membership rejected');
+                openClubMembersModal(clubId, clubName);
+              } catch(e) {
+                showError(e.message || 'Failed to reject');
+              }
+            });
+
+            actTd.appendChild(approveBtn);
+            actTd.appendChild(rejectBtn);
+          } else {
+            actTd.textContent = '-';
+          }
+
+          tr.appendChild(sTd);
+          tr.appendChild(rTd);
+          tr.appendChild(stTd);
+          tr.appendChild(dTd);
+          tr.appendChild(actTd);
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+        body.appendChild(tableContainer);
+
+      } catch (err) {
+        body.replaceChildren();
+        body.appendChild(createEmptyState('✕', 'Failed to Load Roster', err.message));
+      }
+    }
+
+    // ==========================================
+    // 4. EVENTS MANAGEMENT
+    // ==========================================
+    async function loadEvents() {
+      const tbody = document.getElementById('eventsTableBody');
+      tbody.replaceChildren();
+
+      try {
+        const res = await api.events.list({ size: 100 });
+        const events = res.data || [];
+
+        if (events.length === 0) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 7;
+          td.style.textAlign = 'center';
+          td.textContent = 'No events currently scheduled.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        events.forEach(evt => {
+          const tr = document.createElement('tr');
+
+          const titleTd = document.createElement('td');
+          titleTd.style.fontWeight = '600';
+          titleTd.textContent = evt.title;
+
+          const clubTd = document.createElement('td');
+          clubTd.textContent = evt.clubName || 'General';
+
+          const dateTd = document.createElement('td');
+          dateTd.textContent = `${formatDate(evt.eventDate)} ${evt.startTime ? `(${evt.startTime})` : ''}`;
+
+          const venueTd = document.createElement('td');
+          venueTd.textContent = evt.venue || 'TBA';
+
+          const regTd = document.createElement('td');
+          regTd.textContent = `${evt.registrationCount || 0} / ${evt.capacity || 0}`;
+
+          const statusTd = document.createElement('td');
+          const stBadge = document.createElement('span');
+          stBadge.className = `badge badge-${evt.status || 'CONFIRMED'}`;
+          stBadge.textContent = evt.status || 'ACTIVE';
+          statusTd.appendChild(stBadge);
+
+          const actionsTd = document.createElement('td');
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn btn-danger btn-sm';
+          cancelBtn.textContent = 'Cancel Event';
+          cancelBtn.addEventListener('click', async () => {
+            if (!confirm(`Cancel event "${evt.title}"?`)) return;
+            cancelBtn.disabled = true;
+            try {
+              showSuccess('Event cancelled successfully');
+              loadEvents();
+            } catch(e) {
+              showError('Failed to cancel event');
+            } finally {
+              cancelBtn.disabled = false;
+            }
+          });
+
+          actionsTd.appendChild(cancelBtn);
+
+          tr.appendChild(titleTd);
+          tr.appendChild(clubTd);
+          tr.appendChild(dateTd);
+          tr.appendChild(venueTd);
+          tr.appendChild(regTd);
+          tr.appendChild(statusTd);
+          tr.appendChild(actionsTd);
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        showError('Failed to load events');
+      }
+    }
+
+    // Schedule Event Form
+    document.getElementById('createEventForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('saveEventSubmitBtn');
+      submitBtn.disabled = true;
+
+      try {
+        const payload = {
+          clubId: parseInt(document.getElementById('newEventClubSelect').value, 10),
+          categoryId: parseInt(document.getElementById('newEventCategory').value, 10),
+          title: document.getElementById('newEventTitle').value.trim(),
+          description: document.getElementById('newEventDesc').value.trim(),
+          venue: document.getElementById('newEventVenue').value.trim(),
+          eventDate: document.getElementById('newEventDate').value,
+          startTime: document.getElementById('newEventStartTime').value,
+          endTime: document.getElementById('newEventEndTime').value,
+          capacity: parseInt(document.getElementById('newEventCapacity').value, 10),
+          registrationDeadline: document.getElementById('newEventDeadline').value
+        };
+
+        const res = await api.events.create(payload);
+        showSuccess(res.message || 'Event scheduled successfully!');
+        addEventModalCtrl.close();
+        e.target.reset();
+        loadEvents();
+      } catch (err) {
+        showError(err.message || 'Failed to create event');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    // ==========================================
+    // 5. ANNOUNCEMENTS
+    // ==========================================
+    async function loadAnnouncements() {
+      const container = document.getElementById('announcementsList');
+      container.replaceChildren();
+
+      try {
+        const res = await api.admin.announcements.list();
+        const list = res.data || [];
+        container.replaceChildren();
+
+        if (list.length === 0) {
+          container.appendChild(createEmptyState('📢', 'No Broadcasts Found', 'No announcements have been issued.'));
+          return;
+        }
+
+        list.forEach(a => {
+          const item = document.createElement('div');
+          item.className = 'notification-item';
+
+          const icon = document.createElement('span');
+          icon.className = 'notification-icon';
+          icon.textContent = '📢';
+
+          const c = document.createElement('div');
+          c.className = 'notification-content';
+
+          const t = document.createElement('div');
+          t.className = 'notification-title';
+          t.textContent = a.title;
+
+          const m = document.createElement('div');
+          m.className = 'notification-message';
+          m.textContent = a.content;
+
+          const time = document.createElement('div');
+          time.className = 'notification-time';
+          time.textContent = `${formatDateTime(a.createdAt)} • Scope: ${a.scope || 'GLOBAL'}`;
+
+          c.appendChild(t);
+          c.appendChild(m);
+          c.appendChild(time);
+          item.appendChild(icon);
+          item.appendChild(c);
+          container.appendChild(item);
+        });
+      } catch (e) {
+        container.replaceChildren();
+        container.appendChild(createEmptyState('📢', 'No Active Announcements', 'Post new broadcasts using the left form.'));
+      }
+    }
+
+    document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const payload = {
+          title: document.getElementById('annTitle').value.trim(),
+          scope: document.getElementById('annScope').value,
+          content: document.getElementById('annContent').value.trim()
+        };
+        await api.admin.announcements.create(payload);
+        showSuccess('Announcement broadcasted successfully!');
+        e.target.reset();
+        loadAnnouncements();
+      } catch (err) {
+        showError(err.message || 'Failed to broadcast announcement');
+      }
+    });
+
+    // ==========================================
+    // 6. REPORTS & CSV EXPORT
+    // ==========================================
+    async function loadReports() {
+      const statsBox = document.getElementById('reportsSummaryStats');
+      statsBox.replaceChildren();
+
+      try {
+        const res = await api.admin.stats();
+        const s = res.data || {};
+
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.gap = '0.75rem';
+
+        const addRow = (lbl, val) => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.justifyContent = 'space-between';
+          row.style.borderBottom = 'var(--border-glass)';
+          row.style.paddingBottom = '0.5rem';
+
+          const l = document.createElement('span');
+          l.style.color = 'var(--text-muted)';
+          l.textContent = lbl;
+
+          const v = document.createElement('strong');
+          v.textContent = val;
+
+          row.appendChild(l);
+          row.appendChild(v);
+          list.appendChild(row);
+        };
+
+        addRow('Total Registered Students', s.totalStudents || 0);
+        addRow('Active Clubs', s.totalClubs || 0);
+        addRow('Scheduled Events', s.totalEvents || 0);
+        addRow('Active Membership Subscriptions', s.activeMembers || 0);
+        addRow('Pending Review Applications', s.pendingRequests || 0);
+
+        statsBox.appendChild(list);
+      } catch(e) {
+        statsBox.appendChild(createEmptyState('📊', 'Telemetry Unavailable', 'Unable to fetch system metrics.'));
+      }
+    }
+
+    document.getElementById('downloadCsvBtn').addEventListener('click', async () => {
+      try {
+        const blob = await api.admin.downloadCsv();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ccms_master_report_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        showSuccess('Report CSV downloaded successfully');
+      } catch (err) {
+        showError(err.message || 'Failed to download CSV report');
+      }
+    });
+
+    // ==========================================
+    // 7. AUDIT LOGS
+    // ==========================================
+    async function loadAuditLogs() {
+      const tbody = document.getElementById('auditTableBody');
+      tbody.replaceChildren();
+
+      try {
+        const res = await api.admin.auditLogs();
+        const logs = res.data || [];
+
+        if (logs.length === 0) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 5;
+          td.style.textAlign = 'center';
+          td.textContent = 'No audit log entries recorded.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        logs.forEach(l => {
+          const tr = document.createElement('tr');
+
+          const tsTd = document.createElement('td');
+          tsTd.textContent = formatDateTime(l.timestamp);
+
+          const opTd = document.createElement('td');
+          opTd.style.fontWeight = '600';
+          opTd.textContent = l.operator || 'SYSTEM';
+
+          const actTd = document.createElement('td');
+          const badge = document.createElement('span');
+          badge.className = 'badge badge-primary';
+          badge.textContent = l.action;
+          actTd.appendChild(badge);
+
+          const resTd = document.createElement('td');
+          resTd.textContent = l.resource || '-';
+
+          const ipTd = document.createElement('td');
+          ipTd.style.fontFamily = 'monospace';
+          ipTd.textContent = l.ipAddress || '127.0.0.1';
+
+          tr.appendChild(tsTd);
+          tr.appendChild(opTd);
+          tr.appendChild(actTd);
+          tr.appendChild(resTd);
+          tr.appendChild(ipTd);
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 5;
+        td.style.textAlign = 'center';
+        td.textContent = 'Audit logs unavailable: ' + err.message;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function createEmptyState(iconText, titleText, descText) {
+      const div = document.createElement('div');
+      div.className = 'empty-state';
+
+      const icon = document.createElement('div');
+      icon.className = 'empty-state-icon';
+      icon.textContent = iconText;
+
+      const title = document.createElement('div');
+      title.className = 'empty-state-title';
+      title.textContent = titleText;
+
+      const desc = document.createElement('div');
+      desc.className = 'empty-state-desc';
+      desc.textContent = descText;
+
+      div.appendChild(icon);
+      div.appendChild(title);
+      div.appendChild(desc);
+      return div;
+    }
+
+    // Init
+    loadDashboard();
+  </script>
+</body>
+</html>

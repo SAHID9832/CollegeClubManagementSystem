@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordinator Portal - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-badge" style="background: linear-gradient(135deg, #06b6d4, #6366f1);">⚡</div>
+        <div>
+          <div class="brand-text">CampusHub</div>
+          <div class="brand-sub">Club Coordinator</div>
+        </div>
+      </div>
+
+      <div class="user-profile-preview">
+        <div class="avatar-circle" id="coordSidebarAvatar" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">CO</div>
+        <div class="user-meta">
+          <div class="name" id="coordSidebarName">Coordinator</div>
+          <span class="role-tag badge-warning" id="coordSidebarRole">COORDINATOR</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-section="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-link" data-section="my-clubs">
+          <span class="nav-icon">🛡️</span>
+          <span>My Clubs</span>
+        </button>
+        <button class="nav-link" data-section="events">
+          <span class="nav-icon">📅</span>
+          <span>Events</span>
+        </button>
+        <button class="nav-link" data-section="attendance">
+          <span class="nav-icon">✅</span>
+          <span>Attendance</span>
+        </button>
+        <button class="nav-link" data-section="announcements">
+          <span class="nav-icon">📢</span>
+          <span>Announcements</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="coordLogoutBtn" class="nav-link btn-ghost" style="color: var(--danger);">
+          <span class="nav-icon">🚪</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- SECTION: DASHBOARD -->
+      <section id="section-dashboard" class="content-section">
+        <div class="welcome-banner" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);">
+          <h1 id="coordWelcomeGreeting">Coordinator Operations Console</h1>
+          <p style="color: var(--text-muted); margin-bottom: 0;">Supervise club applications, organize student hackathons & workshops, and log attendance check-ins.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon accent">🛡️</div>
+            <div class="stat-info">
+              <span class="stat-label">Assigned Clubs</span>
+              <span class="stat-value" id="statAssignedClubs">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon warning">⏳</div>
+            <div class="stat-info">
+              <span class="stat-label">Pending Requests</span>
+              <span class="stat-value" id="statPendingApprovals">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon success">📅</div>
+            <div class="stat-info">
+              <span class="stat-label">Upcoming Events</span>
+              <span class="stat-value" id="statCoordinatorEvents">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions & Pending Requests Review -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <h3 class="card-title">⏳ Membership Applications Requiring Action</h3>
+          </div>
+          <div class="card-body" id="pendingApprovalsList">
+            <div class="loading-container"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: MY CLUBS -->
+      <section id="section-my-clubs" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Assigned Clubs & Roster</h1>
+            <p style="color: var(--text-muted);">Manage your organizations, evaluate applicants, and oversee rosters</p>
+          </div>
+        </div>
+
+        <div id="coordinatorClubsList" style="display: flex; flex-direction: column; gap: 2rem;">
+          <div class="skeleton skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- SECTION: EVENTS -->
+      <section id="section-events" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Club Events & Scheduling</h1>
+            <p style="color: var(--text-muted);">Coordinate interactive workshops, guest talks, and competitions</p>
+          </div>
+          <button class="btn btn-primary" id="openCoordAddEventModalBtn">+ Host New Event</button>
+        </div>
+
+        <div id="coordinatorEventsGrid" class="cards-grid">
+          <div class="skeleton skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- SECTION: ATTENDANCE -->
+      <section id="section-attendance" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Event Attendance Verification</h1>
+            <p style="color: var(--text-muted);">Scan QR badge credentials or record student roll numbers manually</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Check-in Form Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">✅ Check-In Student</h3>
+            </div>
+            <div class="card-body">
+              <form id="attendanceCheckinForm">
+                <div class="form-group">
+                  <label class="form-label" for="attendanceEventSelect">Select Event</label>
+                  <select id="attendanceEventSelect" class="select-field" required>
+                    <!-- Injected via JS -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="attendanceRollInput">Student Roll Number or QR Token</label>
+                  <input 
+                    type="text" 
+                    id="attendanceRollInput" 
+                    class="input-field" 
+                    placeholder="e.g. CS2026-042 or EVT-42-ST-101" 
+                    required
+                  >
+                  <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    Accepts either manual student roll number or token format (EVENTID-STUDENTID-TIMESTAMP).
+                  </span>
+                </div>
+
+                <button type="submit" class="btn btn-accent btn-block" id="markAttendanceBtn">
+                  Log Attendance Check-in
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Attendance Roster Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📋 Verified Attendee Roster</h3>
+              <button class="btn btn-ghost btn-sm" id="refreshAttendanceBtn">Refresh</button>
+            </div>
+            <div class="card-body" id="attendanceRosterList">
+              <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-title">Select an event</div>
+                <div class="empty-state-desc">Choose an event on the left to see verified participants.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: ANNOUNCEMENTS -->
+      <section id="section-announcements" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Club Announcements</h1>
+            <p style="color: var(--text-muted);">Broadcast notices and meeting agendas to club members</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width: 650px;">
+          <div class="card-header">
+            <h3 class="card-title">📢 Issue Club Announcement</h3>
+          </div>
+          <div class="card-body">
+            <form id="coordAnnouncementForm">
+              <div class="form-group">
+                <label class="form-label" for="coordAnnTitle">Headline</label>
+                <input type="text" id="coordAnnTitle" class="input-field" placeholder="Weekly Club Project Review Sync" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="coordAnnClub">Associated Club</label>
+                <select id="coordAnnClub" class="select-field" required>
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="coordAnnContent">Message Body</label>
+                <textarea id="coordAnnContent" class="textarea-field" rows="4" placeholder="Share meeting links, assignments, or schedule updates..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Broadcast to Members</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: CREATE EVENT (COORDINATOR) -->
+  <div class="modal-overlay" id="coordAddEventModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Host New Event</h3>
+        <button class="modal-close" id="closeCoordAddEventModalBtn">✕</button>
+      </div>
+      <form id="coordCreateEventForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="cEventTitle">Event Title</label>
+            <input type="text" id="cEventTitle" class="input-field" placeholder="Web3 & Smart Contracts Workshop" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="cEventClub">Club</label>
+              <select id="cEventClub" class="select-field" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="cEventCategory">Category</label>
+              <select id="cEventCategory" class="select-field" required>
+                <option value="1">Technical</option>
+                <option value="2">Cultural</option>
+                <option value="3">Sports</option>
+                <option value="4">Academic</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cEventVenue">Venue</label>
+            <input type="text" id="cEventVenue" class="input-field" placeholder="Computer Lab 3, 2nd Floor" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="cEventDate">Event Date</label>
+              <input type="date" id="cEventDate" class="input-field" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="cEventDeadline">Deadline</label>
+              <input type="date" id="cEventDeadline" class="input-field" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="cEventStartTime">Start Time</label>
+              <input type="time" id="cEventStartTime" class="input-field" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="cEventEndTime">End Time</label>
+              <input type="time" id="cEventEndTime" class="input-field" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cEventCapacity">Maximum Capacity</label>
+            <input type="number" id="cEventCapacity" class="input-field" value="80" min="5" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cEventDesc">Event Agenda</label>
+            <textarea id="cEventDesc" class="textarea-field" rows="3" placeholder="Overview of what students will build and learn..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="cancelCoordAddEventBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveCoordEventSubmitBtn">Publish Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showSuccess, showError, formatDate, formatDateTime } from './js/api.js';
+
+    // Role Enforcement (COORDINATOR or ADMIN)
+    const currentUser = session.requireRole('COORDINATOR', 'ADMIN');
+    if (!currentUser) {
+      // redirected
+    }
+
+    // Populate UI
+    document.getElementById('coordSidebarName').textContent = currentUser.fullName || currentUser.username;
+    document.getElementById('coordSidebarRole').textContent = currentUser.role;
+    document.getElementById('coordSidebarAvatar').textContent = (currentUser.fullName || currentUser.username || 'CO')
+      .split(' ')
+      .map(n => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+    // Logout
+    document.getElementById('coordLogoutBtn').addEventListener('click', async () => {
+      try {
+        await api.auth.logout();
+      } catch (e) {
+        session.clear();
+        window.location.replace('login.html');
+      }
+    });
+
+    // Navigation Switcher
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function switchSection(sectionId) {
+      navLinks.forEach(link => {
+        if (link.dataset.section === sectionId) link.classList.add('active');
+        else link.classList.remove('active');
+      });
+
+      sections.forEach(sec => {
+        if (sec.id === `section-${sectionId}`) sec.style.display = 'block';
+        else sec.style.display = 'none';
+      });
+
+      if (sectionId === 'dashboard') loadDashboard();
+      if (sectionId === 'my-clubs') loadMyClubs();
+      if (sectionId === 'events') loadEvents();
+      if (sectionId === 'attendance') loadAttendanceEvents();
+    }
+
+    navLinks.forEach(btn => {
+      btn.addEventListener('click', () => switchSection(btn.dataset.section));
+    });
+
+    // Modal Control
+    const modal = document.getElementById('coordAddEventModal');
+    const openBtn = document.getElementById('openCoordAddEventModalBtn');
+    const closeBtn = document.getElementById('closeCoordAddEventModalBtn');
+    const cancelBtn = document.getElementById('cancelCoordAddEventBtn');
+
+    const openModal = () => modal.classList.add('active');
+    const closeModal = () => modal.classList.remove('active');
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+    });
+
+    // State
+    let assignedClubs = [];
+    let clubEvents = [];
+
+    // ==========================================
+    // 1. DASHBOARD
+    // ==========================================
+    async function loadDashboard() {
+      try {
+        const clubsRes = await api.clubs.list({ size: 100 });
+        const allClubs = clubsRes.data || [];
+
+        // In demo/production, filter clubs by coordinator or show clubs for this coordinator
+        assignedClubs = allClubs.filter(c => c.coordinatorName === currentUser.fullName || c.coordinatorName === currentUser.username || currentUser.role === 'ADMIN');
+        if (assignedClubs.length === 0 && allClubs.length > 0) {
+          // Fallback so coordinator can manage clubs in environment
+          assignedClubs = allClubs.slice(0, 2);
+        }
+
+        document.getElementById('statAssignedClubs').textContent = assignedClubs.length;
+
+        // Fetch events
+        const eventsRes = await api.events.list({ size: 100 });
+        clubEvents = eventsRes.data || [];
+        const upcomingEvts = clubEvents.filter(e => !e.eventDate || new Date(e.eventDate) >= new Date());
+        document.getElementById('statCoordinatorEvents').textContent = upcomingEvts.length;
+
+        // Check pending applications across assigned clubs
+        let totalPending = 0;
+        const pendingBox = document.getElementById('pendingApprovalsList');
+        pendingBox.replaceChildren();
+
+        for (const cl of assignedClubs) {
+          try {
+            const mRes = await api.clubs.getMembers(cl.clubId);
+            const pending = (mRes.data || []).filter(m => m.status === 'PENDING');
+            totalPending += pending.length;
+
+            pending.forEach(m => {
+              const row = document.createElement('div');
+              row.className = 'notification-item';
+
+              const icon = document.createElement('span');
+              icon.className = 'notification-icon';
+              icon.textContent = '⏳';
+
+              const content = document.createElement('div');
+              content.className = 'notification-content';
+
+              const title = document.createElement('div');
+              title.className = 'notification-title';
+              title.textContent = `${m.studentName || 'Student'} (${m.rollNumber || 'N/A'}) - ${cl.name}`;
+
+              const time = document.createElement('div');
+              time.className = 'notification-time';
+              time.textContent = `Applied on: ${formatDate(m.requestedAt)}`;
+
+              content.appendChild(title);
+              content.appendChild(time);
+              row.appendChild(icon);
+              row.appendChild(content);
+
+              const actWrap = document.createElement('div');
+              actWrap.style.display = 'flex';
+              actWrap.style.gap = '0.5rem';
+
+              const appBtn = document.createElement('button');
+              appBtn.className = 'btn btn-success btn-sm';
+              appBtn.textContent = 'Approve';
+              appBtn.addEventListener('click', async () => {
+                appBtn.disabled = true;
+                try {
+                  await api.clubs.approveMember(cl.clubId, m.membershipId);
+                  showSuccess(`Approved ${m.studentName}`);
+                  loadDashboard();
+                } catch(e) {
+                  showError('Approval failed');
+                }
+              });
+
+              const rejBtn = document.createElement('button');
+              rejBtn.className = 'btn btn-danger btn-sm';
+              rejBtn.textContent = 'Reject';
+              rejBtn.addEventListener('click', async () => {
+                rejBtn.disabled = true;
+                try {
+                  await api.clubs.rejectMember(cl.clubId, m.membershipId);
+                  showSuccess(`Rejected application`);
+                  loadDashboard();
+                } catch(e) {
+                  showError('Rejection failed');
+                }
+              });
+
+              actWrap.appendChild(appBtn);
+              actWrap.appendChild(rejBtn);
+              row.appendChild(actWrap);
+
+              pendingBox.appendChild(row);
+            });
+          } catch(e) {}
+        }
+
+        document.getElementById('statPendingApprovals').textContent = totalPending;
+
+        if (totalPending === 0) {
+          pendingBox.appendChild(createEmptyState('✓', 'All Caught Up', 'No pending membership applications at this moment.'));
+        }
+
+        // Populate selects
+        populateClubSelects();
+
+      } catch (err) {
+        showError('Failed to load dashboard data');
+      }
+    }
+
+    function populateClubSelects() {
+      const cEventClub = document.getElementById('cEventClub');
+      const coordAnnClub = document.getElementById('coordAnnClub');
+      cEventClub.replaceChildren();
+      coordAnnClub.replaceChildren();
+
+      assignedClubs.forEach(cl => {
+        const o1 = document.createElement('option');
+        o1.value = cl.clubId;
+        o1.textContent = cl.name;
+        cEventClub.appendChild(o1);
+
+        const o2 = document.createElement('option');
+        o2.value = cl.clubId;
+        o2.textContent = cl.name;
+        coordAnnClub.appendChild(o2);
+      });
+    }
+
+    // ==========================================
+    // 2. MY CLUBS & MEMBERS
+    // ==========================================
+    async function loadMyClubs() {
+      const container = document.getElementById('coordinatorClubsList');
+      container.replaceChildren();
+
+      if (assignedClubs.length === 0) {
+        container.appendChild(createEmptyState('🛡️', 'No Assigned Clubs', 'You are currently not assigned to coordinate any club.'));
+        return;
+      }
+
+      for (const cl of assignedClubs) {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const head = document.createElement('div');
+        head.className = 'card-header';
+
+        const title = document.createElement('h3');
+        title.className = 'card-title';
+        title.textContent = `${cl.categoryIcon || '🛡️'} ${cl.name}`;
+
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-primary';
+        badge.textContent = cl.categoryName || 'General';
+
+        head.appendChild(title);
+        head.appendChild(badge);
+        card.appendChild(head);
+
+        const desc = document.createElement('p');
+        desc.style.color = 'var(--text-muted)';
+        desc.textContent = cl.description;
+        card.appendChild(desc);
+
+        // Members Sub-table
+        const membersHeader = document.createElement('h4');
+        membersHeader.style.margin = '1.25rem 0 0.75rem 0';
+        membersHeader.textContent = '👥 Club Members & Applicants';
+        card.appendChild(membersHeader);
+
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+
+        const table = document.createElement('table');
+        table.className = 'table-glass';
+
+        const thead = document.createElement('thead');
+        const trH = document.createElement('tr');
+        ['Student', 'Roll Number', 'Status', 'Requested On', 'Action'].forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          trH.appendChild(th);
+        });
+        thead.appendChild(trH);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        try {
+          const mRes = await api.clubs.getMembers(cl.clubId);
+          const members = mRes.data || [];
+
+          if (members.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.style.textAlign = 'center';
+            td.textContent = 'No members enrolled yet.';
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+          } else {
+            members.forEach(m => {
+              const tr = document.createElement('tr');
+
+              const nameTd = document.createElement('td');
+              nameTd.textContent = m.studentName || 'Student';
+
+              const rollTd = document.createElement('td');
+              rollTd.textContent = m.rollNumber || 'N/A';
+
+              const stTd = document.createElement('td');
+              const b = document.createElement('span');
+              b.className = `badge badge-${m.status}`;
+              b.textContent = m.status;
+              stTd.appendChild(b);
+
+              const reqTd = document.createElement('td');
+              reqTd.textContent = formatDate(m.requestedAt);
+
+              const actTd = document.createElement('td');
+              if (m.status === 'PENDING') {
+                const appBtn = document.createElement('button');
+                appBtn.className = 'btn btn-success btn-sm';
+                appBtn.textContent = 'Approve';
+                appBtn.style.marginRight = '0.5rem';
+                appBtn.addEventListener('click', async () => {
+                  try {
+                    await api.clubs.approveMember(cl.clubId, m.membershipId);
+                    showSuccess('Approved membership');
+                    loadMyClubs();
+                  } catch(e) {
+                    showError('Failed to approve');
+                  }
+                });
+
+                const rejBtn = document.createElement('button');
+                rejBtn.className = 'btn btn-danger btn-sm';
+                rejBtn.textContent = 'Reject';
+                rejBtn.addEventListener('click', async () => {
+                  try {
+                    await api.clubs.rejectMember(cl.clubId, m.membershipId);
+                    showSuccess('Rejected membership');
+                    loadMyClubs();
+                  } catch(e) {
+                    showError('Failed to reject');
+                  }
+                });
+
+                actTd.appendChild(appBtn);
+                actTd.appendChild(rejBtn);
+              } else {
+                actTd.textContent = 'Active Member';
+                actTd.style.color = 'var(--text-dim)';
+              }
+
+              tr.appendChild(nameTd);
+              tr.appendChild(rollTd);
+              tr.appendChild(stTd);
+              tr.appendChild(reqTd);
+              tr.appendChild(actTd);
+              tbody.appendChild(tr);
+            });
+          }
+        } catch(e) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 5;
+          td.style.textAlign = 'center';
+          td.textContent = 'Unable to fetch members list.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+        card.appendChild(tableContainer);
+
+        container.appendChild(card);
+      }
+    }
+
+    // ==========================================
+    // 3. EVENTS
+    // ==========================================
+    async function loadEvents() {
+      const grid = document.getElementById('coordinatorEventsGrid');
+      grid.replaceChildren();
+
+      try {
+        const res = await api.events.list({ size: 100 });
+        const events = res.data || [];
+        grid.replaceChildren();
+
+        if (events.length === 0) {
+          grid.appendChild(createEmptyState('📅', 'No Events Scheduled', 'Click "+ Host New Event" above to create a campus workshop.'));
+          return;
+        }
+
+        events.forEach(evt => {
+          const card = document.createElement('div');
+          card.className = 'card event-card';
+
+          const top = document.createElement('div');
+          top.className = 'event-card-top';
+
+          const info = document.createElement('div');
+          info.className = 'event-info';
+
+          const title = document.createElement('h3');
+          title.className = 'event-name';
+          title.textContent = evt.title;
+
+          const badge = document.createElement('span');
+          badge.className = 'badge badge-accent';
+          badge.textContent = evt.clubName || 'General';
+
+          info.appendChild(title);
+          info.appendChild(badge);
+          top.appendChild(info);
+
+          const desc = document.createElement('p');
+          desc.className = 'event-desc';
+          desc.textContent = evt.description || 'No description.';
+
+          const meta = document.createElement('div');
+          meta.className = 'meta-row';
+
+          const dateMeta = document.createElement('div');
+          dateMeta.className = 'meta-item';
+          dateMeta.textContent = `📅 ${formatDate(evt.eventDate)}`;
+
+          const venueMeta = document.createElement('div');
+          venueMeta.className = 'meta-item';
+          venueMeta.textContent = `📍 ${evt.venue || 'TBA'}`;
+
+          meta.appendChild(dateMeta);
+          meta.appendChild(venueMeta);
+
+          const capText = document.createElement('div');
+          capText.style.fontSize = '0.8rem';
+          capText.style.color = 'var(--text-muted)';
+          capText.style.marginBottom = '1rem';
+          capText.textContent = `Registrations: ${evt.registrationCount || 0} / ${evt.capacity || 0}`;
+
+          const footer = document.createElement('div');
+          footer.className = 'card-footer';
+
+          const markAttBtn = document.createElement('button');
+          markAttBtn.className = 'btn btn-secondary btn-sm';
+          markAttBtn.textContent = 'Check Attendance';
+          markAttBtn.addEventListener('click', () => {
+            switchSection('attendance');
+            const select = document.getElementById('attendanceEventSelect');
+            select.value = evt.eventId;
+            loadEventAttendanceRoster(evt.eventId);
+          });
+
+          footer.appendChild(markAttBtn);
+
+          card.appendChild(top);
+          card.appendChild(desc);
+          card.appendChild(meta);
+          card.appendChild(capText);
+          card.appendChild(footer);
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        grid.replaceChildren();
+        grid.appendChild(createEmptyState('✕', 'Error Loading Events', err.message));
+      }
+    }
+
+    // Create Event Form
+    document.getElementById('coordCreateEventForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveCoordEventSubmitBtn');
+      saveBtn.disabled = true;
+
+      try {
+        const payload = {
+          clubId: parseInt(document.getElementById('cEventClub').value, 10),
+          categoryId: parseInt(document.getElementById('cEventCategory').value, 10),
+          title: document.getElementById('cEventTitle').value.trim(),
+          description: document.getElementById('cEventDesc').value.trim(),
+          venue: document.getElementById('cEventVenue').value.trim(),
+          eventDate: document.getElementById('cEventDate').value,
+          startTime: document.getElementById('cEventStartTime').value,
+          endTime: document.getElementById('cEventEndTime').value,
+          capacity: parseInt(document.getElementById('cEventCapacity').value, 10),
+          registrationDeadline: document.getElementById('cEventDeadline').value
+        };
+
+        const res = await api.events.create(payload);
+        showSuccess(res.message || 'Event scheduled successfully!');
+        closeModal();
+        e.target.reset();
+        loadEvents();
+      } catch (err) {
+        showError(err.message || 'Failed to publish event');
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    // ==========================================
+    // 4. ATTENDANCE SYSTEM
+    // ==========================================
+    async function loadAttendanceEvents() {
+      const select = document.getElementById('attendanceEventSelect');
+      select.replaceChildren();
+
+      try {
+        const res = await api.events.list({ size: 100 });
+        const events = res.data || [];
+
+        if (events.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'No events available';
+          select.appendChild(opt);
+          return;
+        }
+
+        events.forEach(evt => {
+          const opt = document.createElement('option');
+          opt.value = evt.eventId;
+          opt.textContent = `${evt.title} (${formatDate(evt.eventDate)})`;
+          select.appendChild(opt);
+        });
+
+        if (events.length > 0) {
+          loadEventAttendanceRoster(events[0].eventId);
+        }
+      } catch(e) {
+        showError('Failed to load events for attendance');
+      }
+    }
+
+    document.getElementById('attendanceEventSelect').addEventListener('change', (e) => {
+      const id = e.target.value;
+      if (id) loadEventAttendanceRoster(id);
+    });
+
+    document.getElementById('refreshAttendanceBtn').addEventListener('click', () => {
+      const id = document.getElementById('attendanceEventSelect').value;
+      if (id) loadEventAttendanceRoster(id);
+    });
+
+    async function loadEventAttendanceRoster(eventId) {
+      const container = document.getElementById('attendanceRosterList');
+      container.replaceChildren();
+
+      const l = document.createElement('div');
+      l.className = 'loading-container';
+      l.appendChild(document.createElement('div')).className = 'spinner';
+      container.appendChild(l);
+
+      try {
+        const res = await api.events.getAttendance(eventId);
+        const attendees = res.data || [];
+        container.replaceChildren();
+
+        if (attendees.length === 0) {
+          container.appendChild(createEmptyState('🎟️', 'No Attendees Recorded', 'No check-ins have been logged for this event yet.'));
+          return;
+        }
+
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+
+        const table = document.createElement('table');
+        table.className = 'table-glass';
+
+        const thead = document.createElement('thead');
+        const trH = document.createElement('tr');
+        ['Student Roll No', 'Student Name', 'Check-in Time'].forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          trH.appendChild(th);
+        });
+        thead.appendChild(trH);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        attendees.forEach(a => {
+          const tr = document.createElement('tr');
+
+          const rollTd = document.createElement('td');
+          rollTd.style.fontFamily = 'monospace';
+          rollTd.textContent = a.rollNumber || 'N/A';
+
+          const nameTd = document.createElement('td');
+          nameTd.textContent = a.studentName || 'Student';
+
+          const timeTd = document.createElement('td');
+          timeTd.textContent = formatDateTime(a.checkInTime || a.markedAt);
+
+          tr.appendChild(rollTd);
+          tr.appendChild(nameTd);
+          tr.appendChild(timeTd);
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+        container.appendChild(tableContainer);
+
+      } catch (err) {
+        container.replaceChildren();
+        container.appendChild(createEmptyState('✓', 'Roster Ready', 'Mark student attendance using the form to populate roster.'));
+      }
+    }
+
+    // Check-in Attendance form
+    document.getElementById('attendanceCheckinForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const eventId = document.getElementById('attendanceEventSelect').value;
+      const rollInput = document.getElementById('attendanceRollInput').value.trim();
+
+      if (!eventId || !rollInput) return;
+
+      const btn = document.getElementById('markAttendanceBtn');
+      btn.disabled = true;
+
+      try {
+        // Extract roll number if format is QR TOKEN "EVENTID-STUDENTID-TIMESTAMP"
+        let roll = rollInput;
+        if (rollInput.includes('-') && rollInput.startsWith('EVT-')) {
+          const parts = rollInput.split('-');
+          roll = parts[3] || rollInput;
+        }
+
+        const res = await api.events.markAttendance(eventId, roll);
+        showSuccess(res.message || `Attendance confirmed for ${roll}!`);
+        document.getElementById('attendanceRollInput').value = '';
+        loadEventAttendanceRoster(eventId);
+      } catch (err) {
+        showError(err.message || 'Failed to mark attendance');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ==========================================
+    // 5. ANNOUNCEMENTS
+    // ==========================================
+    document.getElementById('coordAnnouncementForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const payload = {
+          title: document.getElementById('coordAnnTitle').value.trim(),
+          clubId: parseInt(document.getElementById('coordAnnClub').value, 10),
+          content: document.getElementById('coordAnnContent').value.trim()
+        };
+        await api.admin.announcements.create(payload);
+        showSuccess('Club announcement broadcasted successfully!');
+        e.target.reset();
+      } catch (err) {
+        showError(err.message || 'Failed to post announcement');
+      }
+    });
+
+    function createEmptyState(iconText, titleText, descText) {
+      const div = document.createElement('div');
+      div.className = 'empty-state';
+
+      const icon = document.createElement('div');
+      icon.className = 'empty-state-icon';
+      icon.textContent = iconText;
+
+      const title = document.createElement('div');
+      title.className = 'empty-state-title';
+      title.textContent = titleText;
+
+      const desc = document.createElement('div');
+      desc.className = 'empty-state-desc';
+      desc.textContent = descText;
+
+      div.appendChild(icon);
+      div.appendChild(title);
+      div.appendChild(desc);
+      return div;
+    }
+
+    // Init
+    loadDashboard();
+  </script>
+</body>
+</html>

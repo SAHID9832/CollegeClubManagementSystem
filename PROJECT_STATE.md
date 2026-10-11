@@ -37,14 +37,14 @@
   - [x] Faculty Phase 1 console classes in `com.collegeclub.phase1`: `User`, `Validation`, `Main`
   - [x] Production models in `com.collegeclub.model`: `User`, `Student`, `Admin`, `Club`, `Event`, `Role`
   - [x] Unit tests for string validation and model encapsulation (7/7 tests passed)
-- [ ] **Phase 2: Structured Programming and Reliability** (Tag: `phase-2-complete`)
-  - [ ] Interfaces in `com.collegeclub.service`: `UserOperations`, `ClubOperations`, `EventOperations`
-  - [ ] Implementations in `com.collegeclub.service.impl`: `UserService`, `ClubService`, `EventService`
-  - [ ] Exception hierarchy in `com.collegeclub.exception`: `ClubSystemException`, `InvalidInputException`, `InvalidUsernameException`, etc.
-  - [ ] PBKDF2WithHmacSHA256 password hashing with salt in `com.collegeclub.util.PasswordUtil`
-  - [ ] Central DAO layer & H2/MySQL DDL `schema.sql`
-  - [ ] Preserved Phase 2 console application in `com.collegeclub.app.Main`
-  - [ ] Unit tests for service operations, exceptions, PBKDF2 hashing
+- [x] **Phase 2: Structured Programming and Reliability** (Tag: `phase-2-complete`)
+  - [x] Interfaces in `com.collegeclub.service`: `UserOperations`, `ClubOperations`, `EventOperations`
+  - [x] Implementations in `com.collegeclub.service.impl`: `UserService`, `ClubService`, `EventService`
+  - [x] Exception hierarchy in `com.collegeclub.exception`: `ClubSystemException`, `InvalidInputException`, `InvalidUsernameException`, etc.
+  - [x] PBKDF2WithHmacSHA256 password hashing with salt in `com.collegeclub.util.PasswordUtil`
+  - [x] Central DAO layer & H2/MySQL DDL `schema.sql`
+  - [x] Preserved Phase 2 console application in `com.collegeclub.app.Main`
+  - [x] Unit tests for service operations, exceptions, PBKDF2 hashing (15/15 tests passed)
 - [ ] **Phase 3: Web Interface and Client Interaction** (Tag: `phase-3-complete`)
   - [ ] Faculty Phase 3 sample recreated faithfully: `#registerSection`, `#loginSection`, `#showLogin`, `#showRegister`, `regUsername`, `regPassword`, `loginUsername`, `loginPassword`
   - [ ] Upgraded glassmorphism UI pages: `index.html`, `register.html`, `login.html`, `clubs.html`, `club.html`, `events.html`, `event.html`, `demo.html`

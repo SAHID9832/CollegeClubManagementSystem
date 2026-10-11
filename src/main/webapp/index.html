@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-badge">🏛️</div>
+        <div>
+          <div class="brand-text">CampusHub</div>
+          <div class="brand-sub">Student Portal</div>
+        </div>
+      </div>
+
+      <div class="user-profile-preview">
+        <div class="avatar-circle" id="sidebarAvatar">ST</div>
+        <div class="user-meta">
+          <div class="name" id="sidebarUserName">Student</div>
+          <span class="role-tag" id="sidebarUserRole">STUDENT</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-section="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-link" data-section="clubs">
+          <span class="nav-icon">🎯</span>
+          <span>Explore Clubs</span>
+        </button>
+        <button class="nav-link" data-section="events">
+          <span class="nav-icon">📅</span>
+          <span>Events</span>
+        </button>
+        <button class="nav-link" data-section="profile">
+          <span class="nav-icon">👤</span>
+          <span>My Profile</span>
+        </button>
+        <button class="nav-link" data-section="notifications">
+          <span class="nav-icon">🔔</span>
+          <span>Notifications</span>
+          <span class="nav-badge" id="sidebarNotifBadge" style="display: none;">0</span>
+        </button>
+        <button class="nav-link" data-section="xml-portal">
+          <span class="nav-icon">⚡</span>
+          <span>XML Data Portal</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="nav-link btn-ghost" style="color: var(--danger);">
+          <span class="nav-icon">🚪</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- SECTION: DASHBOARD -->
+      <section id="section-dashboard" class="content-section">
+        <div class="welcome-banner">
+          <h1 id="welcomeGreeting">Welcome back!</h1>
+          <p style="color: var(--text-muted); margin-bottom: 0;">Explore exciting campus clubs, enroll in upcoming workshops, and collaborate with your peers.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon primary">🎯</div>
+            <div class="stat-info">
+              <span class="stat-label">Clubs Joined</span>
+              <span class="stat-value" id="statClubsJoined">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon accent">🎟️</div>
+            <div class="stat-info">
+              <span class="stat-label">Events Registered</span>
+              <span class="stat-value" id="statEventsRegistered">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon warning">⏳</div>
+            <div class="stat-info">
+              <span class="stat-label">Pending Requests</span>
+              <span class="stat-value" id="statPendingRequests">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon success">🚀</div>
+            <div class="stat-info">
+              <span class="stat-label">Upcoming Events</span>
+              <span class="stat-value" id="statUpcomingEvents">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Chart: Category Distribution -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">📈 Event Participation by Category</h3>
+              <p class="card-subtitle">Real-time statistics across active university club events</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="statsChart" width="800" height="260"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two columns: Upcoming Events & My Clubs -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+          <!-- Upcoming Events Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📅 Upcoming Registered Events</h3>
+              <button class="btn btn-ghost btn-sm" id="viewAllEventsBtn">View All</button>
+            </div>
+            <div class="card-body" id="dashboardUpcomingEventsList">
+              <div class="loading-container">
+                <div class="spinner"></div>
+                <span>Loading events...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Clubs Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">🛡️ My Clubs</h3>
+              <button class="btn btn-ghost btn-sm" id="viewAllClubsBtn">Explore More</button>
+            </div>
+            <div class="card-body" id="dashboardMyClubsList">
+              <div class="loading-container">
+                <div class="spinner"></div>
+                <span>Loading clubs...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">🔔 Recent Notifications</h3>
+            <button class="btn btn-ghost btn-sm" id="viewAllNotificationsBtn">All Alerts</button>
+          </div>
+          <div class="card-body" id="dashboardNotificationsList">
+            <div class="loading-container">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: EXPLORE CLUBS -->
+      <section id="section-clubs" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Explore Campus Clubs</h1>
+            <p style="color: var(--text-muted);">Discover and connect with specialized student organizations</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="clubSearchInput" class="input-field" placeholder="Search clubs by name or keywords...">
+          </div>
+
+          <div class="filter-pills" id="clubCategoryFilters">
+            <button class="pill-btn active" data-category="">All Categories</button>
+            <button class="pill-btn" data-category="Technical">Technical</button>
+            <button class="pill-btn" data-category="Cultural">Cultural</button>
+            <button class="pill-btn" data-category="Sports">Sports</button>
+            <button class="pill-btn" data-category="Academic">Academic</button>
+            <button class="pill-btn" data-category="Social">Social</button>
+          </div>
+
+          <select id="clubSortSelect" class="select-field" style="width: auto; min-width: 160px;">
+            <option value="name">Sort by Name</option>
+            <option value="memberCount">Most Members</option>
+            <option value="newest">Newest First</option>
+          </select>
+        </div>
+
+        <div id="clubsGrid" class="cards-grid">
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
+
+        <div class="pagination" id="clubPagination">
+          <button class="btn btn-secondary btn-sm" id="clubPrevBtn" disabled>← Previous</button>
+          <span class="page-indicator" id="clubPageIndicator">Page 1</span>
+          <button class="btn btn-secondary btn-sm" id="clubNextBtn">Next →</button>
+        </div>
+      </section>
+
+      <!-- SECTION: EVENTS -->
+      <section id="section-events" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Campus Events & Workshops</h1>
+            <p style="color: var(--text-muted);">Expand your skills and network through organized campus activities</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="eventSearchInput" class="input-field" placeholder="Search events by title or venue...">
+          </div>
+
+          <div class="filter-pills" id="eventStatusFilters">
+            <button class="pill-btn active" data-filter="all">All Events</button>
+            <button class="pill-btn" data-filter="upcoming">Upcoming</button>
+            <button class="pill-btn" data-filter="my">My Registrations</button>
+            <button class="pill-btn" data-filter="past">Past</button>
+          </div>
+        </div>
+
+        <div id="eventsGrid" class="cards-grid">
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
+
+        <div class="pagination" id="eventPagination">
+          <button class="btn btn-secondary btn-sm" id="eventPrevBtn" disabled>← Previous</button>
+          <span class="page-indicator" id="eventPageIndicator">Page 1</span>
+          <button class="btn btn-secondary btn-sm" id="eventNextBtn">Next →</button>
+        </div>
+      </section>
+
+      <!-- SECTION: MY PROFILE -->
+      <section id="section-profile" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Student Profile</h1>
+            <p style="color: var(--text-muted);">Manage your personal information and credentials</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Profile Details Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">👤 Personal Details</h3>
+              <button class="btn btn-secondary btn-sm" id="editProfileToggleBtn">Edit Details</button>
+            </div>
+            <div class="card-body">
+              <div id="profileViewMode">
+                <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem;">
+                  <div class="avatar-circle" id="profileLargeAvatar" style="width: 64px; height: 64px; font-size: 1.6rem;">ST</div>
+                  <div>
+                    <h2 id="profFullNameText" style="font-size: 1.35rem; margin-bottom: 0.15rem;">Student Name</h2>
+                    <span class="badge badge-primary" id="profRoleBadge">STUDENT</span>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.95rem;">
+                  <div>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Username</span>
+                    <strong id="profUsernameText">-</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Email</span>
+                    <strong id="profEmailText">-</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Roll Number</span>
+                    <strong id="profRollNumberText">-</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Department</span>
+                    <strong id="profDeptText">-</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Course</span>
+                    <strong id="profCourseText">-</strong>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Year</span>
+                    <strong id="profYearText">-</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Profile Edit Form -->
+              <form id="profileEditForm" style="display: none; margin-top: 1rem;">
+                <div class="form-group">
+                  <label class="form-label" for="editFullName">Full Name</label>
+                  <input type="text" id="editFullName" class="input-field" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="editEmail">Email Address</label>
+                  <input type="email" id="editEmail" class="input-field" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="editDepartment">Department</label>
+                    <input type="text" id="editDepartment" class="input-field" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="editCourse">Course</label>
+                    <input type="text" id="editCourse" class="input-field" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="editYear">Year of Study</label>
+                  <select id="editYear" class="select-field" required>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                    <option value="5">5th Year</option>
+                  </select>
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                  <button type="button" class="btn btn-ghost" id="cancelEditProfileBtn">Cancel</button>
+                  <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Change Password Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">🔒 Security & Password</h3>
+            </div>
+            <div class="card-body">
+              <form id="changePasswordForm">
+                <div class="form-group">
+                  <label class="form-label" for="oldPassword">Current Password</label>
+                  <input type="password" id="oldPassword" class="input-field" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="newPassword">New Password</label>
+                  <input type="password" id="newPassword" class="input-field" required minlength="6">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="confirmNewPassword">Confirm New Password</label>
+                  <input type="password" id="confirmNewPassword" class="input-field" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-secondary btn-block">Update Password</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: NOTIFICATIONS -->
+      <section id="section-notifications" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>Notifications & Alerts</h1>
+            <p style="color: var(--text-muted);">Stay updated on club membership status and event alerts</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="markAllReadBtn">Mark All as Read</button>
+        </div>
+
+        <div id="fullNotificationsList">
+          <div class="loading-container">
+            <div class="spinner"></div>
+            <span>Loading notifications...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: XML DATA PORTAL (ACADEMIC DEMO) -->
+      <section id="section-xml-portal" class="content-section" style="display: none;">
+        <div class="card-header" style="border: none; padding: 0 0 1.5rem 0;">
+          <div>
+            <h1>XML Data Portal</h1>
+            <p style="color: var(--text-muted);">DSA / XML Academic Module for hierarchical student data serialization</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Export Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📤 Export Student XML</h3>
+              <button class="btn btn-primary btn-sm" id="fetchXmlExportBtn">Export Profile XML</button>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                Fetches raw XML data representing student attributes, memberships, and registered events.
+              </p>
+              <pre id="xmlExportViewer" class="xml-container">&lt;!-- Click 'Export Profile XML' to load data --&gt;</pre>
+            </div>
+          </div>
+
+          <!-- Import Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📥 Import XML Data</h3>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                Paste compliant XML schema to batch import student profile and extracurricular data.
+              </p>
+              <form id="xmlImportForm">
+                <textarea 
+                  id="xmlImportInput" 
+                  class="textarea-field" 
+                  rows="8" 
+                  style="font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem;" 
+                  placeholder="&lt;student&gt;&#10;  &lt;rollNumber&gt;CS2026-042&lt;/rollNumber&gt;&#10;&lt;/student&gt;" 
+                  required
+                ></textarea>
+                <button type="submit" class="btn btn-secondary btn-block">Parse & Upload XML</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Event Detail & Feedback Modal -->
+  <div class="modal-overlay" id="eventModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="eventModalTitle">Event Details</h3>
+        <button class="modal-close" id="eventModalCloseBtn">✕</button>
+      </div>
+      <div class="modal-body" id="eventModalBody">
+        <!-- Injected via safe createElement -->
+      </div>
+      <div class="modal-footer" id="eventModalFooter">
+        <!-- Buttons injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script type="module">
+    import { api, session, showSuccess, showError, formatDate, formatDateTime } from './js/api.js';
+
+    // Verify authentication
+    const user = session.requireAuth();
+    if (!user) {
+      // redirected
+    }
+
+    // Populate Sidebar User Meta
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    const sidebarUserName = document.getElementById('sidebarUserName');
+    const sidebarUserRole = document.getElementById('sidebarUserRole');
+    const welcomeGreeting = document.getElementById('welcomeGreeting');
+
+    const initials = (user.fullName || user.username || 'ST')
+      .split(' ')
+      .map(n => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+    sidebarAvatar.textContent = initials;
+    sidebarUserName.textContent = user.fullName || user.username;
+    sidebarUserRole.textContent = user.role;
+    welcomeGreeting.textContent = `Welcome back, ${user.fullName || user.username}!`;
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await api.auth.logout();
+      } catch (e) {
+        session.clear();
+        window.location.replace('login.html');
+      }
+    });
+
+    // Navigation Switcher
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function switchSection(sectionId) {
+      navLinks.forEach(link => {
+        if (link.dataset.section === sectionId) link.classList.add('active');
+        else link.classList.remove('active');
+      });
+
+      sections.forEach(sec => {
+        if (sec.id === `section-${sectionId}`) sec.style.display = 'block';
+        else sec.style.display = 'none';
+      });
+
+      if (sectionId === 'clubs') loadClubs();
+      if (sectionId === 'events') loadEvents();
+      if (sectionId === 'profile') loadProfile();
+      if (sectionId === 'notifications') loadNotifications();
+      if (sectionId === 'dashboard') loadDashboard();
+    }
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        switchSection(link.dataset.section);
+      });
+    });
+
+    document.getElementById('viewAllEventsBtn')?.addEventListener('click', () => switchSection('events'));
+    document.getElementById('viewAllClubsBtn')?.addEventListener('click', () => switchSection('clubs'));
+    document.getElementById('viewAllNotificationsBtn')?.addEventListener('click', () => switchSection('notifications'));
+
+    // Modal dismiss helpers
+    const eventModal = document.getElementById('eventModal');
+    const eventModalCloseBtn = document.getElementById('eventModalCloseBtn');
+
+    function closeModal() {
+      eventModal.classList.remove('active');
+    }
+
+    eventModalCloseBtn.addEventListener('click', closeModal);
+    eventModal.addEventListener('click', (e) => {
+      if (e.target === eventModal) closeModal();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && eventModal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+
+    // ==========================================
+    // 1. DASHBOARD DATA & CANVAS CHART
+    // ==========================================
+    let statsChartDrawn = false;
+
+    async function loadDashboard() {
+      try {
+        // Fetch student clubs, events, notifications, and stats
+        const [myClubsRes, myEventsRes, notifsRes] = await Promise.allSettled([
+          api.students.myClubs(),
+          api.students.myEvents(),
+          api.students.myNotifications()
+        ]);
+
+        const clubs = myClubsRes.status === 'fulfilled' && myClubsRes.value?.data ? myClubsRes.value.data : [];
+        const events = myEventsRes.status === 'fulfilled' && myEventsRes.value?.data ? myEventsRes.value.data : [];
+        const notifs = notifsRes.status === 'fulfilled' && notifsRes.value?.data ? notifsRes.value.data : [];
+
+        // Count pending
+        const pendingCount = clubs.filter(c => c.status === 'PENDING').length;
+        const upcomingCount = events.filter(e => {
+          if (!e.eventDate) return false;
+          return new Date(e.eventDate) >= new Date();
+        }).length;
+
+        document.getElementById('statClubsJoined').textContent = clubs.filter(c => c.status === 'ACTIVE' || !c.status).length;
+        document.getElementById('statEventsRegistered').textContent = events.length;
+        document.getElementById('statPendingRequests').textContent = pendingCount;
+        document.getElementById('statUpcomingEvents').textContent = upcomingCount;
+
+        // Render upcoming events preview (up to 3)
+        const upcomingContainer = document.getElementById('dashboardUpcomingEventsList');
+        upcomingContainer.replaceChildren();
+        const nextEvents = events.slice(0, 3);
+        if (nextEvents.length === 0) {
+          const empty = createEmptyState('📅', 'No Upcoming Events', 'Browse our events catalog to sign up for workshops.');
+          upcomingContainer.appendChild(empty);
+        } else {
+          nextEvents.forEach(evt => {
+            const row = document.createElement('div');
+            row.className = 'notification-item';
+            
+            const icon = document.createElement('span');
+            icon.className = 'notification-icon';
+            icon.textContent = '🎟️';
+
+            const content = document.createElement('div');
+            content.className = 'notification-content';
+
+            const title = document.createElement('div');
+            title.className = 'notification-title';
+            title.textContent = evt.title;
+
+            const time = document.createElement('div');
+            time.className = 'notification-time';
+            time.textContent = `${formatDate(evt.eventDate)} • ${evt.venue || 'Campus Venue'}`;
+
+            content.appendChild(title);
+            content.appendChild(time);
+            row.appendChild(icon);
+            row.appendChild(content);
+            upcomingContainer.appendChild(row);
+          });
+        }
+
+        // Render my clubs preview (up to 3)
+        const clubsContainer = document.getElementById('dashboardMyClubsList');
+        clubsContainer.replaceChildren();
+        const previewClubs = clubs.slice(0, 3);
+        if (previewClubs.length === 0) {
+          const empty = createEmptyState('🎯', 'No Clubs Joined Yet', 'Explore clubs to participate in projects & activities.');
+          clubsContainer.appendChild(empty);
+        } else {
+          previewClubs.forEach(cl => {
+            const item = document.createElement('div');
+            item.className = 'notification-item';
+
+            const icon = document.createElement('span');
+            icon.className = 'notification-icon';
+            icon.textContent = cl.categoryIcon || '🛡️';
+
+            const content = document.createElement('div');
+            content.className = 'notification-content';
+
+            const title = document.createElement('div');
+            title.className = 'notification-title';
+            title.textContent = cl.name;
+
+            const sub = document.createElement('div');
+            sub.className = 'notification-time';
+            sub.textContent = `${cl.categoryName || 'General'} • Status: ${cl.status || 'Active'}`;
+
+            content.appendChild(title);
+            content.appendChild(sub);
+            item.appendChild(icon);
+            item.appendChild(content);
+            clubsContainer.appendChild(item);
+          });
+        }
+
+        // Render recent notifications
+        const notifContainer = document.getElementById('dashboardNotificationsList');
+        notifContainer.replaceChildren();
+        const unreadCount = notifs.filter(n => !n.isRead).length;
+        const badge = document.getElementById('sidebarNotifBadge');
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+
+        const recentNotifs = notifs.slice(0, 5);
+        if (recentNotifs.length === 0) {
+          const empty = createEmptyState('🔔', 'No Notifications', 'You are all caught up with your campus alerts.');
+          notifContainer.appendChild(empty);
+        } else {
+          recentNotifs.forEach(n => {
+            const item = renderNotificationItem(n);
+            notifContainer.appendChild(item);
+          });
+        }
+
+        // Draw Canvas Chart
+        drawCategoryChart(events);
+
+      } catch (e) {
+        console.error('Error loading dashboard:', e);
+      }
+    }
+
+    // Vanilla Canvas 2D Bar Chart
+    function drawCategoryChart(userEvents) {
+      const canvas = document.getElementById('statsChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      // Category breakdown
+      const categories = ['Technical', 'Cultural', 'Sports', 'Academic', 'Social'];
+      const counts = [0, 0, 0, 0, 0];
+
+      userEvents.forEach(e => {
+        const cat = e.categoryName || '';
+        const idx = categories.findIndex(c => c.toLowerCase() === cat.toLowerCase());
+        if (idx !== -1) counts[idx]++;
+        else counts[0]++; // default
+      });
+
+      // If user has zero events, provide default sample distribution for demo
+      const totalCount = counts.reduce((a, b) => a + b, 0);
+      const displayCounts = totalCount === 0 ? [8, 5, 4, 6, 3] : counts;
+      const maxVal = Math.max(...displayCounts, 10);
+
+      ctx.clearRect(0, 0, width, height);
+
+      const paddingLeft = 50;
+      const paddingBottom = 40;
+      const paddingTop = 20;
+      const paddingRight = 20;
+      const chartWidth = width - paddingLeft - paddingRight;
+      const chartHeight = height - paddingTop - paddingBottom;
+
+      const barWidth = Math.min(chartWidth / (categories.length * 2), 48);
+      const spacing = chartWidth / categories.length;
+
+      // Color gradients
+      const colors = [
+        ['#6366f1', '#4f46e5'], // Indigo
+        ['#8b5cf6', '#7c3aed'], // Violet
+        ['#06b6d4', '#0891b2'], // Cyan
+        ['#10b981', '#059669'], // Emerald
+        ['#f43f5e', '#e11d48']  // Rose
+      ];
+
+      // Draw gridlines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = paddingTop + (chartHeight / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(width - paddingRight, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px Inter';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), paddingLeft - 8, y + 4);
+      }
+
+      // Draw bars
+      categories.forEach((cat, index) => {
+        const val = displayCounts[index];
+        const barHeight = (val / maxVal) * chartHeight;
+        const x = paddingLeft + spacing * index + (spacing - barWidth) / 2;
+        const y = height - paddingBottom - barHeight;
+
+        // Gradient fill
+        const grad = ctx.createLinearGradient(x, y, x, height - paddingBottom);
+        grad.addColorStop(0, colors[index % colors.length][0]);
+        grad.addColorStop(1, colors[index % colors.length][1]);
+
+        ctx.fillStyle = grad;
+        // Rounded bar top
+        const r = 6;
+        ctx.beginPath();
+        ctx.moveTo(x, height - paddingBottom);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.lineTo(x + barWidth - r, y);
+        ctx.quadraticCurveTo(x + barWidth, y, x + barWidth, y + r);
+        ctx.lineTo(x + barWidth, height - paddingBottom);
+        ctx.closePath();
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText(cat, x + barWidth / 2, height - paddingBottom + 20);
+
+        // Value text
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 11px Inter';
+        ctx.fillText(val, x + barWidth / 2, y - 6);
+      });
+    }
+
+    // ==========================================
+    // 2. EXPLORE CLUBS
+    // ==========================================
+    let currentClubCategory = '';
+    let currentClubSearch = '';
+    let currentClubSort = 'name';
+    let currentClubPage = 1;
+    const CLUB_PAGE_SIZE = 6;
+
+    async function loadClubs() {
+      const grid = document.getElementById('clubsGrid');
+      grid.replaceChildren();
+
+      // Show skeleton
+      for (let i = 0; i < 3; i++) {
+        const sk = document.createElement('div');
+        sk.className = 'skeleton skeleton-card';
+        grid.appendChild(sk);
+      }
+
+      try {
+        const res = await api.clubs.list({
+          category: currentClubCategory,
+          search: currentClubSearch,
+          sort: currentClubSort,
+          page: currentClubPage,
+          size: CLUB_PAGE_SIZE
+        });
+
+        grid.replaceChildren();
+        const clubs = res.data || [];
+
+        if (clubs.length === 0) {
+          grid.appendChild(createEmptyState('🎯', 'No Clubs Found', 'Try adjusting your search query or filters.'));
+          return;
+        }
+
+        // Fetch student's joined clubs to know membership status
+        let myClubIds = new Set();
+        try {
+          const myClubsRes = await api.students.myClubs();
+          if (myClubsRes.data) {
+            myClubsRes.data.forEach(c => myClubIds.add(c.clubId));
+          }
+        } catch(e) {}
+
+        clubs.forEach(club => {
+          const card = renderClubCard(club, myClubIds.has(club.clubId));
+          grid.appendChild(card);
+        });
+
+        document.getElementById('clubPageIndicator').textContent = `Page ${currentClubPage}`;
+        document.getElementById('clubPrevBtn').disabled = currentClubPage <= 1;
+        document.getElementById('clubNextBtn').disabled = clubs.length < CLUB_PAGE_SIZE;
+
+      } catch (err) {
+        grid.replaceChildren();
+        grid.appendChild(createEmptyState('✕', 'Failed to Load Clubs', err.message || 'Please retry later.'));
+      }
+    }
+
+    function renderClubCard(club, isMember) {
+      const card = document.createElement('div');
+      card.className = 'card club-card card-interactive';
+
+      const top = document.createElement('div');
+      top.className = 'club-card-top';
+
+      const icon = document.createElement('div');
+      icon.className = 'club-icon';
+      icon.textContent = club.categoryIcon || '🛡️';
+
+      const info = document.createElement('div');
+      info.className = 'club-info';
+
+      const title = document.createElement('h3');
+      title.className = 'club-name';
+      title.textContent = club.name;
+
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-primary';
+      badge.textContent = club.categoryName || 'General';
+
+      info.appendChild(title);
+      info.appendChild(badge);
+      top.appendChild(icon);
+      top.appendChild(info);
+
+      const desc = document.createElement('p');
+      desc.className = 'club-desc';
+      desc.textContent = club.description || 'No description provided.';
+
+      const meta = document.createElement('div');
+      meta.className = 'meta-row';
+
+      const members = document.createElement('div');
+      members.className = 'meta-item';
+      members.textContent = `👥 ${club.memberCount || 0} / ${club.maxMembers || '∞'} members`;
+
+      const coord = document.createElement('div');
+      coord.className = 'meta-item';
+      coord.textContent = `👤 ${club.coordinatorName || 'Unassigned'}`;
+
+      meta.appendChild(members);
+      meta.appendChild(coord);
+
+      const actions = document.createElement('div');
+      actions.className = 'card-footer';
+
+      const actionBtn = document.createElement('button');
+      if (isMember) {
+        actionBtn.className = 'btn btn-danger btn-sm';
+        actionBtn.textContent = 'Leave Club';
+        actionBtn.addEventListener('click', async () => {
+          if (!confirm(`Are you sure you want to leave ${club.name}?`)) return;
+          actionBtn.disabled = true;
+          try {
+            await api.clubs.leave(club.clubId);
+            showSuccess(`Left ${club.name}`);
+            loadClubs();
+            loadDashboard();
+          } catch(e) {
+            showError(e.message || 'Failed to leave club');
+          } finally {
+            actionBtn.disabled = false;
+          }
+        });
+      } else {
+        actionBtn.className = 'btn btn-primary btn-sm';
+        actionBtn.textContent = 'Join Club';
+        actionBtn.addEventListener('click', async () => {
+          actionBtn.disabled = true;
+          try {
+            const res = await api.clubs.join(club.clubId);
+            showSuccess(res.message || 'Membership requested!');
+            loadClubs();
+            loadDashboard();
+          } catch(e) {
+            showError(e.message || 'Failed to request membership');
+          } finally {
+            actionBtn.disabled = false;
+          }
+        });
+      }
+
+      actions.appendChild(actionBtn);
+
+      card.appendChild(top);
+      card.appendChild(desc);
+      card.appendChild(meta);
+      card.appendChild(actions);
+      return card;
+    }
+
+    // Club Filters & Search Wiring
+    document.getElementById('clubSearchInput').addEventListener('input', (e) => {
+      currentClubSearch = e.target.value.trim();
+      currentClubPage = 1;
+      loadClubs();
+    });
+
+    document.querySelectorAll('#clubCategoryFilters .pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#clubCategoryFilters .pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentClubCategory = btn.dataset.category;
+        currentClubPage = 1;
+        loadClubs();
+      });
+    });
+
+    document.getElementById('clubSortSelect').addEventListener('change', (e) => {
+      currentClubSort = e.target.value;
+      currentClubPage = 1;
+      loadClubs();
+    });
+
+    document.getElementById('clubPrevBtn').addEventListener('click', () => {
+      if (currentClubPage > 1) {
+        currentClubPage--;
+        loadClubs();
+      }
+    });
+
+    document.getElementById('clubNextBtn').addEventListener('click', () => {
+      currentClubPage++;
+      loadClubs();
+    });
+
+    // ==========================================
+    // 3. EVENTS SECTION
+    // ==========================================
+    let currentEventStatus = 'all';
+    let currentEventSearch = '';
+    let currentEventPage = 1;
+    const EVENT_PAGE_SIZE = 6;
+
+    async function loadEvents() {
+      const grid = document.getElementById('eventsGrid');
+      grid.replaceChildren();
+
+      for (let i = 0; i < 3; i++) {
+        const sk = document.createElement('div');
+        sk.className = 'skeleton skeleton-card';
+        grid.appendChild(sk);
+      }
+
+      try {
+        let events = [];
+        if (currentEventStatus === 'my') {
+          const res = await api.students.myEvents();
+          events = res.data || [];
+        } else {
+          const res = await api.events.list({
+            status: currentEventStatus === 'all' ? '' : currentEventStatus,
+            search: currentEventSearch,
+            page: currentEventPage,
+            size: EVENT_PAGE_SIZE
+          });
+          events = res.data || [];
+        }
+
+        grid.replaceChildren();
+
+        if (events.length === 0) {
+          grid.appendChild(createEmptyState('📅', 'No Events Found', 'Try selecting another tab or search criteria.'));
+          return;
+        }
+
+        events.forEach(evt => {
+          const card = renderEventCard(evt);
+          grid.appendChild(card);
+        });
+
+        document.getElementById('eventPageIndicator').textContent = `Page ${currentEventPage}`;
+        document.getElementById('eventPrevBtn').disabled = currentEventPage <= 1;
+        document.getElementById('eventNextBtn').disabled = events.length < EVENT_PAGE_SIZE;
+
+      } catch (err) {
+        grid.replaceChildren();
+        grid.appendChild(createEmptyState('✕', 'Failed to Load Events', err.message || 'Please retry later.'));
+      }
+    }
+
+    function renderEventCard(evt) {
+      const card = document.createElement('div');
+      card.className = 'card event-card card-interactive';
+
+      const top = document.createElement('div');
+      top.className = 'event-card-top';
+
+      const info = document.createElement('div');
+      info.className = 'event-info';
+
+      const title = document.createElement('h3');
+      title.className = 'event-name';
+      title.textContent = evt.title;
+
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-accent';
+      badge.textContent = evt.clubName || evt.categoryName || 'Campus Event';
+
+      info.appendChild(title);
+      info.appendChild(badge);
+      top.appendChild(info);
+
+      const desc = document.createElement('p');
+      desc.className = 'event-desc';
+      desc.textContent = evt.description || 'No description provided.';
+
+      const meta = document.createElement('div');
+      meta.className = 'meta-row';
+
+      const dateMeta = document.createElement('div');
+      dateMeta.className = 'meta-item';
+      dateMeta.textContent = `📅 ${formatDate(evt.eventDate)}`;
+
+      const venueMeta = document.createElement('div');
+      venueMeta.className = 'meta-item';
+      venueMeta.textContent = `📍 ${evt.venue || 'TBA'}`;
+
+      meta.appendChild(dateMeta);
+      meta.appendChild(venueMeta);
+
+      // Capacity bar
+      const progressContainer = document.createElement('div');
+      progressContainer.className = 'progress-bar-container';
+      const cap = evt.capacity || 100;
+      const reg = evt.registrationCount || 0;
+      const pct = Math.min(100, Math.round((reg / cap) * 100));
+
+      const progressBar = document.createElement('div');
+      progressBar.className = 'progress-bar';
+      progressBar.style.width = `${pct}%`;
+      progressContainer.appendChild(progressBar);
+
+      const capacityLabel = document.createElement('div');
+      capacityLabel.style.fontSize = '0.75rem';
+      capacityLabel.style.color = 'var(--text-dim)';
+      capacityLabel.style.marginBottom = '0.5rem';
+      capacityLabel.textContent = `Capacity: ${reg} / ${cap} registered (${pct}%)`;
+
+      const footer = document.createElement('div');
+      footer.className = 'card-footer';
+
+      const viewDetailsBtn = document.createElement('button');
+      viewDetailsBtn.className = 'btn btn-secondary btn-sm';
+      viewDetailsBtn.textContent = 'View Details';
+      viewDetailsBtn.addEventListener('click', () => openEventModal(evt.eventId));
+
+      const regBtn = document.createElement('button');
+      if (evt.isRegistered) {
+        regBtn.className = 'btn btn-danger btn-sm';
+        regBtn.textContent = 'Cancel Registration';
+        regBtn.addEventListener('click', async () => {
+          if (!confirm(`Cancel your registration for "${evt.title}"?`)) return;
+          regBtn.disabled = true;
+          try {
+            await api.events.cancelRegistration(evt.eventId);
+            showSuccess('Registration cancelled');
+            loadEvents();
+            loadDashboard();
+          } catch(e) {
+            showError(e.message || 'Failed to cancel');
+          } finally {
+            regBtn.disabled = false;
+          }
+        });
+      } else {
+        const isFull = reg >= cap;
+        regBtn.className = isFull ? 'btn btn-accent btn-sm' : 'btn btn-primary btn-sm';
+        regBtn.textContent = isFull ? 'Join Waitlist' : 'Register Now';
+        regBtn.addEventListener('click', async () => {
+          regBtn.disabled = true;
+          try {
+            const res = await api.events.register(evt.eventId);
+            showSuccess(res.message || 'Successfully registered!');
+            loadEvents();
+            loadDashboard();
+          } catch(e) {
+            showError(e.message || 'Registration failed');
+          } finally {
+            regBtn.disabled = false;
+          }
+        });
+      }
+
+      footer.appendChild(viewDetailsBtn);
+      footer.appendChild(regBtn);
+
+      card.appendChild(top);
+      card.appendChild(desc);
+      card.appendChild(meta);
+      card.appendChild(capacityLabel);
+      card.appendChild(progressContainer);
+      card.appendChild(footer);
+
+      return card;
+    }
+
+    async function openEventModal(eventId) {
+      const body = document.getElementById('eventModalBody');
+      const footer = document.getElementById('eventModalFooter');
+      body.replaceChildren();
+      footer.replaceChildren();
+
+      const loading = document.createElement('div');
+      loading.className = 'loading-container';
+      loading.appendChild(document.createElement('div')).className = 'spinner';
+      body.appendChild(loading);
+      eventModal.classList.add('active');
+
+      try {
+        const res = await api.events.get(eventId);
+        const evt = res.data;
+        body.replaceChildren();
+
+        document.getElementById('eventModalTitle').textContent = evt.title;
+
+        const infoBlock = document.createElement('div');
+        infoBlock.style.marginBottom = '1.5rem';
+
+        const desc = document.createElement('p');
+        desc.textContent = evt.description || 'No description provided.';
+        infoBlock.appendChild(desc);
+
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = '1fr 1fr';
+        grid.style.gap = '0.75rem';
+        grid.style.marginTop = '1rem';
+
+        const addField = (lbl, val) => {
+          const w = document.createElement('div');
+          const l = document.createElement('div');
+          l.style.fontSize = '0.75rem';
+          l.style.color = 'var(--text-muted)';
+          l.textContent = lbl;
+          const v = document.createElement('div');
+          v.style.fontWeight = '600';
+          v.textContent = val;
+          w.appendChild(l);
+          w.appendChild(v);
+          grid.appendChild(w);
+        };
+
+        addField('Club', evt.clubName || 'General');
+        addField('Category', evt.categoryName || 'General');
+        addField('Date', formatDate(evt.eventDate));
+        addField('Time', `${evt.startTime || ''} - ${evt.endTime || ''}`);
+        addField('Venue', evt.venue || 'Campus Auditorium');
+        addField('Deadline', formatDate(evt.registrationDeadline));
+
+        infoBlock.appendChild(grid);
+        body.appendChild(infoBlock);
+
+        // Feedback form if past event
+        const isPast = evt.eventDate && new Date(evt.eventDate) < new Date();
+        if (isPast && evt.isRegistered) {
+          const feedbackSec = document.createElement('div');
+          feedbackSec.style.borderTop = 'var(--border-glass)';
+          feedbackSec.style.paddingTop = '1rem';
+          feedbackSec.style.marginTop = '1rem';
+
+          const fbTitle = document.createElement('h4');
+          fbTitle.textContent = '⭐ Event Feedback';
+          feedbackSec.appendChild(fbTitle);
+
+          const fbForm = document.createElement('form');
+          fbForm.style.marginTop = '0.5rem';
+
+          const rateGroup = document.createElement('div');
+          rateGroup.className = 'form-group';
+          const rateLbl = document.createElement('label');
+          rateLbl.className = 'form-label';
+          rateLbl.textContent = 'Rating (1 - 5 Stars)';
+          const rateSelect = document.createElement('select');
+          rateSelect.className = 'select-field';
+          [5, 4, 3, 2, 1].forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = `${r} Star${r > 1 ? 's' : ''}`;
+            rateSelect.appendChild(opt);
+          });
+          rateGroup.appendChild(rateLbl);
+          rateGroup.appendChild(rateSelect);
+
+          const commGroup = document.createElement('div');
+          commGroup.className = 'form-group';
+          const commLbl = document.createElement('label');
+          commLbl.className = 'form-label';
+          commLbl.textContent = 'Feedback Comment';
+          const commArea = document.createElement('textarea');
+          commArea.className = 'textarea-field';
+          commArea.rows = 3;
+          commArea.placeholder = 'Share your experience at this event...';
+          commArea.required = true;
+          commGroup.appendChild(commLbl);
+          commGroup.appendChild(commArea);
+
+          const fbBtn = document.createElement('button');
+          fbBtn.type = 'submit';
+          fbBtn.className = 'btn btn-secondary btn-sm';
+          fbBtn.textContent = 'Submit Feedback';
+
+          fbForm.appendChild(rateGroup);
+          fbForm.appendChild(commGroup);
+          fbForm.appendChild(fbBtn);
+
+          fbForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            fbBtn.disabled = true;
+            try {
+              await api.events.submitFeedback(evt.eventId, parseInt(rateSelect.value, 10), commArea.value);
+              showSuccess('Feedback submitted. Thank you!');
+              commArea.value = '';
+            } catch(err) {
+              showError(err.message || 'Failed to submit feedback');
+            } finally {
+              fbBtn.disabled = false;
+            }
+          });
+
+          feedbackSec.appendChild(fbForm);
+          body.appendChild(feedbackSec);
+        }
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn btn-secondary';
+        closeBtn.textContent = 'Close';
+        closeBtn.addEventListener('click', closeModal);
+        footer.appendChild(closeBtn);
+
+      } catch (err) {
+        body.replaceChildren();
+        body.appendChild(createEmptyState('✕', 'Error Loading Details', err.message));
+      }
+    }
+
+    // Event filter buttons
+    document.getElementById('eventSearchInput').addEventListener('input', (e) => {
+      currentEventSearch = e.target.value.trim();
+      currentEventPage = 1;
+      loadEvents();
+    });
+
+    document.querySelectorAll('#eventStatusFilters .pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#eventStatusFilters .pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentEventStatus = btn.dataset.filter;
+        currentEventPage = 1;
+        loadEvents();
+      });
+    });
+
+    document.getElementById('eventPrevBtn').addEventListener('click', () => {
+      if (currentEventPage > 1) {
+        currentEventPage--;
+        loadEvents();
+      }
+    });
+
+    document.getElementById('eventNextBtn').addEventListener('click', () => {
+      currentEventPage++;
+      loadEvents();
+    });
+
+    // ==========================================
+    // 4. PROFILE SECTION
+    // ==========================================
+    let profileData = null;
+
+    async function loadProfile() {
+      try {
+        const res = await api.students.me();
+        profileData = res.data || {};
+
+        document.getElementById('profFullNameText').textContent = profileData.fullName || user.fullName || '-';
+        document.getElementById('profRoleBadge').textContent = user.role;
+        document.getElementById('profUsernameText').textContent = profileData.username || user.username || '-';
+        document.getElementById('profEmailText').textContent = profileData.email || '-';
+        document.getElementById('profRollNumberText').textContent = profileData.rollNumber || '-';
+        document.getElementById('profDeptText').textContent = profileData.department || '-';
+        document.getElementById('profCourseText').textContent = profileData.course || '-';
+        document.getElementById('profYearText').textContent = `${profileData.year || 1} Year`;
+
+        const profInitials = (profileData.fullName || user.fullName || 'ST')
+          .split(' ')
+          .map(n => n[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase();
+        document.getElementById('profileLargeAvatar').textContent = profInitials;
+
+        // Prefill edit form
+        document.getElementById('editFullName').value = profileData.fullName || '';
+        document.getElementById('editEmail').value = profileData.email || '';
+        document.getElementById('editDepartment').value = profileData.department || '';
+        document.getElementById('editCourse').value = profileData.course || '';
+        document.getElementById('editYear').value = profileData.year || 1;
+
+      } catch (e) {
+        showError('Failed to fetch profile details');
+      }
+    }
+
+    const editToggleBtn = document.getElementById('editProfileToggleBtn');
+    const profileViewMode = document.getElementById('profileViewMode');
+    const profileEditForm = document.getElementById('profileEditForm');
+    const cancelEditBtn = document.getElementById('cancelEditProfileBtn');
+
+    editToggleBtn.addEventListener('click', () => {
+      profileViewMode.style.display = 'none';
+      profileEditForm.style.display = 'block';
+      editToggleBtn.style.display = 'none';
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+      profileViewMode.style.display = 'block';
+      profileEditForm.style.display = 'none';
+      editToggleBtn.style.display = 'inline-block';
+    });
+
+    profileEditForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveProfileBtn');
+      saveBtn.disabled = true;
+
+      try {
+        const payload = {
+          fullName: document.getElementById('editFullName').value.trim(),
+          email: document.getElementById('editEmail').value.trim(),
+          department: document.getElementById('editDepartment').value.trim(),
+          course: document.getElementById('editCourse').value.trim(),
+          year: parseInt(document.getElementById('editYear').value, 10)
+        };
+
+        const res = await api.students.updateProfile(payload);
+        showSuccess('Profile updated successfully!');
+        profileViewMode.style.display = 'block';
+        profileEditForm.style.display = 'none';
+        editToggleBtn.style.display = 'inline-block';
+        loadProfile();
+      } catch (err) {
+        showError(err.message || 'Failed to update profile');
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    // Password Update
+    document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const oldPass = document.getElementById('oldPassword').value;
+      const newPass = document.getElementById('newPassword').value;
+      const confPass = document.getElementById('confirmNewPassword').value;
+
+      if (newPass !== confPass) {
+        showError('New passwords do not match');
+        return;
+      }
+
+      try {
+        await api.auth.changePassword(oldPass, newPass);
+        showSuccess('Password updated successfully!');
+        e.target.reset();
+      } catch (err) {
+        showError(err.message || 'Failed to change password');
+      }
+    });
+
+    // ==========================================
+    // 5. NOTIFICATIONS
+    // ==========================================
+    async function loadNotifications() {
+      const container = document.getElementById('fullNotificationsList');
+      container.replaceChildren();
+
+      const loading = document.createElement('div');
+      loading.className = 'loading-container';
+      loading.appendChild(document.createElement('div')).className = 'spinner';
+      container.appendChild(loading);
+
+      try {
+        const res = await api.students.myNotifications();
+        const notifs = res.data || [];
+        container.replaceChildren();
+
+        if (notifs.length === 0) {
+          container.appendChild(createEmptyState('🔔', 'No Notifications', 'You do not have any new alerts.'));
+          return;
+        }
+
+        notifs.forEach(n => {
+          const item = renderNotificationItem(n, true);
+          container.appendChild(item);
+        });
+
+      } catch (err) {
+        container.replaceChildren();
+        container.appendChild(createEmptyState('✕', 'Error Loading Notifications', err.message));
+      }
+    }
+
+    function renderNotificationItem(n, showAction = false) {
+      const item = document.createElement('div');
+      item.className = `notification-item ${n.isRead ? '' : 'unread'}`;
+
+      const icon = document.createElement('span');
+      icon.className = 'notification-icon';
+
+      // Type specific styling
+      if (n.type === 'MEMBERSHIP_APPROVED') icon.textContent = '🎉';
+      else if (n.type === 'MEMBERSHIP_REJECTED') icon.textContent = '❌';
+      else if (n.type === 'WAITLIST_PROMOTED') icon.textContent = '🚀';
+      else if (n.type === 'EVENT_REMINDER') icon.textContent = '⏰';
+      else icon.textContent = 'ℹ️';
+
+      const content = document.createElement('div');
+      content.className = 'notification-content';
+
+      const title = document.createElement('div');
+      title.className = 'notification-title';
+      title.textContent = n.title;
+
+      const msg = document.createElement('div');
+      msg.className = 'notification-message';
+      msg.textContent = n.message;
+
+      const time = document.createElement('div');
+      time.className = 'notification-time';
+      time.textContent = formatDateTime(n.createdAt);
+
+      content.appendChild(title);
+      content.appendChild(msg);
+      content.appendChild(time);
+      item.appendChild(icon);
+      item.appendChild(content);
+
+      if (showAction && !n.isRead) {
+        const markBtn = document.createElement('button');
+        markBtn.className = 'btn btn-ghost btn-sm';
+        markBtn.textContent = 'Mark Read';
+        markBtn.addEventListener('click', async () => {
+          try {
+            await api.students.markNotificationRead(n.notificationId);
+            item.classList.remove('unread');
+            markBtn.remove();
+            showSuccess('Marked as read');
+          } catch(e) {
+            showError('Failed to mark read');
+          }
+        });
+        item.appendChild(markBtn);
+      }
+
+      return item;
+    }
+
+    document.getElementById('markAllReadBtn').addEventListener('click', async () => {
+      try {
+        await api.students.markAllRead();
+        showSuccess('All notifications marked as read');
+        loadNotifications();
+        document.getElementById('sidebarNotifBadge').style.display = 'none';
+      } catch (e) {
+        showError('Failed to mark notifications as read');
+      }
+    });
+
+    // ==========================================
+    // 6. XML DATA PORTAL
+    // ==========================================
+    document.getElementById('fetchXmlExportBtn').addEventListener('click', async () => {
+      const viewer = document.getElementById('xmlExportViewer');
+      viewer.textContent = 'Loading XML data...';
+      try {
+        const res = await api.students.exportXml();
+        viewer.textContent = typeof res === 'string' ? res : JSON.stringify(res, null, 2);
+        showSuccess('Student XML exported successfully');
+      } catch (e) {
+        viewer.textContent = `<error>Unable to export XML: ${e.message}</error>`;
+        showError('Export XML failed');
+      }
+    });
+
+    document.getElementById('xmlImportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const xml = document.getElementById('xmlImportInput').value.trim();
+      if (!xml) return;
+
+      try {
+        const res = await api.students.importXml(xml);
+        showSuccess(res.message || 'XML imported successfully!');
+        document.getElementById('xmlImportInput').value = '';
+        loadDashboard();
+      } catch (err) {
+        showError(err.message || 'XML import failed');
+      }
+    });
+
+    // Helper: Empty state creation
+    function createEmptyState(iconText, titleText, descText) {
+      const div = document.createElement('div');
+      div.className = 'empty-state';
+
+      const icon = document.createElement('div');
+      icon.className = 'empty-state-icon';
+      icon.textContent = iconText;
+
+      const title = document.createElement('div');
+      title.className = 'empty-state-title';
+      title.textContent = titleText;
+
+      const desc = document.createElement('div');
+      desc.className = 'empty-state-desc';
+      desc.textContent = descText;
+
+      div.appendChild(icon);
+      div.appendChild(title);
+      div.appendChild(desc);
+      return div;
+    }
+
+    // Initialize Dashboard
+    loadDashboard();
+  </script>
+</body>
+</html>

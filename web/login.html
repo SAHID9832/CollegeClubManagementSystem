@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo-badge">🏛️</div>
+      <h1>Welcome Back</h1>
+      <p>Log in to access your clubs, events, and campus community</p>
+    </div>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          class="input-field" 
+          placeholder="Enter your username" 
+          required 
+          autocomplete="username"
+        >
+        <span class="form-error" id="usernameError">Username is required</span>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="input-field" 
+          placeholder="••••••••" 
+          required 
+          autocomplete="current-password"
+        >
+        <span class="form-error" id="passwordError">Password is required</span>
+      </div>
+
+      <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+          <input type="checkbox" id="rememberMe" style="accent-color: var(--primary);">
+          Remember me
+        </label>
+      </div>
+
+      <div class="form-error" id="backendError" style="margin-bottom: 1rem; text-align: center;"></div>
+
+      <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg">
+        <span id="btnText">Sign In</span>
+        <span id="btnSpinner" class="spinner spinner-sm" style="display: none;"></span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="register.html">Register here</a>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showSuccess, showError } from './js/api.js';
+
+    // If already logged in, redirect to appropriate portal
+    const existing = session.get();
+    if (existing && existing.role) {
+      if (existing.role === 'ADMIN') window.location.replace('admin.html');
+      else if (existing.role === 'COORDINATOR') window.location.replace('coordinator.html');
+      else window.location.replace('index.html');
+    }
+
+    const form = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const usernameError = document.getElementById('usernameError');
+    const passwordError = document.getElementById('passwordError');
+    const backendError = document.getElementById('backendError');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      backendError.classList.remove('visible');
+      backendError.textContent = '';
+      usernameError.classList.remove('visible');
+      passwordError.classList.remove('visible');
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      let isValid = true;
+      if (!username) {
+        usernameError.classList.add('visible');
+        isValid = false;
+      }
+      if (!password) {
+        passwordError.classList.add('visible');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // Loading state
+      submitBtn.disabled = true;
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline-block';
+
+      try {
+        const res = await api.auth.login(username, password);
+        if (res.success && res.data) {
+          const user = res.data;
+          session.set({
+            token: user.token || user.sessionId || 'session-' + Date.now(),
+            userId: user.userId,
+            username: user.username,
+            role: user.role,
+            fullName: user.fullName
+          });
+          showSuccess('Logged in successfully!');
+
+          setTimeout(() => {
+            if (user.role === 'ADMIN') {
+              window.location.replace('admin.html');
+            } else if (user.role === 'COORDINATOR') {
+              window.location.replace('coordinator.html');
+            } else {
+              window.location.replace('index.html');
+            }
+          }, 600);
+        } else {
+          backendError.textContent = res.message || 'Login failed. Please check your credentials.';
+          backendError.classList.add('visible');
+        }
+      } catch (err) {
+        backendError.textContent = err.message || 'An error occurred during login.';
+        backendError.classList.add('visible');
+      } finally {
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
