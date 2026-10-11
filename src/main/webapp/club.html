@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Details - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .club-hero {
+      padding: 3rem 1.5rem 2.5rem;
+      background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .detail-container {
+      max-width: 1000px;
+      margin: 2rem auto 4rem;
+      padding: 0 1.5rem;
+    }
+    .meta-card {
+      background: var(--bg-card);
+      border: var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      backdrop-filter: var(--backdrop-blur);
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(10, 15, 30, 0.8); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff;">
+        <div class="logo-badge">🏛️</div>
+        <div>
+          <div style="font-weight: 700; font-family: var(--font-heading);">CampusHub</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Club Details</div>
+        </div>
+      </a>
+      <nav style="display: flex; align-items: center; gap: 1.25rem;">
+        <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Home</a>
+        <a href="clubs.html" style="color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Clubs</a>
+        <a href="events.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Events</a>
+        <a href="demo.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">XML Lab</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Club Hero Header -->
+  <div class="club-hero">
+    <div style="max-width: 1000px; margin: 0 auto;">
+      <a href="clubs.html" style="color: #818cf8; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem;">
+        ← Back to All Clubs
+      </a>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: gap; gap: 1.5rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <span id="clubCategoryBadge" class="badge badge-accent">Category</span>
+            <span id="clubStatusBadge" class="badge badge-success">Active</span>
+          </div>
+          <h1 id="clubTitle" style="font-size: 2.4rem; margin-bottom: 0.5rem;">Club Title</h1>
+          <p id="clubDesc" style="color: var(--text-muted); max-width: 700px; font-size: 1.05rem;">
+            Description will appear here.
+          </p>
+        </div>
+        <div>
+          <button id="joinClubBtn" class="btn btn-primary btn-lg">Join Club</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Club Details & Events Section -->
+  <div class="detail-container">
+    <div class="meta-card">
+      <h3 style="font-size: 1.2rem; margin-bottom: 1.25rem; color: #fff;">Club Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Faculty Coordinator</div>
+          <div id="coordinatorName" style="font-size: 1.05rem; font-weight: 600; color: #fff; margin-top: 0.25rem;">Dr. Coordinator</div>
+          <div id="coordinatorEmail" style="font-size: 0.85rem; color: #38bdf8;">email@college.edu</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Membership Capacity</div>
+          <div id="memberStats" style="font-size: 1.05rem; font-weight: 600; color: #fff; margin-top: 0.25rem;">0 / 50 Members</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Open for enrollments</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Data Representation</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #34d399; margin-top: 0.25rem;">XML &amp; JSON Supported</div>
+          <a href="samples/club.xml" target="_blank" style="font-size: 0.85rem; color: #818cf8; text-decoration: none;">View in club.xml ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="font-size: 1.6rem; margin-bottom: 1.25rem; color: #fff;">Club Events</h2>
+    <div id="clubEventsList" class="cards-grid">
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem 0;">
+        Loading associated events...
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showSuccess, showError, escapeHtml, formatDate } from './js/api.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const clubId = parseInt(params.get('id') || '1', 10);
+
+    const clubTitle = document.getElementById('clubTitle');
+    const clubDesc = document.getElementById('clubDesc');
+    const clubCategoryBadge = document.getElementById('clubCategoryBadge');
+    const coordinatorName = document.getElementById('coordinatorName');
+    const coordinatorEmail = document.getElementById('coordinatorEmail');
+    const memberStats = document.getElementById('memberStats');
+    const joinClubBtn = document.getElementById('joinClubBtn');
+    const clubEventsList = document.getElementById('clubEventsList');
+
+    let isJoined = false;
+
+    async function loadClubDetail() {
+      try {
+        const res = await api.clubs.get(clubId);
+        if (res.success && res.data) {
+          const club = res.data;
+          clubTitle.textContent = club.clubName;
+          clubDesc.textContent = club.description || 'No description provided.';
+          clubCategoryBadge.textContent = club.category;
+          coordinatorName.textContent = club.coordinatorName || 'Faculty In-Charge';
+          coordinatorEmail.textContent = club.coordinatorEmail || 'coordinator@college.edu';
+          memberStats.textContent = `${club.memberCount || 0} / ${club.capacity || 50} Members`;
+        }
+
+        // Check if joined
+        const user = session.get();
+        if (user) {
+          const myClubs = await api.students.myClubs();
+          if (myClubs.success && myClubs.data) {
+            isJoined = myClubs.data.some(c => c.clubId === clubId);
+            updateJoinButton();
+          }
+        }
+
+        // Load events
+        loadClubEvents();
+      } catch (err) {
+        showError('Could not load club details.');
+      }
+    }
+
+    function updateJoinButton() {
+      if (isJoined) {
+        joinClubBtn.textContent = 'Leave Club';
+        joinClubBtn.className = 'btn btn-ghost btn-lg';
+        joinClubBtn.style.color = 'var(--danger)';
+        joinClubBtn.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+      } else {
+        joinClubBtn.textContent = 'Join Club';
+        joinClubBtn.className = 'btn btn-primary btn-lg';
+      }
+    }
+
+    joinClubBtn.addEventListener('click', async () => {
+      if (!session.get()) {
+        showError('Please sign in first.');
+        setTimeout(() => window.location.href = 'login.html', 1000);
+        return;
+      }
+      try {
+        if (isJoined) {
+          const r = await api.clubs.leave(clubId);
+          if (r.success) {
+            isJoined = false;
+            updateJoinButton();
+            showSuccess('Left club successfully.');
+          }
+        } else {
+          const r = await api.clubs.join(clubId);
+          if (r.success) {
+            isJoined = true;
+            updateJoinButton();
+            showSuccess('Joined club successfully!');
+          }
+        }
+      } catch (e) {
+        showError(e.message || 'Operation failed.');
+      }
+    });
+
+    async function loadClubEvents() {
+      try {
+        const res = await api.events.list({ clubId });
+        if (res.success && res.data && res.data.length > 0) {
+          clubEventsList.innerHTML = res.data.map(e => `
+            <div class="card">
+              <span class="badge badge-primary" style="margin-bottom: 0.5rem; display: inline-block;">${e.status || 'OPEN'}</span>
+              <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.4rem;">${escapeHtml(e.title)}</h3>
+              <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                📅 ${formatDate(e.eventDate)} &nbsp;|&nbsp; 📍 ${escapeHtml(e.venue)}
+              </p>
+              <div style="display: flex; gap: 0.5rem;">
+                <a href="event.html?id=${e.eventId}" class="btn btn-secondary btn-sm" style="flex: 1;">Event Details</a>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          clubEventsList.innerHTML = '<div style="grid-column: 1 / -1; color: var(--text-muted); padding: 1.5rem 0;">No scheduled events for this club yet.</div>';
+        }
+      } catch (e) {
+        clubEventsList.innerHTML = '<div style="grid-column: 1 / -1; color: var(--text-dim);">Events could not be loaded.</div>';
+      }
+    }
+
+    loadClubDetail();
+  </script>
+</body>
+</html>

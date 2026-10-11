@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="student.xsl"?>
+<!--
+    Faculty Reference Example: XML Slide (3_5_XML-JCM-2.pptx)
+    Course: 26MCA1L211 - Java and Web Programming Practical
+-->
+<students>
+    <student>
+        <name>Arun Kumar</name>
+        <rollno>26MCA001</rollno>
+        <course>MCA</course>
+        <age>22</age>
+    </student>
+    <student>
+        <name>Bhavana S</name>
+        <rollno>26MCA014</rollno>
+        <course>MCA</course>
+        <age>23</age>
+    </student>
+    <student>
+        <name>Charan Teja</name>
+        <rollno>26MCA027</rollno>
+        <course>MCA</course>
+        <age>22</age>
+    </student>
+    <student>
+        <name>Divya Ramesh</name>
+        <rollno>26MCA042</rollno>
+        <course>MCA</course>
+        <age>21</age>
+    </student>
+</students>

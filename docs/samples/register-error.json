@@ -1,0 +1,7 @@
+{
+  "success": false,
+  "errorCode": "INVALID_INPUT",
+  "message": "Password must be at least 8 characters long and contain at least one digit.",
+  "timestamp": "2026-10-12T00:50:00Z",
+  "path": "/api/auth/register"
+}

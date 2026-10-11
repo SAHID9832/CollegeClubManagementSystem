@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Clubs - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .page-header {
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+      background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 1.5rem auto 2rem;
+      padding: 0 1.5rem;
+    }
+    .clubs-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(10, 15, 30, 0.8); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff;">
+        <div class="logo-badge">🏛️</div>
+        <div>
+          <div style="font-weight: 700; font-family: var(--font-heading);">CampusHub</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">College Clubs</div>
+        </div>
+      </a>
+      <nav style="display: flex; align-items: center; gap: 1.25rem;">
+        <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Home</a>
+        <a href="clubs.html" style="color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Clubs</a>
+        <a href="events.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Events</a>
+        <a href="demo.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">XML Lab</a>
+        <a href="login.html" id="authNavBtn" class="btn btn-primary btn-sm">Sign In</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div style="display: inline-block; padding: 4px 14px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 20px; font-size: 0.82rem; color: #818cf8; margin-bottom: 0.75rem;">
+      Active Campus Communities
+    </div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Explore Campus Clubs</h1>
+    <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+      Discover student organizations, technical chapters, cultural societies, and sports clubs. Join and participate!
+    </p>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="filter-bar">
+    <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem;">
+      <button class="btn btn-sm btn-primary category-btn" data-category="">All Categories</button>
+      <button class="btn btn-sm btn-ghost category-btn" data-category="Technical">Technical</button>
+      <button class="btn btn-sm btn-ghost category-btn" data-category="Cultural">Cultural</button>
+      <button class="btn btn-sm btn-ghost category-btn" data-category="Literary">Literary</button>
+      <button class="btn btn-sm btn-ghost category-btn" data-category="Sports">Sports</button>
+    </div>
+
+    <div style="min-width: 260px;">
+      <input type="text" id="clubSearch" class="input-field" placeholder="Search clubs..." style="padding: 0.5rem 1rem;">
+    </div>
+  </div>
+
+  <!-- Clubs Grid -->
+  <div class="clubs-container">
+    <div id="clubsGrid" class="cards-grid">
+      <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 0; color: var(--text-muted);">
+        Loading clubs catalog...
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showSuccess, showError, escapeHtml } from './js/api.js';
+
+    const authNavBtn = document.getElementById('authNavBtn');
+    const user = session.get();
+    if (user && user.username) {
+      authNavBtn.textContent = `Profile (${user.username})`;
+      authNavBtn.href = 'index.html';
+    }
+
+    const clubsGrid = document.getElementById('clubsGrid');
+    const clubSearch = document.getElementById('clubSearch');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+
+    let currentCategory = '';
+    let searchQuery = '';
+    let allClubs = [];
+
+    async function loadClubs() {
+      try {
+        const res = await api.clubs.list();
+        if (res.success && res.data) {
+          allClubs = res.data;
+          renderClubs();
+        } else {
+          clubsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--danger);">Failed to load clubs.</div>';
+        }
+      } catch (err) {
+        clubsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--danger);">Error connecting to clubs service.</div>';
+      }
+    }
+
+    function renderClubs() {
+      let filtered = allClubs.filter(c => {
+        const matchCat = !currentCategory || c.category === currentCategory;
+        const matchSearch = !searchQuery || 
+          c.clubName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (c.description && c.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchCat && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        clubsGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
+            <h3>No clubs found matching your criteria</h3>
+            <p style="font-size: 0.9rem;">Try adjusting your filter or search keyword.</p>
+          </div>
+        `;
+        return;
+      }
+
+      clubsGrid.innerHTML = filtered.map(c => `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="badge badge-accent" style="margin-bottom: 0.5rem; display: inline-block;">${escapeHtml(c.category)}</span>
+              <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff;">${escapeHtml(c.clubName)}</h3>
+            </div>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; min-height: 48px; margin-bottom: 1.25rem;">
+            ${escapeHtml(c.description || 'No description provided.')}
+          </p>
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); padding-top: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 1rem;">
+            <span><strong>Coordinator:</strong> ${escapeHtml(c.coordinatorName || 'Faculty')}</span>
+            <span><strong>Members:</strong> ${c.memberCount || 0} / ${c.capacity || 50}</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="club.html?id=${c.clubId}" class="btn btn-secondary btn-sm" style="flex: 1;">View Details</a>
+            <button class="btn btn-primary btn-sm join-btn" data-id="${c.clubId}" style="flex: 1;">Join Club</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.join-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.dataset.id;
+          if (!session.get()) {
+            showError('Please sign in to join a club.');
+            setTimeout(() => window.location.href = 'login.html', 1000);
+            return;
+          }
+          try {
+            const r = await api.clubs.join(id);
+            if (r.success) {
+              showSuccess('Joined club successfully!');
+            } else {
+              showError(r.message || 'Failed to join club.');
+            }
+          } catch (err) {
+            showError(err.message || 'Could not join club.');
+          }
+        });
+      });
+    }
+
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryBtns.forEach(b => {
+          b.classList.remove('btn-primary');
+          b.classList.add('btn-ghost');
+        });
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-ghost');
+        currentCategory = btn.dataset.category;
+        renderClubs();
+      });
+    });
+
+    clubSearch.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderClubs();
+    });
+
+    loadClubs();
+  </script>
+</body>
+</html>

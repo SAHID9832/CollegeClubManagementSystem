@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userRegistration>
+    <username>sheeja</username>
+    <password>Password@123</password>
+    <email>sheeja@college.edu</email>
+    <fullName>Sheeja Mathew</fullName>
+    <rollNumber>26MCA012</rollNumber>
+    <department>Computer Applications</department>
+    <course>MCA</course>
+    <year>1</year>
+</userRegistration>

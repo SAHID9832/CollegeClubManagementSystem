@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details - College Club Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .event-hero {
+      padding: 3rem 1.5rem 2.5rem;
+      background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 70%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .detail-container {
+      max-width: 900px;
+      margin: 2rem auto 4rem;
+      padding: 0 1.5rem;
+    }
+    .meta-box {
+      background: var(--bg-card);
+      border: var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      backdrop-filter: var(--backdrop-blur);
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(10, 15, 30, 0.8); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff;">
+        <div class="logo-badge">🏛️</div>
+        <div>
+          <div style="font-weight: 700; font-family: var(--font-heading);">CampusHub</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Event Details</div>
+        </div>
+      </a>
+      <nav style="display: flex; align-items: center; gap: 1.25rem;">
+        <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Home</a>
+        <a href="clubs.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Clubs</a>
+        <a href="events.html" style="color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Events</a>
+        <a href="demo.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">XML Lab</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <div class="event-hero">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <a href="events.html" style="color: #38bdf8; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem;">
+        ← Back to All Events
+      </a>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <span id="eventClubBadge" class="badge badge-primary">Club Name</span>
+            <span id="eventStatusBadge" class="badge badge-success">OPEN</span>
+          </div>
+          <h1 id="eventTitle" style="font-size: 2.3rem; margin-bottom: 0.5rem;">Event Title</h1>
+          <p id="eventDesc" style="color: var(--text-muted); max-width: 650px; font-size: 1.05rem;">
+            Detailed event description will appear here.
+          </p>
+        </div>
+        <div>
+          <button id="registerEventBtn" class="btn btn-primary btn-lg">Register for Event</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Container -->
+  <div class="detail-container">
+    <div class="meta-box">
+      <h3 style="font-size: 1.2rem; margin-bottom: 1.25rem; color: #fff;">Event Schedule &amp; Venue</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Date &amp; Time</div>
+          <div id="eventDateTime" style="font-size: 1.05rem; font-weight: 600; color: #fff; margin-top: 0.25rem;">Date Time</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Please arrive 15 mins prior</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Location / Venue</div>
+          <div id="eventVenue" style="font-size: 1.05rem; font-weight: 600; color: #fff; margin-top: 0.25rem;">Main Auditorium</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Campus Central Block</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Capacity &amp; Seats</div>
+          <div id="eventSeats" style="font-size: 1.05rem; font-weight: 600; color: #34d399; margin-top: 0.25rem;">0 / 100 Registered</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Standard admission</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showSuccess, showError, formatDateTime, escapeHtml } from './js/api.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const eventId = parseInt(params.get('id') || '101', 10);
+
+    const eventTitle = document.getElementById('eventTitle');
+    const eventDesc = document.getElementById('eventDesc');
+    const eventClubBadge = document.getElementById('eventClubBadge');
+    const eventStatusBadge = document.getElementById('eventStatusBadge');
+    const eventDateTime = document.getElementById('eventDateTime');
+    const eventVenue = document.getElementById('eventVenue');
+    const eventSeats = document.getElementById('eventSeats');
+    const registerEventBtn = document.getElementById('registerEventBtn');
+
+    let isRegistered = false;
+
+    async function loadEventDetail() {
+      try {
+        const res = await api.events.get(eventId);
+        if (res.success && res.data) {
+          const e = res.data;
+          eventTitle.textContent = e.title;
+          eventDesc.textContent = e.description || 'No description provided.';
+          eventClubBadge.textContent = e.clubName || 'Club Event';
+          eventStatusBadge.textContent = e.status || 'OPEN';
+          eventDateTime.textContent = formatDateTime(e.eventDate);
+          eventVenue.textContent = e.venue || 'Campus Auditorium';
+          eventSeats.textContent = `${e.registeredCount || 0} / ${e.capacity || 100} Registered`;
+        }
+
+        // Check if current user registered
+        const user = session.get();
+        if (user) {
+          const myEvts = await api.students.myEvents();
+          if (myEvts.success && myEvts.data) {
+            isRegistered = myEvts.data.some(e => e.eventId === eventId);
+            updateButton();
+          }
+        }
+      } catch (err) {
+        showError('Could not load event details.');
+      }
+    }
+
+    function updateButton() {
+      if (isRegistered) {
+        registerEventBtn.textContent = 'Cancel Registration';
+        registerEventBtn.className = 'btn btn-ghost btn-lg';
+        registerEventBtn.style.color = 'var(--danger)';
+        registerEventBtn.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+      } else {
+        registerEventBtn.textContent = 'Register for Event';
+        registerEventBtn.className = 'btn btn-primary btn-lg';
+      }
+    }
+
+    registerEventBtn.addEventListener('click', async () => {
+      if (!session.get()) {
+        showError('Please sign in first.');
+        setTimeout(() => window.location.href = 'login.html', 1000);
+        return;
+      }
+      try {
+        if (isRegistered) {
+          const r = await api.events.cancelRegistration(eventId);
+          if (r.success) {
+            isRegistered = false;
+            updateButton();
+            showSuccess('Registration cancelled.');
+          }
+        } else {
+          const r = await api.events.register(eventId);
+          if (r.success) {
+            isRegistered = true;
+            updateButton();
+            showSuccess('Registered for event successfully!');
+          }
+        }
+      } catch (e) {
+        showError(e.message || 'Operation failed.');
+      }
+    });
+
+    loadEventDetail();
+  </script>
+</body>
+</html>
