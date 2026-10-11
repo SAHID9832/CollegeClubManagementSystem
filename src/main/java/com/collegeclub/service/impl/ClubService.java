@@ -80,6 +80,23 @@ public class ClubService implements ClubOperations {
         }
     }
 
+    public List<Club> searchClubs(String query) throws ClubSystemException {
+        return searchClubs(query, null);
+    }
+
+    public List<Club> getClubsByCategory(String category) throws ClubSystemException {
+        return searchClubs(null, category);
+    }
+
+    public List<Club> getStudentClubs(int userId) throws ClubSystemException {
+        return getUserClubs(userId);
+    }
+
+    public Club createClub(String name, String category, String description, int coordinatorId, int capacity) throws ClubSystemException, InvalidInputException {
+        Club c = new Club(name, description, category, "Faculty Coordinator", capacity);
+        return createClub(c);
+    }
+
     @Override
     public boolean joinClub(int clubId, int userId) throws ClubNotFoundException, DuplicateMembershipException, MembershipLimitReachedException, ClubSystemException {
         Club club = getClubById(clubId);

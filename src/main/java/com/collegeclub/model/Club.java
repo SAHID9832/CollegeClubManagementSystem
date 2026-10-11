@@ -43,6 +43,10 @@ public class Club {
         return id;
     }
 
+    public int getClubId() {
+        return id;
+    }
+
     public void setId(int id) {
         if (id < 0) {
             throw new IllegalArgumentException("Club ID cannot be negative.");
@@ -54,11 +58,23 @@ public class Club {
         return name;
     }
 
+    public String getClubName() {
+        return name;
+    }
+
     public void setName(String name) {
         if (name == null || name.trim().length() < 3) {
             throw new IllegalArgumentException("Club name must contain at least 3 characters.");
         }
         this.name = name.trim();
+    }
+
+    public String getCoordinatorName() {
+        return coordinator;
+    }
+
+    public String getCoordinatorEmail() {
+        return (coordinator != null && coordinator.contains("@")) ? coordinator : (coordinator != null ? coordinator.toLowerCase().replace(" ", "") + "@college.edu" : "coordinator@college.edu");
     }
 
     public String getDescription() {

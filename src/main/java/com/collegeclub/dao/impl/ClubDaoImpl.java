@@ -158,6 +158,15 @@ public class ClubDaoImpl implements ClubDao {
         return 0;
     }
 
+    @Override
+    public List<Club> getAllClubs() {
+        try {
+            return findAll();
+        } catch (SQLException e) {
+            return new ArrayList<>();
+        }
+    }
+
     private Club mapRow(ResultSet rs) throws SQLException {
         Club c = new Club();
         c.setId(rs.getInt("id"));

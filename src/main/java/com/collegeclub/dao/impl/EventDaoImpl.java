@@ -127,6 +127,15 @@ public class EventDaoImpl implements EventDao {
         return 0;
     }
 
+    @Override
+    public List<Event> getAllEvents() {
+        try {
+            return findAll();
+        } catch (SQLException e) {
+            return new ArrayList<>();
+        }
+    }
+
     private Event mapRow(ResultSet rs) throws SQLException {
         Event e = new Event();
         e.setId(rs.getInt("id"));

@@ -79,6 +79,21 @@ public class EventService implements EventOperations {
         }
     }
 
+    public List<Event> getUpcomingEvents() throws ClubSystemException {
+        return getAllEvents();
+    }
+
+    public List<Event> getStudentEvents(int userId) throws ClubSystemException {
+        return getUserEvents(userId);
+    }
+
+    public Event scheduleEvent(int clubId, String title, String description, java.time.LocalDateTime eventDate, String venue, int capacity)
+            throws ClubSystemException, InvalidInputException {
+        String dtStr = eventDate != null ? eventDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "2026-11-01 10:00";
+        Event ev = new Event(clubId, title, description, dtStr, venue, capacity);
+        return createEvent(ev);
+    }
+
     @Override
     public List<Event> getEventsByClub(int clubId) throws ClubNotFoundException, ClubSystemException {
         try {

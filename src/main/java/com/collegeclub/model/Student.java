@@ -57,6 +57,26 @@ public class Student extends User {
         this.semester = semester;
     }
 
+    public String getRollNumber() {
+        return studentId;
+    }
+
+    public void setRollNumber(String rollNumber) {
+        setStudentId(rollNumber);
+    }
+
+    public String getCourse() {
+        return "MCA";
+    }
+
+    public int getYear() {
+        return semester > 0 ? (semester + 1) / 2 : 1;
+    }
+
+    public void setYear(int year) {
+        this.semester = year * 2;
+    }
+
     @Override
     public void displayUser() {
         super.displayUser();

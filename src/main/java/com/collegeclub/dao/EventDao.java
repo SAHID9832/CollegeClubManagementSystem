@@ -13,4 +13,5 @@ public interface EventDao {
     boolean update(Event event) throws SQLException;
     boolean delete(int id) throws SQLException;
     int countTotalEvents() throws SQLException;
+    List<Event> getAllEvents();
 }

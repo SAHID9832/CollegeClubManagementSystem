@@ -9,3 +9,5 @@ collegeclub-data/
 .vscode/
 .idea/
 *.iml
+dist/
+*.war

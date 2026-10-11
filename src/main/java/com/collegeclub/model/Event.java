@@ -43,6 +43,14 @@ public class Event {
         return id;
     }
 
+    public int getEventId() {
+        return id;
+    }
+
+    public String getStatus() {
+        return "OPEN";
+    }
+
     public void setId(int id) {
         if (id < 0) {
             throw new IllegalArgumentException("Event ID cannot be negative.");

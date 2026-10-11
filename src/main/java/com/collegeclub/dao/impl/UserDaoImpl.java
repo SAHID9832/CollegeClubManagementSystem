@@ -115,6 +115,26 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public boolean updateUserRole(int id, Role role) throws SQLException {
+        String sql = "UPDATE users SET role = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, role != null ? role.name() : Role.STUDENT.name());
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        try {
+            return findAll();
+        } catch (SQLException e) {
+            return new ArrayList<>();
+        }
+    }
+
     private User mapRow(ResultSet rs) throws SQLException {
         User u = new User();
         u.setId(rs.getInt("id"));

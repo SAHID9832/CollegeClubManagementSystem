@@ -14,4 +14,5 @@ public interface ClubDao {
     boolean update(Club club) throws SQLException;
     boolean delete(int id) throws SQLException;
     int countTotalClubs() throws SQLException;
+    List<Club> getAllClubs();
 }

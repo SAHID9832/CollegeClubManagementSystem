@@ -125,6 +125,26 @@ public class UserService implements UserOperations {
         }
     }
 
+    public com.collegeclub.model.Student registerStudent(String username, String password, String email, String fullName,
+                                                           String rollNumber, String department, String course, int year)
+            throws InvalidInputException, DuplicateUserException, ClubSystemException {
+        User user = new User(username, null, email, fullName, Role.STUDENT);
+        User savedUser = registerUser(user, password);
+        return new com.collegeclub.model.Student(savedUser.getId(), savedUser.getUsername(), savedUser.getPasswordHash(),
+                savedUser.getEmail(), savedUser.getFullName(), rollNumber, department, year * 2);
+    }
+
+    public com.collegeclub.model.Student getStudentByUserId(int userId) throws ClubSystemException {
+        try {
+            User u = userDao.findById(userId)
+                    .orElseThrow(() -> new ClubSystemException("USER_NOT_FOUND", "User not found: " + userId, 404));
+            return new com.collegeclub.model.Student(u.getId(), u.getUsername(), u.getPasswordHash(), u.getEmail(),
+                    u.getFullName(), "MCA26-" + u.getId(), "Computer Applications", 2);
+        } catch (SQLException e) {
+            throw new ClubSystemException("DATABASE_ERROR", "Error retrieving student: " + e.getMessage(), 500, e);
+        }
+    }
+
     private void seedDefaultAdmin() {
         try {
             if (userDao.findByUsername("admin").isEmpty()) {
