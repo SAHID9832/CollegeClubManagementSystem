@@ -48,18 +48,28 @@ public class AdminServlet extends BaseApiServlet {
 
         // GET /api/admin/stats
         if (pathInfo.equals("/stats") || pathInfo.equals("") || pathInfo.equals("/")) {
-            int totalUsers = userDao.getAllUsers().size();
-            int totalClubs = clubDao.getAllClubs().size();
-            int totalEvents = eventDao.getAllEvents().size();
+            try {
+                int totalStudents = userDao.countTotalStudents();
+                int totalClubs = clubDao.getAllClubs().size();
+                int totalEvents = eventDao.getAllEvents().size();
+                int totalRegistrations = eventDao.countTotalRegistrations();
+                int totalMemberships = clubDao.countTotalMemberships();
+                int pendingApprovals = clubDao.countPendingMemberships();
 
-            JsonObject stats = new JsonObject();
-            stats.addProperty("totalStudents", totalUsers);
-            stats.addProperty("activeClubs", totalClubs);
-            stats.addProperty("upcomingEvents", totalEvents);
-            stats.addProperty("totalRegistrations", totalUsers * 2);
+                JsonObject stats = new JsonObject();
+                stats.addProperty("totalStudents", totalStudents);
+                stats.addProperty("activeClubs", totalClubs);
+                stats.addProperty("upcomingEvents", totalEvents);
+                stats.addProperty("totalRegistrations", totalRegistrations);
+                stats.addProperty("totalMemberships", totalMemberships);
+                stats.addProperty("pendingApprovals", pendingApprovals);
 
-            writeSuccess(resp, "Platform statistics", stats);
-            return;
+                writeSuccess(resp, "Platform statistics", stats);
+                return;
+            } catch (java.sql.SQLException e) {
+                writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DATABASE_ERROR", "Failed to retrieve statistics: " + e.getMessage());
+                return;
+            }
         }
 
         // GET /api/admin/users

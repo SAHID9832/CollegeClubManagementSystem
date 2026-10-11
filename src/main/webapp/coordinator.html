@@ -675,7 +675,7 @@
 
       try {
         const res = await api.events.list({ size: 100 });
-        const events = res.data || [];
+        const events = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
         grid.replaceChildren();
 
         if (events.length === 0) {
@@ -799,7 +799,7 @@
 
       try {
         const res = await api.events.list({ size: 100 });
-        const events = res.data || [];
+        const events = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
 
         if (events.length === 0) {
           const opt = document.createElement('option');
@@ -845,7 +845,7 @@
 
       try {
         const res = await api.events.getAttendance(eventId);
-        const attendees = res.data || [];
+        const attendees = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
         container.replaceChildren();
 
         if (attendees.length === 0) {

@@ -127,6 +127,19 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public int countTotalStudents() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM users WHERE role = 'STUDENT'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public List<User> getAllUsers() {
         try {
             return findAll();

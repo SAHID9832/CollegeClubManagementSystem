@@ -13,7 +13,8 @@ public class ClubDaoImpl implements ClubDao {
 
     @Override
     public Club save(Club club) throws SQLException {
-        String sql = "INSERT INTO clubs (name, description, category, coordinator, capacity, active) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO clubs (name, description, category, coordinator, capacity, active, objectives, activities, icon, created_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -23,6 +24,10 @@ public class ClubDaoImpl implements ClubDao {
             ps.setString(4, club.getCoordinator());
             ps.setInt(5, club.getCapacity());
             ps.setBoolean(6, club.isActive());
+            ps.setString(7, club.getObjectives());
+            ps.setString(8, club.getActivities());
+            ps.setString(9, club.getIcon());
+            ps.setString(10, club.getCreatedAt());
 
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -37,6 +42,7 @@ public class ClubDaoImpl implements ClubDao {
     @Override
     public Optional<Club> findById(int id) throws SQLException {
         String sql = "SELECT c.id, c.name, c.description, c.category, c.coordinator, c.capacity, c.active, " +
+                "c.objectives, c.activities, c.icon, c.created_at, " +
                 "(SELECT COUNT(*) FROM club_members m WHERE m.club_id = c.id) AS member_count " +
                 "FROM clubs c WHERE c.id = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -54,6 +60,7 @@ public class ClubDaoImpl implements ClubDao {
     @Override
     public Optional<Club> findByName(String name) throws SQLException {
         String sql = "SELECT c.id, c.name, c.description, c.category, c.coordinator, c.capacity, c.active, " +
+                "c.objectives, c.activities, c.icon, c.created_at, " +
                 "(SELECT COUNT(*) FROM club_members m WHERE m.club_id = c.id) AS member_count " +
                 "FROM clubs c WHERE c.name = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -72,6 +79,7 @@ public class ClubDaoImpl implements ClubDao {
     public List<Club> findAll() throws SQLException {
         List<Club> list = new ArrayList<>();
         String sql = "SELECT c.id, c.name, c.description, c.category, c.coordinator, c.capacity, c.active, " +
+                "c.objectives, c.activities, c.icon, c.created_at, " +
                 "(SELECT COUNT(*) FROM club_members m WHERE m.club_id = c.id) AS member_count " +
                 "FROM clubs c WHERE c.active = TRUE ORDER BY c.id ASC";
         try (Connection conn = DBConnection.getConnection();
@@ -88,6 +96,7 @@ public class ClubDaoImpl implements ClubDao {
     public List<Club> search(String query, String category) throws SQLException {
         List<Club> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT c.id, c.name, c.description, c.category, c.coordinator, c.capacity, c.active, " +
+                "c.objectives, c.activities, c.icon, c.created_at, " +
                 "(SELECT COUNT(*) FROM club_members m WHERE m.club_id = c.id) AS member_count " +
                 "FROM clubs c WHERE c.active = TRUE ");
 
@@ -99,7 +108,7 @@ public class ClubDaoImpl implements ClubDao {
             params.add(q);
             params.add(q);
         }
-        if (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("All")) {
+        if (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("All") && !category.equalsIgnoreCase("All Categories")) {
             sql.append("AND c.category = ? ");
             params.add(category.trim());
         }
@@ -121,7 +130,8 @@ public class ClubDaoImpl implements ClubDao {
 
     @Override
     public boolean update(Club club) throws SQLException {
-        String sql = "UPDATE clubs SET name = ?, description = ?, category = ?, coordinator = ?, capacity = ?, active = ? WHERE id = ?";
+        String sql = "UPDATE clubs SET name = ?, description = ?, category = ?, coordinator = ?, capacity = ?, active = ?, " +
+                "objectives = ?, activities = ?, icon = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, club.getName());
@@ -130,7 +140,10 @@ public class ClubDaoImpl implements ClubDao {
             ps.setString(4, club.getCoordinator());
             ps.setInt(5, club.getCapacity());
             ps.setBoolean(6, club.isActive());
-            ps.setInt(7, club.getId());
+            ps.setString(7, club.getObjectives());
+            ps.setString(8, club.getActivities());
+            ps.setString(9, club.getIcon());
+            ps.setInt(10, club.getId());
             return ps.executeUpdate() > 0;
         }
     }
@@ -148,6 +161,32 @@ public class ClubDaoImpl implements ClubDao {
     @Override
     public int countTotalClubs() throws SQLException {
         String sql = "SELECT COUNT(*) FROM clubs WHERE active = TRUE";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public int countTotalMemberships() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM club_members WHERE status = 'ACTIVE'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public int countPendingMemberships() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM club_members WHERE status = 'PENDING'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -177,6 +216,12 @@ public class ClubDaoImpl implements ClubDao {
         c.setCapacity(rs.getInt("capacity"));
         c.setActive(rs.getBoolean("active"));
         c.setMemberCount(rs.getInt("member_count"));
+
+        try { c.setObjectives(rs.getString("objectives")); } catch (SQLException ignored) {}
+        try { c.setActivities(rs.getString("activities")); } catch (SQLException ignored) {}
+        try { c.setIcon(rs.getString("icon")); } catch (SQLException ignored) {}
+        try { c.setCreatedAt(rs.getString("created_at")); } catch (SQLException ignored) {}
+
         return c;
     }
 }

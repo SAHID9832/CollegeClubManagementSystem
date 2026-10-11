@@ -61,8 +61,16 @@
   - [x] JSP pages with JSTL `<c:out>`: `dashboard.jsp`, `admin.jsp`, `profile.jsp`
   - [x] Secure XML processing via `XmlUtil` with XXE protection (`disallow-doctype-decl`)
   - [x] Automated smoke test script `scripts/smoke-test.ps1`
-  - [x] Deployment script `scripts/deploy.ps1` (built `dist/collegeclub.war`, 10.5 MB)
+  - [x] Deployment script `scripts/deploy.ps1` (built `dist/collegeclub.war`)
   - [x] Tomcat 10.1 development runner `scripts/run-tomcat.ps1` via Cargo
+- [x] **Runtime Hardening & Expansion Upgrades**:
+  - [x] Resolved `clubs.forEach is not a function` & `notifs.forEach is not a function` via route precedence and `Array.isArray()` unwrapping
+  - [x] Expanded database to 30 diverse college clubs (20 syllabus/dept clubs + 10 innovation clubs) with objectives, activities, icons, capacities, and faculty coordinators
+  - [x] Seeded 8 realistic scheduled university events with future dates
+  - [x] Replaced fake statistics (`totalUsers * 2`) with real DB metrics via `eventDao.countTotalRegistrations()` and `clubDao.countTotalMemberships()`
+  - [x] Added persistent student profile fields (`rollNumber`, `department`, `course`, `year`) and in-app notifications (`notifications` table & DAO)
+  - [x] Removed Confirm New Password across all forms and API endpoints
+  - [x] Added dynamic Tomcat context path detection in `API_BASE` (`js/api.js`)
 - [x] **Deliverables & Documentation**
   - [x] `README.md`
   - [x] `docs/PHASE_1.md`, `docs/PHASE_2.md`, `docs/PHASE_3.md`, `docs/PHASE_4.md`

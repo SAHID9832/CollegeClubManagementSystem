@@ -12,6 +12,7 @@ import com.collegeclub.exception.DuplicateMembershipException;
 import com.collegeclub.exception.EventFullException;
 import com.collegeclub.exception.EventNotFoundException;
 import com.collegeclub.exception.InvalidInputException;
+import com.collegeclub.model.Club;
 import com.collegeclub.model.Event;
 import com.collegeclub.model.User;
 import com.collegeclub.service.EventOperations;
@@ -33,6 +34,7 @@ public class EventService implements EventOperations {
         this.eventDao = eventDao;
         this.eventRegistrationDao = eventRegistrationDao;
         this.clubDao = clubDao;
+        seedDefaultEvents();
     }
 
     @Override
@@ -181,5 +183,66 @@ public class EventService implements EventOperations {
         } catch (SQLException e) {
             throw new ClubSystemException("DATABASE_ERROR", "Error retrieving attendees: " + e.getMessage(), 500, e);
         }
+    }
+
+    private void seedDefaultEvents() {
+        try {
+            if (eventDao.findAll().isEmpty()) {
+                List<Club> clubs = clubDao.findAll();
+                if (clubs.isEmpty()) return;
+
+                int codingClubId = findClubIdByName(clubs, "Coding & Open Source Club", clubs.get(0).getId());
+                int aiClubId = findClubIdByName(clubs, "Artificial Intelligence & Robotics Club", codingClubId);
+                int cyberClubId = findClubIdByName(clubs, "Cyber Security & Ethical Hacking Club", codingClubId);
+                int litClubId = findClubIdByName(clubs, "Literary & Debating Society", codingClubId);
+                int photoClubId = findClubIdByName(clubs, "Photography & Cinematography Club", codingClubId);
+                int sportsClubId = findClubIdByName(clubs, "Sports & Athletics Association", codingClubId);
+                int musicClubId = findClubIdByName(clubs, "Music & Acoustic Band Club", codingClubId);
+                int ecellId = findClubIdByName(clubs, "Entrepreneurship & Innovation Cell (E-Cell)", codingClubId);
+
+                eventDao.save(new Event(codingClubId, "Annual 24-Hour University Hackathon 2026",
+                        "Build cutting-edge full-stack and AI software solutions. Cash prizes, mentor support, and industry judging.",
+                        "2026-10-25 09:00", "Main Auditorium & Computing Center", 150));
+
+                eventDao.save(new Event(aiClubId, "Autonomous Robotics & AI Expo 2026",
+                        "Live demonstrations of computer vision robots, obstacle-avoiding rovers, and generative AI models.",
+                        "2026-10-28 10:30", "Robotics Innovation Lab - Block C", 100));
+
+                eventDao.save(new Event(cyberClubId, "Campus Cyber Defense CTF Challenge",
+                        "Inter-collegiate ethical hacking challenge covering cryptography, reverse engineering, and web exploits.",
+                        "2026-11-05 14:00", "Cyber Security Cyber-Range Lab", 80));
+
+                eventDao.save(new Event(litClubId, "National Parliamentary Debate Championship",
+                        "Oxford-style debating on global affairs, AI ethics, and economic policy.",
+                        "2026-11-12 10:00", "Senate Hall, Admin Building", 120));
+
+                eventDao.save(new Event(photoClubId, "Campus Life Photo Walk & Film Screening",
+                        "Guided photography walk around heritage campus followed by screening of student short films.",
+                        "2026-11-18 15:30", "Open Air Theatre & Media Studio", 90));
+
+                eventDao.save(new Event(sportsClubId, "Annual Inter-Department Athletics Meet",
+                        "Sprint races, relay, long jump, badminton, and basketball tournaments across all university branches.",
+                        "2026-11-25 08:00", "University Sports Complex Stadium", 200));
+
+                eventDao.save(new Event(musicClubId, "Acoustic Unplugged & Rock Band Night",
+                        "Live instrumental, classical fusion, and acoustic band performances under the stars.",
+                        "2026-12-02 18:00", "Campus Amphitheatre", 250));
+
+                eventDao.save(new Event(ecellId, "E-Summit 2026: Venture Pitch Showcase",
+                        "Student founders pitch startup ideas to angel investors and venture capitalists with seed grants.",
+                        "2026-12-10 11:00", "Convention Center Hall A", 120));
+            }
+        } catch (Exception e) {
+            System.err.println("Notice on seeding events: " + e.getMessage());
+        }
+    }
+
+    private int findClubIdByName(List<Club> clubs, String name, int defaultId) {
+        for (Club c : clubs) {
+            if (c.getName() != null && c.getName().toLowerCase().contains(name.toLowerCase())) {
+                return c.getId();
+            }
+        }
+        return defaultId;
     }
 }

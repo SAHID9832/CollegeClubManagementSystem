@@ -728,7 +728,7 @@
 
       try {
         const res = await api.admin.users();
-        cachedUsers = res.data || [];
+        cachedUsers = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
         renderUsersTable(cachedUsers);
       } catch (err) {
         const tr = document.createElement('tr');
@@ -866,7 +866,7 @@
 
       try {
         const res = await api.clubs.list({ size: 100 });
-        cachedClubs = res.data || [];
+        cachedClubs = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
 
         // Also populate club select for add event modal
         const eventClubSelect = document.getElementById('newEventClubSelect');
@@ -1088,7 +1088,7 @@
 
       try {
         const res = await api.events.list({ size: 100 });
-        const events = res.data || [];
+        const events = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
 
         if (events.length === 0) {
           const tr = document.createElement('tr');

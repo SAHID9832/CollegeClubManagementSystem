@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS students (
     user_id INT NOT NULL UNIQUE,
     student_id VARCHAR(50) NOT NULL UNIQUE,
     department VARCHAR(50) NOT NULL,
+    course VARCHAR(50) NOT NULL DEFAULT 'MCA',
     study_year INT NOT NULL DEFAULT 1,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -33,7 +34,11 @@ CREATE TABLE IF NOT EXISTS clubs (
     category VARCHAR(50) NOT NULL DEFAULT 'General',
     coordinator VARCHAR(100) NOT NULL,
     capacity INT NOT NULL DEFAULT 100,
-    active BOOLEAN NOT NULL DEFAULT TRUE
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    objectives VARCHAR(1000),
+    activities VARCHAR(1000),
+    icon VARCHAR(50) DEFAULT '🛡️',
+    created_at VARCHAR(30)
 );
 
 -- Club Memberships Table
@@ -69,5 +74,17 @@ CREATE TABLE IF NOT EXISTS event_registrations (
     status VARCHAR(20) NOT NULL DEFAULT 'CONFIRMED',
     CONSTRAINT uk_event_user UNIQUE (event_id, user_id),
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Notifications Table
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    message VARCHAR(500) NOT NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'INFO',
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at VARCHAR(30) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

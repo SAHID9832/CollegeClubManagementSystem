@@ -3,7 +3,7 @@
  * Glassmorphism Frontend
  */
 
-const API_BASE = '';
+const API_BASE = (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/collegeclub')) ? '/collegeclub' : '';
 
 export class ApiError extends Error {
   constructor(message, status, data) {
@@ -238,6 +238,11 @@ function handleMockFallback(endpoint, options) {
           userId: 101,
           username: 'student01',
           fullName: 'Rahul Kumar',
+          email: 'rahul.kumar@college.edu',
+          rollNumber: '26MCA001',
+          department: 'Computer Applications',
+          course: 'MCA',
+          year: 1,
           role: 'STUDENT'
         }
       };
@@ -250,9 +255,14 @@ function handleMockFallback(endpoint, options) {
           success: true,
           data: {
             token: 'token-' + Date.now(),
-            userId: 102,
+            userId: match.userId || 102,
             username: match.username,
             fullName: match.fullName || match.username,
+            email: match.email || `${match.username}@college.edu`,
+            rollNumber: match.rollNumber || '26MCA042',
+            department: match.department || 'Computer Applications',
+            course: match.course || 'MCA',
+            year: match.year || 1,
             role: 'STUDENT'
           }
         };
@@ -268,6 +278,11 @@ function handleMockFallback(endpoint, options) {
           userId: 103,
           username: username,
           fullName: username,
+          email: `${username}@college.edu`,
+          rollNumber: '26MCA042',
+          department: 'Computer Applications',
+          course: 'MCA',
+          year: 1,
           role: 'STUDENT'
         }
       };
@@ -275,10 +290,75 @@ function handleMockFallback(endpoint, options) {
     return { success: false, message: 'Invalid username or password.' };
   }
 
-  if (endpoint.includes('me')) {
-    const s = session.get();
-    if (s) return { success: true, data: s };
-    return { success: false, message: 'Not authenticated' };
+  // Define 30 default clubs for rich presentation
+  const defaultClubs = [
+    { clubId: 1, id: 1, name: 'Coding & Open Source Club', clubName: 'Coding & Open Source Club', category: 'Technical', icon: '💻', categoryIcon: '💻', description: 'Competitive programming, data structures, algorithms, open source contributions, and hackathon training.', coordinatorName: 'Dr. S. Arul', coordinatorEmail: 's.arul@college.edu', capacity: 120, memberCount: 78, active: true },
+    { clubId: 2, id: 2, name: 'Artificial Intelligence & Robotics Club', clubName: 'Artificial Intelligence & Robotics Club', category: 'Technical', icon: '🤖', categoryIcon: '🤖', description: 'Machine learning, neural networks, computer vision, autonomous bots, and embedded robotics systems.', coordinatorName: 'Prof. K. Ramesh', coordinatorEmail: 'k.ramesh@college.edu', capacity: 100, memberCount: 65, active: true },
+    { clubId: 3, id: 3, name: 'Cyber Security & Ethical Hacking Club', clubName: 'Cyber Security & Ethical Hacking Club', category: 'Technical', icon: '🛡️', categoryIcon: '🛡️', description: 'Penetration testing, network defense, digital forensics, CTF challenges, and secure coding practices.', coordinatorName: 'Dr. V. Priya', coordinatorEmail: 'v.priya@college.edu', capacity: 90, memberCount: 52, active: true },
+    { clubId: 4, id: 4, name: 'Web & Mobile App Development Club', clubName: 'Web & Mobile App Development Club', category: 'Technical', icon: '📱', categoryIcon: '📱', description: 'Full-stack development, modern web architectures, React, Flutter, REST APIs, and cloud deployments.', coordinatorName: 'Prof. A. Kumar', coordinatorEmail: 'a.kumar@college.edu', capacity: 100, memberCount: 70, active: true },
+    { clubId: 5, id: 5, name: 'Cloud Computing & DevOps Society', clubName: 'Cloud Computing & DevOps Society', category: 'Technical', icon: '☁️', categoryIcon: '☁️', description: 'Containerization, CI/CD pipelines, Kubernetes, AWS, Google Cloud, and site reliability engineering.', coordinatorName: 'Dr. N. Sharma', coordinatorEmail: 'n.sharma@college.edu', capacity: 80, memberCount: 45, active: true },
+    { clubId: 6, id: 6, name: 'Data Science & Big Data Analytics Club', clubName: 'Data Science & Big Data Analytics Club', category: 'Technical', icon: '📊', categoryIcon: '📊', description: 'Exploratory data analysis, statistical modeling, Hadoop, Spark, BigQuery, and visual dashboards.', coordinatorName: 'Dr. M. Jayakumar', coordinatorEmail: 'm.jayakumar@college.edu', capacity: 85, memberCount: 58, active: true },
+    { clubId: 7, id: 7, name: 'Internet of Things (IoT) & Embedded Systems Club', clubName: 'Internet of Things (IoT) & Embedded Systems Club', category: 'Technical', icon: '🔌', categoryIcon: '🔌', description: 'Arduino, Raspberry Pi, sensor networks, smart automation, and edge hardware interfacing.', coordinatorName: 'Prof. R. Balaji', coordinatorEmail: 'r.balaji@college.edu', capacity: 75, memberCount: 40, active: true },
+    { clubId: 8, id: 8, name: 'Literary & Debating Society', clubName: 'Literary & Debating Society', category: 'Literary', icon: '📚', categoryIcon: '📚', description: 'Parliamentary debates, elocution, creative writing, poetry recitals, and critical rhetoric.', coordinatorName: 'Dr. E. Elizabeth', coordinatorEmail: 'e.elizabeth@college.edu', capacity: 100, memberCount: 60, active: true },
+    { clubId: 9, id: 9, name: 'Dramatics & Theatre Club', clubName: 'Dramatics & Theatre Club', category: 'Cultural', icon: '🎭', categoryIcon: '🎭', description: 'Stage plays, street theatre (nukkad natak), scripting, voice modulation, and stagecraft.', coordinatorName: 'Prof. S. Manoharan', coordinatorEmail: 's.manoharan@college.edu', capacity: 70, memberCount: 38, active: true },
+    { clubId: 10, id: 10, name: 'Music & Acoustic Band Club', clubName: 'Music & Acoustic Band Club', category: 'Cultural', icon: '🎵', categoryIcon: '🎵', description: 'Classical vocalists, Western instrumentalists, campus rock bands, and digital music production.', coordinatorName: 'Prof. T. Swaminathan', coordinatorEmail: 't.swaminathan@college.edu', capacity: 80, memberCount: 55, active: true },
+    { clubId: 11, id: 11, name: 'Fine Arts & Painting Club', clubName: 'Fine Arts & Painting Club', category: 'Creative Arts', icon: '🎨', categoryIcon: '🎨', description: 'Sketching, acrylics, oil painting, digital illustration, sculpturing, and campus murals.', coordinatorName: 'Dr. S. Revathi', coordinatorEmail: 's.revathi@college.edu', capacity: 65, memberCount: 35, active: true },
+    { clubId: 12, id: 12, name: 'Photography & Cinematography Club', clubName: 'Photography & Cinematography Club', category: 'Media', icon: '📷', categoryIcon: '📷', description: 'Digital photography, portraiture, short filmmaking, post-processing, and drone cinematography.', coordinatorName: 'Prof. G. Karthik', coordinatorEmail: 'g.karthik@college.edu', capacity: 75, memberCount: 48, active: true },
+    { clubId: 13, id: 13, name: 'Dance & Choreography Club', clubName: 'Dance & Choreography Club', category: 'Cultural', icon: '💃', categoryIcon: '💃', description: 'Classical Bharatanatyam, contemporary, hip-hop, western freestyle, and group formations.', coordinatorName: 'Prof. M. Divya', coordinatorEmail: 'm.divya@college.edu', capacity: 80, memberCount: 50, active: true },
+    { clubId: 14, id: 14, name: 'Sports & Athletics Association', clubName: 'Sports & Athletics Association', category: 'Sports', icon: '⚽', categoryIcon: '⚽', description: 'Football, basketball, cricket, badminton, track athletics, and tournament organizing.', coordinatorName: 'Dr. P. Selvan', coordinatorEmail: 'p.selvan@college.edu', capacity: 150, memberCount: 110, active: true },
+    { clubId: 15, id: 15, name: 'Yoga & Wellness Club', clubName: 'Yoga & Wellness Club', category: 'Health & Wellness', icon: '🧘', categoryIcon: '🧘', description: 'Hatha yoga, pranayama breathing, mindfulness meditation, posture alignment, and stress relief.', coordinatorName: 'Prof. H. Lakshmi', coordinatorEmail: 'h.lakshmi@college.edu', capacity: 90, memberCount: 42, active: true },
+    { clubId: 16, id: 16, name: 'National Service Scheme (NSS)', clubName: 'National Service Scheme (NSS)', category: 'Social Service', icon: '🤝', categoryIcon: '🤝', description: 'Community empowerment, blood donation drives, literacy outreach, and rural village development camps.', coordinatorName: 'Dr. C. Sundar', coordinatorEmail: 'c.sundar@college.edu', capacity: 150, memberCount: 125, active: true },
+    { clubId: 17, id: 17, name: 'Youth Red Cross (YRC)', clubName: 'Youth Red Cross (YRC)', category: 'Social Service', icon: '🏥', categoryIcon: '🏥', description: 'First aid certification, disaster management response, health awareness, and humanitarian assistance.', coordinatorName: 'Dr. K. Anitha', coordinatorEmail: 'k.anitha@college.edu', capacity: 120, memberCount: 80, active: true },
+    { clubId: 18, id: 18, name: 'Environmental & Nature Conservation Club', clubName: 'Environmental & Nature Conservation Club', category: 'Environmental', icon: '🌿', categoryIcon: '🌿', description: 'Tree plantation drives, waste recycling audits, biodiversity conservation, and eco-sustainability.', coordinatorName: 'Prof. D. Vasudevan', coordinatorEmail: 'd.vasudevan@college.edu', capacity: 80, memberCount: 45, active: true },
+    { clubId: 19, id: 19, name: 'Mathematics & Problem Solving Club', clubName: 'Mathematics & Problem Solving Club', category: 'Academic', icon: '📐', categoryIcon: '📐', description: 'Discrete mathematics, combinatorics, puzzle solving, cryptography, and quantitative aptitude.', coordinatorName: 'Dr. G. Srinivasan', coordinatorEmail: 'g.srinivasan@college.edu', capacity: 70, memberCount: 36, active: true },
+    { clubId: 20, id: 20, name: 'Entrepreneurship & Innovation Cell (E-Cell)', clubName: 'Entrepreneurship & Innovation Cell (E-Cell)', category: 'Entrepreneurship', icon: '🚀', categoryIcon: '🚀', description: 'Startup incubation, business model canvas, venture pitching, mentor networking, and seed grants.', coordinatorName: 'Prof. R. Venkatesh', coordinatorEmail: 'r.venkatesh@college.edu', capacity: 100, memberCount: 68, active: true },
+    { clubId: 21, id: 21, name: 'Quantum Computing & Advanced Physics Club', clubName: 'Quantum Computing & Advanced Physics Club', category: 'Innovation', icon: '⚛️', categoryIcon: '⚛️', description: 'Qubits, quantum algorithms, Qiskit circuits, quantum cryptography, and quantum entanglement.', coordinatorName: 'Dr. A. Ramanathan', coordinatorEmail: 'a.ramanathan@college.edu', capacity: 50, memberCount: 28, active: true },
+    { clubId: 22, id: 22, name: 'Blockchain & Web3 Developers Guild', clubName: 'Blockchain & Web3 Developers Guild', category: 'Innovation', icon: '⛓️', categoryIcon: '⛓️', description: 'Smart contracts, Solidity, decentralized finance (DeFi), Ethereum, and consensus protocols.', coordinatorName: 'Prof. S. Vignesh', coordinatorEmail: 's.vignesh@college.edu', capacity: 75, memberCount: 44, active: true },
+    { clubId: 23, id: 23, name: 'AR/VR & Metaverse Experience Lab', clubName: 'AR/VR & Metaverse Experience Lab', category: 'Innovation', icon: '🥽', categoryIcon: '🥽', description: 'Spatial computing, Unity 3D, Unreal Engine, Oculus headset development, and virtual simulations.', coordinatorName: 'Dr. P. Malathi', coordinatorEmail: 'p.malathi@college.edu', capacity: 60, memberCount: 35, active: true },
+    { clubId: 24, id: 24, name: 'Space Tech & Astronomy Guild', clubName: 'Space Tech & Astronomy Guild', category: 'Science', icon: '🔭', categoryIcon: '🔭', description: 'Telescopic sky observation, satellite orbits, CanSat modeling, and astrophysics seminars.', coordinatorName: 'Dr. K. Chandrasekar', coordinatorEmail: 'k.chandrasekar@college.edu', capacity: 70, memberCount: 41, active: true },
+    { clubId: 25, id: 25, name: 'Bio-Informatics & Genomics Research Club', clubName: 'Bio-Informatics & Genomics Research Club', category: 'Research', icon: '🧬', categoryIcon: '🧬', description: 'Computational biology, DNA sequence alignment, AlphaFold protein structures, and Biopython.', coordinatorName: 'Dr. U. Banumathi', coordinatorEmail: 'u.banumathi@college.edu', capacity: 50, memberCount: 25, active: true },
+    { clubId: 26, id: 26, name: 'Game Design & Interactive Media Studio', clubName: 'Game Design & Interactive Media Studio', category: 'Gaming', icon: '🎮', categoryIcon: '🎮', description: 'Indie game development, 2D/3D physics engines, character animation, and level mechanics.', coordinatorName: 'Prof. J. Vijay', coordinatorEmail: 'j.vijay@college.edu', capacity: 80, memberCount: 52, active: true },
+    { clubId: 27, id: 27, name: 'Drone Technology & UAV Research Club', clubName: 'Drone Technology & UAV Research Club', category: 'Aerospace', icon: '🚁', categoryIcon: '🚁', description: 'Quadcopter assembly, flight controllers, autopilot navigation, FPV racing, and aerial survey.', coordinatorName: 'Dr. R. Natarajan', coordinatorEmail: 'r.natarajan@college.edu', capacity: 60, memberCount: 34, active: true },
+    { clubId: 28, id: 28, name: 'Fintech & Algorithmic Trading Society', clubName: 'Fintech & Algorithmic Trading Society', category: 'Finance', icon: '📈', categoryIcon: '📈', description: 'Automated trading bots, backtesting quantitative models, portfolio risk, and payment gateways.', coordinatorName: 'Prof. S. Deepak', coordinatorEmail: 's.deepak@college.edu', capacity: 65, memberCount: 39, active: true },
+    { clubId: 29, id: 29, name: 'Social Media & Digital Content Creators Club', clubName: 'Social Media & Digital Content Creators Club', category: 'Media', icon: '🎙️', categoryIcon: '🎙️', description: 'Podcasting, viral reels production, brand identity, audio editing, and audience analytics.', coordinatorName: 'Prof. A. Sneha', coordinatorEmail: 'a.sneha@college.edu', capacity: 85, memberCount: 56, active: true },
+    { clubId: 30, id: 30, name: 'Model United Nations (MUN) & Geopolitics Society', clubName: 'Model United Nations (MUN) & Geopolitics Society', category: 'Leadership', icon: '🌐', categoryIcon: '🌐', description: 'Diplomatic simulation, resolution drafting, UN committees, crisis debate, and foreign affairs.', coordinatorName: 'Dr. F. George', coordinatorEmail: 'f.george@college.edu', capacity: 90, memberCount: 62, active: true }
+  ];
+
+  // Define 8 default scheduled events
+  const defaultEvents = [
+    { eventId: 101, id: 101, title: 'Annual 24-Hour University Hackathon 2026', clubName: 'Coding & Open Source Club', clubId: 1, description: 'Build cutting-edge full-stack and AI software solutions. Cash prizes, mentor support, and industry judging.', eventDate: '2026-10-25 09:00', venue: 'Main Auditorium & Computing Center', capacity: 150, registeredCount: 85, status: 'OPEN' },
+    { eventId: 102, id: 102, title: 'Autonomous Robotics & AI Expo 2026', clubName: 'Artificial Intelligence & Robotics Club', clubId: 2, description: 'Live demonstrations of computer vision robots, obstacle-avoiding rovers, and generative AI models.', eventDate: '2026-10-28 10:30', venue: 'Robotics Innovation Lab - Block C', capacity: 100, registeredCount: 62, status: 'OPEN' },
+    { eventId: 103, id: 103, title: 'Campus Cyber Defense CTF Challenge', clubName: 'Cyber Security & Ethical Hacking Club', clubId: 3, description: 'Inter-collegiate ethical hacking challenge covering cryptography, reverse engineering, and web exploits.', eventDate: '2026-11-05 14:00', venue: 'Cyber Security Cyber-Range Lab', capacity: 80, registeredCount: 45, status: 'OPEN' },
+    { eventId: 104, id: 104, title: 'National Parliamentary Debate Championship', clubName: 'Literary & Debating Society', clubId: 8, description: 'Oxford-style debating on global affairs, AI ethics, and economic policy.', eventDate: '2026-11-12 10:00', venue: 'Senate Hall, Admin Building', capacity: 120, registeredCount: 78, status: 'OPEN' },
+    { eventId: 105, id: 105, title: 'Campus Life Photo Walk & Film Screening', clubName: 'Photography & Cinematography Club', clubId: 12, description: 'Guided photography walk around heritage campus followed by screening of student short films.', eventDate: '2026-11-18 15:30', venue: 'Open Air Theatre & Media Studio', capacity: 90, registeredCount: 54, status: 'OPEN' },
+    { eventId: 106, id: 106, title: 'Annual Inter-Department Athletics Meet', clubName: 'Sports & Athletics Association', clubId: 14, description: 'Sprint races, relay, long jump, badminton, and basketball tournaments across all university branches.', eventDate: '2026-11-25 08:00', venue: 'University Sports Complex Stadium', capacity: 200, registeredCount: 130, status: 'OPEN' },
+    { eventId: 107, id: 107, title: 'Acoustic Unplugged & Rock Band Night', clubName: 'Music & Acoustic Band Club', clubId: 10, description: 'Live instrumental, classical fusion, and acoustic band performances under the stars.', eventDate: '2026-12-02 18:00', venue: 'Campus Amphitheatre', capacity: 250, registeredCount: 165, status: 'OPEN' },
+    { eventId: 108, id: 108, title: 'E-Summit 2026: Venture Pitch Showcase', clubName: 'Entrepreneurship & Innovation Cell (E-Cell)', clubId: 20, description: 'Student founders pitch startup ideas to angel investors and venture capitalists with seed grants.', eventDate: '2026-12-10 11:00', venue: 'Convention Center Hall A', capacity: 120, registeredCount: 90, status: 'OPEN' }
+  ];
+
+  // Specific arrays FIRST before generic /me matching
+  if (endpoint.includes('notification')) {
+    if (endpoint.includes('/read-all') || endpoint.includes('/read')) {
+      return { success: true, message: 'Notification marked as read' };
+    }
+    return {
+      success: true,
+      data: [
+        { notificationId: 1, id: 1, title: 'Welcome to Campus Clubs', message: 'Explore 30+ clubs and register for upcoming university workshops.', createdAt: 'Just now', isRead: false },
+        { notificationId: 2, id: 2, title: 'Hackathon 2026 Registration Open', message: 'Coding Club opened 150 slots for the annual campus hackathon.', createdAt: '2 hours ago', isRead: false },
+        { notificationId: 3, id: 3, title: 'Robotics Workshop Alert', message: 'AI & Robotics Club scheduled an autonomous bots demo session.', createdAt: '1 day ago', isRead: true }
+      ]
+    };
+  }
+
+  if (endpoint.includes('my-clubs') || endpoint.includes('myClubs') || endpoint.includes('/me/clubs')) {
+    const myClubIds = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1, 2]');
+    return { success: true, data: defaultClubs.filter(c => myClubIds.includes(c.clubId || c.id)) };
+  }
+
+  if (endpoint.includes('my-events') || endpoint.includes('myEvents') || endpoint.includes('/me/events')) {
+    const myEvtIds = JSON.parse(localStorage.getItem('ccms_my_events') || '[101]');
+    return { success: true, data: defaultEvents.filter(e => myEvtIds.includes(e.eventId || e.id)) };
   }
 
   if (endpoint.includes('logout')) {
@@ -286,47 +366,40 @@ function handleMockFallback(endpoint, options) {
     return { success: true, message: 'Logged out' };
   }
 
-  if (endpoint.includes('my-clubs') || endpoint.includes('myClubs')) {
-    const myClubIds = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1]');
-    const allClubs = [
-      { clubId: 1, clubName: 'Coding Club', category: 'Technical', role: 'Member', joinedDate: '2026-09-15' },
-      { clubId: 2, clubName: 'Robotics Society', category: 'Technical', role: 'Member', joinedDate: '2026-09-20' },
-      { clubId: 3, clubName: 'Cultural Beats Club', category: 'Cultural', role: 'Member', joinedDate: '2026-10-01' }
-    ];
-    return { success: true, data: allClubs.filter(c => myClubIds.includes(c.clubId)) };
-  }
-
-  if (endpoint.includes('my-events') || endpoint.includes('myEvents')) {
-    const myEvtIds = JSON.parse(localStorage.getItem('ccms_my_events') || '[101]');
-    const allEvents = [
-      { eventId: 101, title: 'Annual Hackathon 2026', clubName: 'Coding Club', eventDate: '2026-10-25 09:00', venue: 'Main Auditorium', status: 'CONFIRMED' },
-      { eventId: 102, title: 'RoboWars Workshop & Expo', clubName: 'Robotics Society', eventDate: '2026-10-28 14:00', venue: 'Robotics Lab 3', status: 'CONFIRMED' }
-    ];
-    return { success: true, data: allEvents.filter(e => myEvtIds.includes(e.eventId)) };
+  if (endpoint.endsWith('/me') || endpoint.endsWith('/auth/me') || endpoint === '/api/students/me' || (endpoint.includes('/me') && !endpoint.includes('/me/'))) {
+    const s = session.get() || {};
+    return {
+      success: true,
+      data: {
+        userId: s.userId || 101,
+        id: s.userId || 101,
+        username: s.username || 'student01',
+        fullName: s.fullName || 'Rahul Kumar',
+        email: s.email || `${s.username || 'student01'}@college.edu`,
+        rollNumber: s.rollNumber || '26MCA001',
+        department: s.department || 'Computer Applications',
+        course: s.course || 'MCA',
+        year: s.year || 1,
+        role: s.role || 'STUDENT'
+      }
+    };
   }
 
   if (endpoint.includes('clubs')) {
     if (endpoint.includes('/join') && method === 'POST') {
-      const myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1]');
+      const myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1, 2]');
       const clubId = parseInt(endpoint.split('/')[3] || '1', 10);
       if (!myClubs.includes(clubId)) myClubs.push(clubId);
       localStorage.setItem('ccms_my_clubs', JSON.stringify(myClubs));
       return { success: true, message: 'Successfully joined club!' };
     }
     if (endpoint.includes('/leave') || (endpoint.includes('/join') && method === 'DELETE')) {
-      let myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1]');
+      let myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1, 2]');
       const clubId = parseInt(endpoint.split('/')[3] || '1', 10);
       myClubs = myClubs.filter(id => id !== clubId);
       localStorage.setItem('ccms_my_clubs', JSON.stringify(myClubs));
       return { success: true, message: 'Successfully left club!' };
     }
-    const defaultClubs = [
-      { clubId: 1, clubName: 'Coding Club', category: 'Technical', description: 'Competitive programming, algorithms, web dev, and hackathons.', coordinatorName: 'Dr. Arul', coordinatorEmail: 'arul@college.edu', capacity: 60, memberCount: 42, active: true },
-      { clubId: 2, clubName: 'Robotics Society', category: 'Technical', description: 'Autonomous bots, Arduino, drone mechanics, and IoT workshops.', coordinatorName: 'Prof. Sharma', coordinatorEmail: 'sharma@college.edu', capacity: 50, memberCount: 35, active: true },
-      { clubId: 3, clubName: 'Cultural Beats Club', category: 'Cultural', description: 'Music, theatre, dance arts, and intra-college fest competitions.', coordinatorName: 'Dr. Priya', coordinatorEmail: 'priya@college.edu', capacity: 80, memberCount: 55, active: true },
-      { clubId: 4, clubName: 'Literary & Debating Society', category: 'Literary', description: 'Debating championships, Model UN, editorial writing, and public speaking.', coordinatorName: 'Dr. Kapoor', coordinatorEmail: 'kapoor@college.edu', capacity: 40, memberCount: 28, active: true },
-      { clubId: 5, clubName: 'Sports & Athletics Club', category: 'Sports', description: 'Football, basketball, cricket, badminton tournaments, and fitness camps.', coordinatorName: 'Coach Singh', coordinatorEmail: 'singh@college.edu', capacity: 100, memberCount: 65, active: true }
-    ];
     return { success: true, data: defaultClubs };
   }
 
@@ -345,12 +418,6 @@ function handleMockFallback(endpoint, options) {
       localStorage.setItem('ccms_my_events', JSON.stringify(myEvts));
       return { success: true, message: 'Registration cancelled.' };
     }
-    const defaultEvents = [
-      { eventId: 101, title: 'Annual Hackathon 2026', clubName: 'Coding Club', clubId: 1, description: '24-hour university hackathon with exciting challenges and cash prizes.', eventDate: '2026-10-25 09:00', venue: 'Main Auditorium', capacity: 100, registeredCount: 45, status: 'OPEN' },
-      { eventId: 102, title: 'RoboWars Workshop & Expo', clubName: 'Robotics Society', clubId: 2, description: 'Hands-on assembly of combat bots and obstacle navigation.', eventDate: '2026-10-28 14:00', venue: 'Robotics Lab 3', capacity: 40, registeredCount: 32, status: 'OPEN' },
-      { eventId: 103, title: 'Battle of the Bands', clubName: 'Cultural Beats Club', clubId: 3, description: 'Live inter-college music band clash with rock and classical rounds.', eventDate: '2026-11-05 17:30', venue: 'Open Air Amphitheatre', capacity: 150, registeredCount: 95, status: 'OPEN' },
-      { eventId: 104, title: 'National Youth Parliamentary Debate', clubName: 'Literary & Debating Society', clubId: 4, description: 'Debating policy and technology governance in parliamentary format.', eventDate: '2026-11-12 11:00', venue: 'Seminar Hall A', capacity: 50, registeredCount: 26, status: 'OPEN' }
-    ];
     return { success: true, data: defaultEvents };
   }
 
@@ -359,20 +426,12 @@ function handleMockFallback(endpoint, options) {
       success: true,
       data: {
         totalStudents: 142,
-        activeClubs: 5,
-        upcomingEvents: 4,
-        totalRegistrations: 187
+        activeClubs: 30,
+        upcomingEvents: 8,
+        totalRegistrations: 187,
+        totalMemberships: 215,
+        pendingApprovals: 4
       }
-    };
-  }
-
-  if (endpoint.includes('notifications')) {
-    return {
-      success: true,
-      data: [
-        { notificationId: 1, title: 'Welcome to Campus Clubs', message: 'Explore clubs and register for upcoming university workshops.', createdAt: 'Just now', read: false },
-        { notificationId: 2, title: 'Hackathon 2026 Registration Open', message: 'Coding Club opened 100 slots for the annual campus hackathon.', createdAt: '2 hours ago', read: false }
-      ]
     };
   }
 

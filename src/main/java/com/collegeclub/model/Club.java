@@ -1,5 +1,7 @@
 package com.collegeclub.model;
 
+import java.time.LocalDate;
+
 /**
  * Club Entity representing a student organization.
  * Demonstrates strong encapsulation with validation in constructors and setters.
@@ -14,11 +16,17 @@ public class Club {
     private int capacity;
     private int memberCount;
     private boolean active;
+    private String objectives;
+    private String activities;
+    private String icon;
+    private String createdAt;
 
     public Club() {
         this.category = "General";
         this.capacity = 100;
         this.active = true;
+        this.icon = "🛡️";
+        this.createdAt = LocalDate.now().toString();
     }
 
     public Club(int id, String name, String description, String category, String coordinator, int capacity) {
@@ -37,6 +45,14 @@ public class Club {
 
     public Club(int id, String name, String description, String coordinator) {
         this(id, name, description, "General", coordinator, 100);
+    }
+
+    public Club(int id, String name, String description, String category, String coordinator,
+                int capacity, String objectives, String activities, String icon) {
+        this(id, name, description, category, coordinator, capacity);
+        this.objectives = objectives;
+        this.activities = activities;
+        this.icon = icon;
     }
 
     public int getId() {
@@ -69,23 +85,19 @@ public class Club {
         this.name = name.trim();
     }
 
-    public String getCoordinatorName() {
-        return coordinator;
-    }
-
-    public String getCoordinatorEmail() {
-        return (coordinator != null && coordinator.contains("@")) ? coordinator : (coordinator != null ? coordinator.toLowerCase().replace(" ", "") + "@college.edu" : "coordinator@college.edu");
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
-        this.description = (description != null) ? description.trim() : "";
+        this.description = description != null ? description.trim() : "";
     }
 
     public String getCategory() {
+        return category;
+    }
+
+    public String getCategoryName() {
         return category;
     }
 
@@ -95,6 +107,24 @@ public class Club {
 
     public String getCoordinator() {
         return coordinator;
+    }
+
+    public String getCoordinatorName() {
+        return coordinator;
+    }
+
+    public String getCoordinatorEmail() {
+        if (coordinator == null || coordinator.trim().isEmpty()) {
+            return "coordinator@college.edu";
+        }
+        String cleaned = coordinator.toLowerCase()
+                .replace("dr.", "")
+                .replace("prof.", "")
+                .trim()
+                .replaceAll("[^a-z0-9]+", ".");
+        if (cleaned.startsWith(".")) cleaned = cleaned.substring(1);
+        if (cleaned.endsWith(".")) cleaned = cleaned.substring(0, cleaned.length() - 1);
+        return (cleaned.isEmpty() ? "coordinator" : cleaned) + "@college.edu";
     }
 
     public void setCoordinator(String coordinator) {
@@ -109,8 +139,8 @@ public class Club {
     }
 
     public void setCapacity(int capacity) {
-        if (capacity < 1) {
-            throw new IllegalArgumentException("Club capacity must be at least 1.");
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than zero.");
         }
         this.capacity = capacity;
     }
@@ -120,10 +150,7 @@ public class Club {
     }
 
     public void setMemberCount(int memberCount) {
-        if (memberCount < 0) {
-            throw new IllegalArgumentException("Member count cannot be negative.");
-        }
-        this.memberCount = memberCount;
+        this.memberCount = Math.max(0, memberCount);
     }
 
     public boolean isActive() {
@@ -134,16 +161,47 @@ public class Club {
         this.active = active;
     }
 
-    public boolean isFull() {
-        return capacity > 0 && memberCount >= capacity;
+    public String getObjectives() {
+        return objectives != null ? objectives : "";
     }
 
-    public void displayClub() {
-        System.out.println("\n--- Club Details ---");
-        System.out.println("ID         : " + id);
-        System.out.println("Name       : " + name);
-        System.out.println("Category   : " + category);
-        System.out.println("Coordinator: " + coordinator);
-        System.out.println("Members    : " + memberCount + "/" + capacity);
+    public void setObjectives(String objectives) {
+        this.objectives = objectives != null ? objectives.trim() : "";
+    }
+
+    public String getActivities() {
+        return activities != null ? activities : "";
+    }
+
+    public void setActivities(String activities) {
+        this.activities = activities != null ? activities.trim() : "";
+    }
+
+    public String getIcon() {
+        return icon != null ? icon : "🛡️";
+    }
+
+    public String getCategoryIcon() {
+        return getIcon();
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon != null ? icon.trim() : "🛡️";
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public boolean isFull() {
+        return memberCount >= capacity;
+    }
+
+    public int getAvailableSlots() {
+        return Math.max(0, capacity - memberCount);
     }
 }

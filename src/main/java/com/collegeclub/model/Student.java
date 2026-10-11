@@ -2,14 +2,17 @@ package com.collegeclub.model;
 
 /**
  * Student Entity extending User.
- * Demonstrates inheritance, specialized attributes (studentId, department, semester),
+ * Demonstrates inheritance, specialized attributes (studentId, rollNumber, department, course, year, semester),
  * and polymorphism.
  */
 public class Student extends User {
 
     private String studentId;
+    private String rollNumber;
     private String department;
-    private int semester;
+    private String course = "MCA";
+    private int year = 1;
+    private int semester = 2;
 
     public Student() {
         super();
@@ -19,14 +22,23 @@ public class Student extends User {
     public Student(int id, String username, String passwordHash, String email, String fullName,
                    String studentId, String department, int semester) {
         super(id, username, passwordHash, email, fullName, Role.STUDENT);
-        this.studentId = studentId;
-        this.department = department;
-        this.semester = semester;
+        setStudentId(studentId);
+        setDepartment(department);
+        setSemester(semester);
     }
 
     public Student(String username, String passwordHash, String email, String fullName,
                    String studentId, String department, int semester) {
         this(0, username, passwordHash, email, fullName, studentId, department, semester);
+    }
+
+    public Student(int id, String username, String passwordHash, String email, String fullName,
+                   String rollNumber, String department, String course, int year) {
+        super(id, username, passwordHash, email, fullName, Role.STUDENT);
+        setRollNumber(rollNumber);
+        setDepartment(department);
+        setCourse(course);
+        setYear(year);
     }
 
     public String getStudentId() {
@@ -36,6 +48,18 @@ public class Student extends User {
     public void setStudentId(String studentId) {
         if (studentId != null) {
             this.studentId = studentId.trim();
+            this.rollNumber = this.studentId;
+        }
+    }
+
+    public String getRollNumber() {
+        return rollNumber != null ? rollNumber : studentId;
+    }
+
+    public void setRollNumber(String rollNumber) {
+        if (rollNumber != null) {
+            this.rollNumber = rollNumber.trim();
+            this.studentId = this.rollNumber;
         }
     }
 
@@ -49,32 +73,32 @@ public class Student extends User {
         }
     }
 
+    public String getCourse() {
+        return course != null ? course : "MCA";
+    }
+
+    public void setCourse(String course) {
+        if (course != null && !course.trim().isEmpty()) {
+            this.course = course.trim();
+        }
+    }
+
+    public int getYear() {
+        return year > 0 ? year : (semester > 0 ? (semester + 1) / 2 : 1);
+    }
+
+    public void setYear(int year) {
+        this.year = year > 0 ? year : 1;
+        this.semester = this.year * 2;
+    }
+
     public int getSemester() {
-        return semester;
+        return semester > 0 ? semester : year * 2;
     }
 
     public void setSemester(int semester) {
         this.semester = semester;
-    }
-
-    public String getRollNumber() {
-        return studentId;
-    }
-
-    public void setRollNumber(String rollNumber) {
-        setStudentId(rollNumber);
-    }
-
-    public String getCourse() {
-        return "MCA";
-    }
-
-    public int getYear() {
-        return semester > 0 ? (semester + 1) / 2 : 1;
-    }
-
-    public void setYear(int year) {
-        this.semester = year * 2;
+        this.year = semester > 0 ? (semester + 1) / 2 : 1;
     }
 
     @Override
@@ -82,6 +106,8 @@ public class Student extends User {
         super.displayUser();
         System.out.println("Student ID: " + studentId);
         System.out.println("Department: " + department);
+        System.out.println("Course    : " + course);
+        System.out.println("Year      : " + year);
         System.out.println("Semester  : " + semester);
     }
 }

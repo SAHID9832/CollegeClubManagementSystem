@@ -128,6 +128,19 @@ public class EventDaoImpl implements EventDao {
     }
 
     @Override
+    public int countTotalRegistrations() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM event_registrations WHERE status = 'CONFIRMED'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public List<Event> getAllEvents() {
         try {
             return findAll();

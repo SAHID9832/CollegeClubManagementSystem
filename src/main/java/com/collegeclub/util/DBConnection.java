@@ -33,15 +33,20 @@ public class DBConnection {
                 ConfigLoader.getDbPassword()
         );
 
-        if (schemaInitialized.compareAndSet(false, true)) {
-            initSchema(connection);
+        if (!schemaInitialized.get()) {
+            synchronized (DBConnection.class) {
+                if (!schemaInitialized.get()) {
+                    initSchema(connection);
+                    schemaInitialized.set(true);
+                }
+            }
         }
 
         return connection;
     }
 
     /**
-     * Initializes database tables using schema.sql if they do not already exist.
+     * Initializes database tables using schema.sql and runs safe schema updates.
      */
     public static synchronized void initSchema(Connection connection) {
         try (InputStream in = DBConnection.class.getClassLoader().getResourceAsStream("schema.sql")) {
@@ -64,14 +69,32 @@ public class DBConnection {
                     try (Statement stmt = connection.createStatement()) {
                         stmt.execute(sql);
                     } catch (SQLException e) {
-                        // Some statements might fail if already created or db dialect differences; log debug
-                        if (!e.getMessage().toLowerCase().contains("already exists")) {
-                            System.err.println("Schema statement warning: " + e.getMessage());
+                        String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                        if (!msg.contains("already exists") && !msg.contains("duplicate")) {
+                            System.err.println("Notice on schema execution: " + e.getMessage());
                         }
                     }
                     sb.setLength(0);
                 }
             }
+
+            // Backward-compatible column migrations for existing databases
+            String[] migrations = {
+                    "ALTER TABLE students ADD COLUMN IF NOT EXISTS course VARCHAR(50) DEFAULT 'MCA'",
+                    "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS objectives VARCHAR(1000)",
+                    "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS activities VARCHAR(1000)",
+                    "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS icon VARCHAR(50) DEFAULT '🛡️'",
+                    "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS created_at VARCHAR(30)"
+            };
+
+            for (String mig : migrations) {
+                try (Statement stmt = connection.createStatement()) {
+                    stmt.execute(mig);
+                } catch (SQLException ignored) {
+                    // Ignored if column already exists or dialect variant
+                }
+            }
+
         } catch (Exception e) {
             System.err.println("Failed to execute schema.sql: " + e.getMessage());
         }
