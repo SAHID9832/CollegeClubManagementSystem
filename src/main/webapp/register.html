@@ -76,28 +76,56 @@
       <div class="form-row">
         <div class="form-group">
           <label for="department" class="form-label">Department</label>
-          <input 
-            type="text" 
+          <select 
             id="department" 
             name="department" 
-            class="input-field" 
-            placeholder="Computer Science" 
+            class="select-field" 
             required
           >
-          <span class="form-error" id="departmentError">Department is required</span>
+            <option value="" disabled selected>Select Department</option>
+            <option value="Computer Applications">Computer Applications</option>
+            <option value="Computer Science &amp; Engineering">Computer Science &amp; Engineering</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Artificial Intelligence &amp; Data Science">Artificial Intelligence &amp; Data Science</option>
+            <option value="Electronics &amp; Communication">Electronics &amp; Communication</option>
+            <option value="Electrical &amp; Electronics">Electrical &amp; Electronics</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+            <option value="Civil Engineering">Civil Engineering</option>
+            <option value="Management Studies">Management Studies</option>
+            <option value="Science &amp; Humanities">Science &amp; Humanities</option>
+          </select>
+          <span class="form-error" id="departmentError">Please select a department</span>
         </div>
 
         <div class="form-group">
           <label for="course" class="form-label">Course</label>
-          <input 
-            type="text" 
+          <select 
             id="course" 
             name="course" 
-            class="input-field" 
-            placeholder="B.Tech" 
+            class="select-field" 
             required
           >
-          <span class="form-error" id="courseError">Course is required</span>
+            <option value="" disabled selected>Select Course</option>
+            <optgroup label="Postgraduate (PG)">
+              <option value="MCA">MCA (Master of Computer Applications)</option>
+              <option value="M.Tech CSE">M.Tech (Computer Science &amp; Engineering)</option>
+              <option value="MBA">MBA (Master of Business Administration)</option>
+              <option value="M.Sc CS">M.Sc (Computer Science)</option>
+            </optgroup>
+            <optgroup label="Undergraduate (UG)">
+              <option value="B.Tech CSE">B.Tech (Computer Science &amp; Engineering)</option>
+              <option value="B.Tech IT">B.Tech (Information Technology)</option>
+              <option value="B.Tech AI&amp;DS">B.Tech (AI &amp; Data Science)</option>
+              <option value="B.Tech ECE">B.Tech (Electronics &amp; Communication)</option>
+              <option value="B.Tech EEE">B.Tech (Electrical &amp; Electronics)</option>
+              <option value="B.Tech ME">B.Tech (Mechanical Engineering)</option>
+              <option value="B.Tech CE">B.Tech (Civil Engineering)</option>
+              <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+              <option value="B.Sc CS">B.Sc (Computer Science)</option>
+              <option value="BBA">BBA (Bachelor of Business Administration)</option>
+            </optgroup>
+          </select>
+          <span class="form-error" id="courseError">Please select a course</span>
         </div>
       </div>
 
@@ -257,6 +285,28 @@
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<userRegistration>\n  <username>${escapeXml(u)}</username>\n  <password>${pw ? '••••••••' : ''}</password>\n  <fullName>${escapeXml(fn)}</fullName>\n  <email>${escapeXml(em)}</email>\n  <rollNumber>${escapeXml(rn)}</rollNumber>\n  <department>${escapeXml(dep)}</department>\n  <course>${escapeXml(crs)}</course>\n  <year>${escapeXml(yr)}</year>\n</userRegistration>`;
       xmlLivePreview.textContent = xml;
     }
+
+    // Intelligent auto-suggest of Course when Department changes
+    const deptToCourseMap = {
+      'Computer Applications': 'MCA',
+      'Computer Science & Engineering': 'B.Tech CSE',
+      'Information Technology': 'B.Tech IT',
+      'Artificial Intelligence & Data Science': 'B.Tech AI&DS',
+      'Electronics & Communication': 'B.Tech ECE',
+      'Electrical & Electronics': 'B.Tech EEE',
+      'Mechanical Engineering': 'B.Tech ME',
+      'Civil Engineering': 'B.Tech CE',
+      'Management Studies': 'MBA',
+      'Science & Humanities': 'B.Sc CS'
+    };
+
+    departmentInput.addEventListener('change', () => {
+      const selDept = departmentInput.value;
+      if (deptToCourseMap[selDept] && (!courseInput.value || courseInput.value === '')) {
+        courseInput.value = deptToCourseMap[selDept];
+      }
+      updateLivePreviews();
+    });
 
     [usernameInput, fullNameInput, emailInput, rollNumberInput, departmentInput, courseInput, yearSelect, passwordInput].forEach(el => {
       el.addEventListener('input', updateLivePreviews);

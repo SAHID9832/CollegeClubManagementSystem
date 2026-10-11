@@ -137,7 +137,14 @@
           <div class="form-row">
             <div class="form-group">
               <label for="studCourse" class="form-label">Course</label>
-              <input type="text" id="studCourse" name="studCourse" class="input-field" value="MCA" required>
+              <select id="studCourse" name="studCourse" class="select-field" required>
+                <option value="MCA" selected>MCA (Master of Computer Applications)</option>
+                <option value="M.Tech">M.Tech (Computer Science &amp; Engineering)</option>
+                <option value="MBA">MBA (Master of Business Administration)</option>
+                <option value="B.Tech CSE">B.Tech (Computer Science &amp; Engineering)</option>
+                <option value="B.Tech IT">B.Tech (Information Technology)</option>
+                <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="studAge" class="form-label">Age</label>
@@ -282,7 +289,10 @@
     }
 
     btnGenPayloads.addEventListener('click', generatePayloads);
-    [studName, studRoll, studCourse, studAge].forEach(el => el.addEventListener('input', generatePayloads));
+    [studName, studRoll, studCourse, studAge].forEach(el => {
+      el.addEventListener('input', generatePayloads);
+      el.addEventListener('change', generatePayloads);
+    });
     generatePayloads();
 
     // Tab switching

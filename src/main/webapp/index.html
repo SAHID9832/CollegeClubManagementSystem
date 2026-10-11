@@ -317,11 +317,43 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="form-label" for="editDepartment">Department</label>
-                    <input type="text" id="editDepartment" class="input-field" required>
+                    <select id="editDepartment" class="select-field" required>
+                      <option value="" disabled selected>Select Department</option>
+                      <option value="Computer Applications">Computer Applications</option>
+                      <option value="Computer Science &amp; Engineering">Computer Science &amp; Engineering</option>
+                      <option value="Information Technology">Information Technology</option>
+                      <option value="Artificial Intelligence &amp; Data Science">Artificial Intelligence &amp; Data Science</option>
+                      <option value="Electronics &amp; Communication">Electronics &amp; Communication</option>
+                      <option value="Electrical &amp; Electronics">Electrical &amp; Electronics</option>
+                      <option value="Mechanical Engineering">Mechanical Engineering</option>
+                      <option value="Civil Engineering">Civil Engineering</option>
+                      <option value="Management Studies">Management Studies</option>
+                      <option value="Science &amp; Humanities">Science &amp; Humanities</option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="editCourse">Course</label>
-                    <input type="text" id="editCourse" class="input-field" required>
+                    <select id="editCourse" class="select-field" required>
+                      <option value="" disabled selected>Select Course</option>
+                      <optgroup label="Postgraduate (PG)">
+                        <option value="MCA">MCA (Master of Computer Applications)</option>
+                        <option value="M.Tech CSE">M.Tech (Computer Science &amp; Engineering)</option>
+                        <option value="MBA">MBA (Master of Business Administration)</option>
+                        <option value="M.Sc CS">M.Sc (Computer Science)</option>
+                      </optgroup>
+                      <optgroup label="Undergraduate (UG)">
+                        <option value="B.Tech CSE">B.Tech (Computer Science &amp; Engineering)</option>
+                        <option value="B.Tech IT">B.Tech (Information Technology)</option>
+                        <option value="B.Tech AI&amp;DS">B.Tech (AI &amp; Data Science)</option>
+                        <option value="B.Tech ECE">B.Tech (Electronics &amp; Communication)</option>
+                        <option value="B.Tech EEE">B.Tech (Electrical &amp; Electronics)</option>
+                        <option value="B.Tech ME">B.Tech (Mechanical Engineering)</option>
+                        <option value="B.Tech CE">B.Tech (Civil Engineering)</option>
+                        <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+                        <option value="B.Sc CS">B.Sc (Computer Science)</option>
+                        <option value="BBA">BBA (Bachelor of Business Administration)</option>
+                      </optgroup>
+                    </select>
                   </div>
                 </div>
                 <div class="form-group">
@@ -1335,11 +1367,23 @@
           .toUpperCase();
         document.getElementById('profileLargeAvatar').textContent = profInitials;
 
+        function setSelectVal(el, val) {
+          if (!el || !val) return;
+          el.value = val;
+          if (el.value !== val) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            el.appendChild(opt);
+            el.value = val;
+          }
+        }
+
         // Prefill edit form
         document.getElementById('editFullName').value = profileData.fullName || '';
         document.getElementById('editEmail').value = profileData.email || '';
-        document.getElementById('editDepartment').value = profileData.department || '';
-        document.getElementById('editCourse').value = profileData.course || '';
+        setSelectVal(document.getElementById('editDepartment'), profileData.department || '');
+        setSelectVal(document.getElementById('editCourse'), profileData.course || '');
         document.getElementById('editYear').value = profileData.year || 1;
 
       } catch (e) {
@@ -1363,6 +1407,29 @@
       profileEditForm.style.display = 'none';
       editToggleBtn.style.display = 'inline-block';
     });
+
+    const editDeptEl = document.getElementById('editDepartment');
+    const editCourseEl = document.getElementById('editCourse');
+    const editDeptMap = {
+      'Computer Applications': 'MCA',
+      'Computer Science & Engineering': 'B.Tech CSE',
+      'Information Technology': 'B.Tech IT',
+      'Artificial Intelligence & Data Science': 'B.Tech AI&DS',
+      'Electronics & Communication': 'B.Tech ECE',
+      'Electrical & Electronics': 'B.Tech EEE',
+      'Mechanical Engineering': 'B.Tech ME',
+      'Civil Engineering': 'B.Tech CE',
+      'Management Studies': 'MBA',
+      'Science & Humanities': 'B.Sc CS'
+    };
+
+    if (editDeptEl && editCourseEl) {
+      editDeptEl.addEventListener('change', () => {
+        if (editDeptMap[editDeptEl.value] && (!editCourseEl.value || editCourseEl.value === '')) {
+          editCourseEl.value = editDeptMap[editDeptEl.value];
+        }
+      });
+    }
 
     profileEditForm.addEventListener('submit', async (e) => {
       e.preventDefault();

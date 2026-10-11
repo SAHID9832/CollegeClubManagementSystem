@@ -627,6 +627,13 @@ a:hover { color: var(--primary); }
   color: var(--text-main);
 }
 
+.select-field optgroup {
+  background-color: var(--bg-card);
+  color: var(--accent);
+  font-weight: 600;
+  padding: 0.25rem 0;
+}
+
 .form-error {
   color: var(--danger);
   font-size: 0.8rem;
