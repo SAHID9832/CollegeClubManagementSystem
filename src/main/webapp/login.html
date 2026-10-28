@@ -304,7 +304,7 @@
         submitBtn.style.background = 'linear-gradient(135deg, #f43f5e 0%, #be123c 100%)';
         submitBtn.style.boxShadow = '0 0 20px rgba(244, 63, 94, 0.45)';
         btnText.textContent = 'Sign In to Admin Dashboard ➔';
-        roleHintText.innerHTML = '👑 <strong>Admin</strong> selected. Directs to Admin Dashboard.';
+        roleHintText.innerHTML = '👑 <strong>Admin:</strong> <code>admin</code> / <code>Admin@123</code> &bull; <a href="#" id="fillDemoBtn" style="color:#fb7185;text-decoration:underline;font-weight:600;margin-left:4px;">Fill Demo</a>';
         roleStatusBadge.textContent = 'Admin Active';
         roleStatusBadge.style.color = '#fb7185';
       } else {
@@ -318,9 +318,25 @@
         submitBtn.style.background = '';
         submitBtn.style.boxShadow = '';
         btnText.textContent = 'Sign In as Student ➔';
-        roleHintText.innerHTML = '🎓 <strong>Student</strong> selected. Directs to Campus Hub.';
+        roleHintText.innerHTML = '🎓 <strong>Student:</strong> <code>student01</code> / <code>Student@123</code> &bull; <a href="#" id="fillDemoBtn" style="color:#818cf8;text-decoration:underline;font-weight:600;margin-left:4px;">Fill Demo</a>';
         roleStatusBadge.textContent = 'Student Active';
         roleStatusBadge.style.color = '#818cf8';
+      }
+      const fillBtn = document.getElementById('fillDemoBtn');
+      if (fillBtn) {
+        fillBtn.onclick = (e) => {
+          e.preventDefault();
+          if (currentRole === 'ADMIN') {
+            usernameInput.value = 'admin';
+            passwordInput.value = 'Admin@123';
+          } else {
+            usernameInput.value = 'student01';
+            passwordInput.value = 'Student@123';
+          }
+          usernameError.classList.remove('visible');
+          passwordError.classList.remove('visible');
+          backendError.classList.remove('visible');
+        };
       }
       usernameError.classList.remove('visible');
       passwordError.classList.remove('visible');
@@ -513,7 +529,9 @@
         }
       } catch (err) {
         let msg = err.message || 'An error occurred during authentication.';
-        if (msg.includes('<html') || msg.includes('501') || msg.includes('Unsupported method')) {
+        if (msg.includes('Session expired')) {
+          msg = 'Invalid username or password. Please verify your credentials.';
+        } else if (msg.includes('<html') || msg.includes('501') || msg.includes('Unsupported method')) {
           msg = 'Static preview server detected. Please use: mvn cargo:run for full Java backend.';
         }
         backendError.textContent = msg;

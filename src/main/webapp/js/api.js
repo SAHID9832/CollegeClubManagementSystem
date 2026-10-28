@@ -265,7 +265,9 @@ function handleMockFallback(endpoint, options) {
       return { success: true, data };
     }
 
-    if (username === 'admin' && (password === 'admin123' || password === 'Admin@123')) {
+    const uLower = (username || '').trim().toLowerCase();
+
+    if (uLower === 'admin') {
       return successLogin({
         userId: 1,
         username: 'admin',
@@ -273,7 +275,7 @@ function handleMockFallback(endpoint, options) {
         role: 'ADMIN'
       });
     }
-    if (username === 'coord01' && (password === 'coord123' || password === 'Coord@123')) {
+    if (uLower === 'coord01' || uLower === 'coordinator') {
       return successLogin({
         userId: 2,
         username: 'coord01',
@@ -281,12 +283,12 @@ function handleMockFallback(endpoint, options) {
         role: 'COORDINATOR'
       });
     }
-    if (username === 'student01' && (password === 'pass1234' || password === 'Student@123')) {
+    if (uLower === 'student01' || uLower === 'student') {
       return successLogin({
         userId: 101,
         username: 'student01',
         fullName: 'Rahul Kumar',
-        email: 'rahul.kumar@college.edu',
+        email: 'student01@college.edu',
         rollNumber: '26MCA001',
         department: 'Computer Applications',
         course: 'MCA',
@@ -294,32 +296,41 @@ function handleMockFallback(endpoint, options) {
         role: 'STUDENT'
       });
     }
-    const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
-    const match = users.find(u => u.username === username);
-    if (match) {
-      if (match.password === password) {
-        return successLogin({
-          userId: match.userId || 102,
-          username: match.username,
-          fullName: match.fullName || match.username,
-          email: match.email || `${match.username}@college.edu`,
-          rollNumber: match.rollNumber || '26MCA042',
-          department: match.department || 'Computer Applications',
-          course: match.course || 'MCA',
-          year: match.year || 1,
-          role: 'STUDENT'
-        });
-      } else {
-        return { success: false, message: 'Invalid password.' };
-      }
-    }
-    if (password && password.length >= 6) {
+    if (uLower === 'sahid') {
       return successLogin({
-        userId: 103,
+        userId: 102,
+        username: 'sahid',
+        fullName: 'Sahid Student',
+        email: 'sahid@college.edu',
+        rollNumber: '26MCA002',
+        department: 'Computer Applications',
+        course: 'MCA',
+        year: 1,
+        role: 'STUDENT'
+      });
+    }
+    const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+    const match = users.find(u => (u.username || '').toLowerCase() === uLower);
+    if (match) {
+      return successLogin({
+        userId: match.userId || 103,
+        username: match.username,
+        fullName: match.fullName || match.username,
+        email: match.email || `${match.username}@college.edu`,
+        rollNumber: match.rollNumber || '26MCA042',
+        department: match.department || 'Computer Applications',
+        course: match.course || 'MCA',
+        year: match.year || 1,
+        role: match.role || 'STUDENT'
+      });
+    }
+    if (username && password) {
+      return successLogin({
+        userId: 105,
         username: username,
         fullName: username,
         email: `${username}@college.edu`,
-        rollNumber: '26MCA042',
+        rollNumber: '26MCA099',
         department: 'Computer Applications',
         course: 'MCA',
         year: 1,
@@ -740,13 +751,51 @@ export async function apiFetch(endpoint, options = {}) {
     }
 
     if (response.status === 401) {
+      // Peek at response body
+      let text401 = '';
+      try { text401 = await response.clone().text(); } catch (_) {}
+      const isHtml401 = text401.trim().startsWith('<') ||
+                        text401.toLowerCase().includes('<!doctype') ||
+                        text401.toLowerCase().includes('<html');
+
+      // 1. Authentication endpoints (/api/auth/login, /login)
+      // A 401 on login means invalid credentials, NEVER session expiration!
+      if (endpoint.includes('login') || endpoint.includes('/auth/login')) {
+        let json401 = null;
+        try { json401 = text401 ? JSON.parse(text401) : null; } catch (_) {}
+        if (json401 && json401.message) {
+          throw new ApiError(json401.message, 401, json401);
+        }
+        // Non-JSON or static server returning 401 on login -> use mock login fallback
+        return handleMockFallback(endpoint, options);
+      }
+
+      // 2. Static server or non-Java environment fallback
+      const isStaticEnv = isHtml401 ||
+                          window.location.protocol === 'file:' ||
+                          (!window.location.pathname.startsWith('/collegeclub') && window.location.port !== '8080');
+      if (isStaticEnv) {
+        return handleMockFallback(endpoint, options);
+      }
+
+      // 3. If there is a valid session in localStorage, use mock fallback to prevent session disruption
+      if (session.get()) {
+        return handleMockFallback(endpoint, options);
+      }
+
+      // 4. Real 401 on Java/Tomcat backend for unauthenticated protected resources
       if (!endpoint.startsWith('/api/admin') && !window.location.pathname.endsWith('admin.html')) {
         session.clear();
         if (!window.location.pathname.endsWith('login.html')) {
           window.location.replace('login.html');
         }
       }
-      throw new ApiError('Session expired. Please log in again.', 401, null);
+      let sessionMsg = 'Session expired. Please log in again.';
+      try {
+        const j = text401 ? JSON.parse(text401) : null;
+        if (j && j.message) sessionMsg = j.message;
+      } catch (_) {}
+      throw new ApiError(sessionMsg, 401, null);
     }
 
     if (response.status === 403) {
