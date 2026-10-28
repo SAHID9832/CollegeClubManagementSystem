@@ -215,7 +215,7 @@ public class UserService implements UserOperations {
             String newHash = PasswordUtil.hashPassword(newPassword);
             return userDao.updatePassword(user.getId(), newHash);
         } catch (SQLException e) {
-            throw new ClubSystemException("Database error during password reset: " + e.getMessage());
+            throw new ClubSystemException("DATABASE_ERROR", "Database error during password reset: " + e.getMessage(), 500, e);
         }
     }
 

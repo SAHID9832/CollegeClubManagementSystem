@@ -348,6 +348,21 @@ public class AdminServlet extends BaseApiServlet {
             }
         }
 
+        // DELETE /api/admin/sessions/{sessionId}
+        if (pathInfo.startsWith("/sessions/")) {
+            String targetSessionId = pathInfo.substring("/sessions/".length());
+            if (targetSessionId.endsWith("/terminate")) {
+                targetSessionId = targetSessionId.substring(0, targetSessionId.length() - "/terminate".length());
+            }
+            boolean ok = SessionRegistry.terminateSession(targetSessionId);
+            if (ok) {
+                writeSuccess(resp, "Session terminated successfully", null);
+            } else {
+                writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NOT_FOUND", "Session not found or already inactive");
+            }
+            return;
+        }
+
         // DELETE /api/admin/clubs/{clubId}/members/{userId}
         if (pathInfo.startsWith("/clubs/") && pathInfo.contains("/members/")) {
             try {
