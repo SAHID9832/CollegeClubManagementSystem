@@ -511,7 +511,11 @@
           backendError.style.color = 'var(--danger)';
         }
       } catch (err) {
-        backendError.textContent = err.message || 'An error occurred during authentication.';
+        let msg = err.message || 'An error occurred during authentication.';
+        if (msg.includes('<html') || msg.includes('501') || msg.includes('Unsupported method')) {
+          msg = 'Static preview server detected. Please use: mvn cargo:run for full Java backend.';
+        }
+        backendError.textContent = msg;
         backendError.classList.add('visible');
         backendError.style.color = 'var(--danger)';
       } finally {

@@ -338,7 +338,11 @@
           backendError.classList.add('visible');
         }
       } catch (err) {
-        backendError.textContent = err.message || 'An error occurred during registration.';
+        let msg = err.message || 'An error occurred during registration.';
+        if (msg.includes('<html') || msg.includes('501') || msg.includes('Unsupported method')) {
+          msg = 'Static preview server detected. Please use: mvn cargo:run for full Java backend.';
+        }
+        backendError.textContent = msg;
         backendError.classList.add('visible');
       } finally {
         submitBtn.disabled = false;

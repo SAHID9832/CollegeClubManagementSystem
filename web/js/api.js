@@ -690,8 +690,11 @@ export async function apiFetch(endpoint, options = {}) {
   try {
     const response = await fetch(url, config);
 
-    // Live Server (port 5500) returns 405 Method Not Allowed on POST requests
-    if (response.status === 405 || response.status === 404) {
+    // Fallback for static servers (e.g. Python http.server, VS Code Live Server)
+    // - Python http.server returns 501 Unsupported method ('POST') or 404
+    // - Live Server returns 405 Method Not Allowed or 404
+    // - Static hosting returns 404, 405, 501, 500 or raw HTML error pages
+    if (response.status === 405 || response.status === 404 || response.status === 501 || response.status === 500) {
       return handleMockFallback(endpoint, options);
     }
 
@@ -721,9 +724,19 @@ export async function apiFetch(endpoint, options = {}) {
 
     let json;
     const text = await response.text();
+
+    // If server returned an HTML error document instead of API JSON (e.g. 501, 404, 405 from static web servers)
+    const isHtml = text.trim().startsWith('<') || text.toLowerCase().includes('<!doctype') || text.toLowerCase().includes('<html');
+    if (isHtml && !response.ok) {
+      return handleMockFallback(endpoint, options);
+    }
+
     try {
       json = text ? JSON.parse(text) : {};
     } catch (e) {
+      if (!response.ok) {
+        return handleMockFallback(endpoint, options);
+      }
       json = { success: response.ok, message: text };
     }
 
