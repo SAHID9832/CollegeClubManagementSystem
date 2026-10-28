@@ -53,10 +53,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findByUsername(String username) throws SQLException {
-        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE username = ?";
+        if (username == null || username.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE LOWER(username) = LOWER(?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, username);
+            ps.setString(1, username.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapRow(rs));
@@ -68,10 +71,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findByEmail(String email) throws SQLException {
-        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE email = ?";
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE LOWER(email) = LOWER(?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, email);
+            ps.setString(1, email.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapRow(rs));

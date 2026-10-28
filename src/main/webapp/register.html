@@ -336,10 +336,26 @@
 
         const res = await api.auth.register(payload);
         if (res.success) {
-          showSuccess('Registration successful! Redirecting to login...');
+          // Store registered user in localStorage for instant cross-environment login support
+          try {
+            const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+            if (!users.some(u => (u.username || '').toLowerCase() === payload.username.toLowerCase())) {
+              users.push({
+                ...payload,
+                userId: (res.data && res.data.userId) ? res.data.userId : (Math.floor(Math.random() * 800) + 200),
+                role: 'STUDENT',
+                active: true,
+                registeredAt: new Date().toISOString()
+              });
+              localStorage.setItem('ccms_users', JSON.stringify(users));
+            }
+            localStorage.setItem('ccms_last_registered_user', payload.username);
+          } catch (_) {}
+
+          showSuccess('Registration successful! Redirecting to student login...');
           setTimeout(() => {
-            window.location.replace('login.html');
-          }, 1500);
+            window.location.replace(`login.html?registered=true&user=${encodeURIComponent(payload.username)}`);
+          }, 1200);
         } else {
           backendError.textContent = res.message || 'Registration failed.';
           backendError.classList.add('visible');

@@ -305,6 +305,10 @@
         <span id="btnText">Sign In</span>
         <span id="btnSpinner" class="spinner spinner-sm" style="display: none;"></span>
       </button>
+
+      <div style="margin-top: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 8px; background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.18); font-size: 0.76rem; color: #94a3b8; text-align: center;">
+        💡 <strong>Demo Student:</strong> <code>student01</code> / <code>Student@123</code> &bull; or create your own via Register
+      </div>
     </form>
 
     <div class="auth-footer" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: center; margin-top: 1.5rem;">
@@ -470,6 +474,19 @@
 
     selectRole('STUDENT');
 
+    // Check if redirected from student registration
+    const regParam = urlParams.get('registered');
+    const userParam = urlParams.get('user') || localStorage.getItem('ccms_last_registered_user');
+    if ((regParam === 'true' || regParam === '1') && userParam) {
+      usernameInput.value = userParam;
+      backendError.innerHTML = `🎉 Account registered successfully for <strong>${userParam}</strong>! Please enter your password to sign in.`;
+      backendError.style.color = '#34d399';
+      backendError.classList.add('visible');
+      if (passwordInput) setTimeout(() => passwordInput.focus(), 600);
+      localStorage.removeItem('ccms_last_registered_user');
+      sessionStorage.setItem('campussphere_splash_opened', 'true');
+    }
+
     // Slide-up gesture & splash cover logic
     const splashCover = document.getElementById('splashCover');
     const slideUpTrigger = document.getElementById('slideUpTrigger');
@@ -611,6 +628,41 @@
             role: effectiveRole,
             fullName: user.fullName || (isAdmin ? 'System Administrator' : user.username)
           });
+
+          // Ensure session is stored in ccms_active_sessions and permanent audit history
+          try {
+            const sid = user.sessionId || user.token || ('JSESSIONID-' + Math.random().toString(16).substring(2, 10).toUpperCase());
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const formattedDate = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const activeSessions = JSON.parse(localStorage.getItem('ccms_active_sessions') || '[]');
+            const entry = {
+              sessionId: sid,
+              userId: user.userId || 101,
+              username: user.username,
+              fullName: user.fullName || user.username,
+              role: effectiveRole,
+              loginTime: formattedDate,
+              lastAccessTime: formattedDate,
+              ipAddress: '127.0.0.1 (Localhost)',
+              active: true
+            };
+            const updated = [entry, ...activeSessions.filter(s => s.username !== user.username || !s.active)].slice(0, 30);
+            localStorage.setItem('ccms_active_sessions', JSON.stringify(updated));
+
+            const history = JSON.parse(localStorage.getItem('ccms_login_history') || '[]');
+            history.unshift({
+              sessionId: sid,
+              userId: entry.userId,
+              username: entry.username,
+              fullName: entry.fullName,
+              role: entry.role,
+              loginTime: formattedDate,
+              ipAddress: entry.ipAddress,
+              status: 'SUCCESS'
+            });
+            localStorage.setItem('ccms_login_history', JSON.stringify(history.slice(0, 50)));
+          } catch (_) {}
 
           if (effectiveRole === 'ADMIN') {
             showSuccess('Administrator access verified! Opening Admin Dashboard...');
