@@ -488,6 +488,7 @@
 
           session.set({
             token: user.token || user.sessionId || 'session-' + Date.now(),
+            sessionId: user.sessionId || user.token,
             userId: user.userId,
             username: user.username,
             role: effectiveRole,

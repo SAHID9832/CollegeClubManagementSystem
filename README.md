@@ -101,12 +101,11 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke-test.ps1
 ```
 CollegeClubManagementSystem/
 ├── pom.xml                                  # Maven project configuration (WAR packaging, Java 17 release)
-├── README.md                                # Project master documentation
-├── PROJECT_STATE.md                         # Phase tracking and environment report
+├── README.md                                # Master project documentation & presentation guide
 ├── scripts/
 │   ├── smoke-test.ps1                       # Automated 9-step integration test suite
 │   ├── deploy.ps1                           # Production WAR packaging and deployment script
-│   └── run-tomcat.ps1                       # Cargo Tomcat 10.1 runner script
+│   └── run-tomcat.ps1                       # Cargo Tomcat 10.1 development server runner
 ├── docs/
 │   ├── PHASE_1.md                           # Phase 1 documentation & verification
 │   ├── PHASE_2.md                           # Phase 2 documentation & verification
@@ -119,34 +118,33 @@ CollegeClubManagementSystem/
 └── src/
     ├── main/
     │   ├── java/com/collegeclub/
-    │   │   ├── phase1/                      # Preserved faculty Phase 1 reference classes
-    │   │   ├── model/                       # User, Student, Admin, Club, Event, Role
-    │   │   ├── dao/                         # DAO interfaces & JDBC PreparedStatement implementations
-    │   │   ├── service/                     # Operations interfaces & service business logic
+    │   │   ├── app/                         # CLI Console Entrypoint (Phase 1 & 2 Demo)
+    │   │   ├── controller/                  # Jakarta Servlets (Login, Register, Club, Event, Admin, etc.)
+    │   │   ├── dao/                         # DAO interfaces & PreparedStatement JDBC implementations
     │   │   ├── exception/                   # Exception hierarchy rooted at ClubSystemException
-    │   │   ├── controller/                  # Jakarta Servlets (Register, Login, Club, Event, XML, Admin)
     │   │   ├── filter/                      # EncodingFilter, SecurityHeadersFilter, AuthFilter, CsrfFilter
-    │   │   └── util/                        # DBConnection, PasswordUtil, Validation, XmlUtil
+    │   │   ├── listener/                    # UserSessionListener (HttpSessionListener for session monitoring)
+    │   │   ├── model/                       # Domain Entities (User, Student, Club, Event, UserSessionInfo)
+    │   │   ├── phase1/                      # Preserved faculty Phase 1 reference classes
+    │   │   ├── service/                     # Service interfaces & business logic implementations
+    │   │   └── util/                        # DBConnection, PasswordUtil, SessionRegistry, XmlUtil
     │   ├── resources/
-    │   │   ├── application.properties       # Environment configuration
+    │   │   ├── application.properties       # Environment configuration (H2 / MySQL)
     │   │   └── schema.sql                   # Database schema (H2 & MySQL compatible)
-    │   └── webapp/                          # Web application root (WAR deployment)
-    │       ├── WEB-INF/web.xml              # Deployment descriptor (Jakarta EE 10)
-    │       ├── css/main.css                 # Glassmorphism design system
-    │       ├── js/api.js                    # API client with seamless Live Server mock fallback
-    │       ├── index.html                   # Student portal home
-    │       ├── auth.html                    # Faculty Phase 3 reference flow (Phase_3.pdf)
-    │       ├── register.html                # Registration page (no confirm password)
-    │       ├── login.html                   # Sign-in page
-    │       ├── demo.html                    # XML & JSON Connectivity Lab
-    │       ├── clubs.html                   # Browse clubs
-    │       ├── club.html                    # Club details
-    │       ├── events.html                  # Browse events
-    │       ├── event.html                   # Event details
-    │       ├── dashboard.jsp                # Server-rendered student dashboard (JSTL)
+    │   └── webapp/                          # Single canonical Web Application Root
+    │       ├── WEB-INF/web.xml              # Deployment descriptor (Jakarta EE 10 / Servlet 6.0)
+    │       ├── css/                         # Glassmorphism & CampusSphere CSS styles
+    │       ├── js/api.js                    # Modular API client with session management & fallback
+    │       ├── images/                      # Branding, campus hero & logo graphics
+    │       ├── index.html                   # CampusSphere student portal home
+    │       ├── login.html                   # Role-separated Sign In (Admin / Student)
+    │       ├── register.html                # Student registration page
+    │       ├── admin.html                   # Full Admin Portal with Live User Sessions Monitor
     │       ├── admin.jsp                    # Server-rendered admin dashboard (JSTL)
-    │       ├── profile.jsp                  # Server-rendered profile (JSTL)
-    │       └── samples/                     # Browser-accessible XML & XSLT stylesheets
+    │       ├── dashboard.jsp                # Server-rendered student dashboard (JSTL)
+    │       ├── clubs.html                   # Browse & join campus clubs
+    │       ├── events.html                  # Browse & register for campus events
+    │       └── profile.jsp                  # Student academic profile
     └── test/java/com/collegeclub/
         ├── phase1/Phase1Test.java           # Phase 1 unit tests (7 tests)
         ├── phase2/Phase2Test.java           # Phase 2 unit tests (8 tests)
@@ -163,3 +161,17 @@ CollegeClubManagementSystem/
 4. **XSS Prevention:** All server-rendered dynamic data in JSP uses JSTL 3.0 `<c:out value="${...}" />` to auto-escape HTML entities.
 5. **XXE Protection:** All DOM parser instances in `XmlUtil` have `disallow-doctype-decl` enabled, external DTD loading disabled, and external general/parameter entities disabled.
 6. **SQL Injection Immunity:** All database queries utilize parameterized `PreparedStatement` with zero string concatenation.
+
+---
+
+## 7. Active User Sessions & Session ID Monitoring (Teacher Requirement)
+
+In compliance with syllabus and teacher evaluation requirements:
+1. **Generation:** When any user (Admin, Student, Coordinator) logs in, the servlet container generates an `HttpSession` with a cryptographically secure `JSESSIONID`.
+2. **Fixation Defense:** `request.changeSessionId()` is called immediately to defend against session hijacking.
+3. **Tracking Architecture:**
+   - **`UserSessionListener`**: An application-level `@WebListener` implementing `HttpSessionListener` catches container session creation and expiration events.
+   - **`SessionRegistry`**: A thread-safe in-memory registry (`ConcurrentHashMap`) that maps each active Session ID to user credentials, IP address, login timestamp, and activity state.
+4. **Admin Surveillance Panel:**
+   - Admins can open **Active User Sessions** in the Admin Portal to view live Session IDs, authenticated usernames, roles, and IP addresses.
+   - Admins can programmatically **terminate/invalidate** any user's session with one click, forcing an instant logout.

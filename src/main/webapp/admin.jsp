@@ -8,6 +8,7 @@
     request.setAttribute("userList", userDao.getAllUsers());
     request.setAttribute("clubList", clubDao.getAllClubs());
     request.setAttribute("eventList", eventDao.getAllEvents());
+    request.setAttribute("sessionList", com.collegeclub.util.SessionRegistry.getAllSessions());
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,6 +93,13 @@
                         <span class="stat-value"><c:out value="${eventList.size()}" /></span>
                     </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">🔑</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Active Sessions</span>
+                        <span class="stat-value"><c:out value="${sessionList.size()}" /></span>
+                    </div>
+                </div>
             </div>
 
             <!-- User Management Table -->
@@ -129,6 +137,68 @@
                                     </td>
                                 </tr>
                             </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Active User Sessions Table (Teacher Requirement) -->
+            <section style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+                <div class="section-header">
+                    <div>
+                        <h2>Active User Sessions &amp; Session IDs</h2>
+                        <p class="section-subtitle">Live tracking of active HttpSession identifiers generated on user login (HttpSessionListener)</p>
+                    </div>
+                </div>
+
+                <div class="table-container" style="background: var(--bg-card); border-radius: var(--radius-lg); border: var(--border-glass); padding: 1rem; overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); text-align: left; color: #38bdf8;">
+                                <th style="padding: 0.75rem 1rem;">Session ID</th>
+                                <th style="padding: 0.75rem 1rem;">Username</th>
+                                <th style="padding: 0.75rem 1rem;">Full Name</th>
+                                <th style="padding: 0.75rem 1rem;">Role</th>
+                                <th style="padding: 0.75rem 1rem;">IP Address</th>
+                                <th style="padding: 0.75rem 1rem;">Login Time</th>
+                                <th style="padding: 0.75rem 1rem;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:choose>
+                                <c:when test="${empty sessionList}">
+                                    <tr>
+                                        <td colspan="7" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                                            No active user sessions currently recorded. Log in from another browser/tab to view live Session IDs.
+                                        </td>
+                                    </tr>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:forEach var="s" items="${sessionList}">
+                                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                            <td style="padding: 0.75rem 1rem;">
+                                                <code style="background: rgba(255, 255, 255, 0.06); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; color: #38bdf8; font-size: 0.8rem;">
+                                                    <c:out value="${s.sessionId}" />
+                                                </code>
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem; font-weight: 600; color: #fff;"><c:out value="${s.username}" /></td>
+                                            <td style="padding: 0.75rem 1rem;"><c:out value="${s.fullName != null ? s.fullName : '-'}" /></td>
+                                            <td style="padding: 0.75rem 1rem;">
+                                                <span class="badge ${s.role == 'ADMIN' ? 'badge-danger' : 'badge-primary'}">
+                                                    <c:out value="${s.role}" />
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem; font-family: monospace; color: var(--text-muted); font-size: 0.85rem;"><c:out value="${s.ipAddress}" /></td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem;"><c:out value="${s.loginTime}" /></td>
+                                            <td style="padding: 0.75rem 1rem;">
+                                                <span class="badge ${s.active ? 'badge-success' : 'badge-danger'}">
+                                                    <c:out value="${s.active ? 'ACTIVE' : 'INACTIVE'}" />
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </c:otherwise>
+                            </c:choose>
                         </tbody>
                     </table>
                 </div>

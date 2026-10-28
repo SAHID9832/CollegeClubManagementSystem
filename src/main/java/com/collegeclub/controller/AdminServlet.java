@@ -8,6 +8,7 @@ import com.collegeclub.dao.impl.UserDaoImpl;
 import com.collegeclub.model.Registration;
 import com.collegeclub.model.Role;
 import com.collegeclub.model.User;
+import com.collegeclub.util.SessionRegistry;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -68,6 +69,7 @@ public class AdminServlet extends BaseApiServlet {
                 stats.addProperty("totalRegistrations", totalRegistrations);
                 stats.addProperty("totalMemberships", totalMemberships);
                 stats.addProperty("pendingApprovals", pendingApprovals);
+                stats.addProperty("activeSessions", SessionRegistry.getActiveCount());
 
                 writeSuccess(resp, "Platform statistics", stats);
                 return;
@@ -75,6 +77,12 @@ public class AdminServlet extends BaseApiServlet {
                 writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DATABASE_ERROR", "Failed to retrieve statistics: " + e.getMessage());
                 return;
             }
+        }
+
+        // GET /api/admin/sessions
+        if (pathInfo.equals("/sessions")) {
+            writeSuccess(resp, "Active user sessions", SessionRegistry.getAllSessions());
+            return;
         }
 
         // GET /api/admin/users
@@ -187,6 +195,22 @@ public class AdminServlet extends BaseApiServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        if (!checkAdmin(req, resp)) return;
+
+        String pathInfo = req.getPathInfo();
+        if (pathInfo == null) pathInfo = "";
+
+        if (pathInfo.startsWith("/sessions/") && pathInfo.endsWith("/terminate")) {
+            String targetSessionId = pathInfo.substring("/sessions/".length(), pathInfo.length() - "/terminate".length());
+            boolean ok = SessionRegistry.terminateSession(targetSessionId);
+            if (ok) {
+                writeSuccess(resp, "Session terminated successfully", null);
+            } else {
+                writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NOT_FOUND", "Session not found or already inactive");
+            }
+            return;
+        }
+
         doPut(req, resp);
     }
 
@@ -292,6 +316,18 @@ public class AdminServlet extends BaseApiServlet {
         if (pathInfo == null) pathInfo = "";
         if (pathInfo.endsWith("/remove")) {
             pathInfo = pathInfo.substring(0, pathInfo.length() - "/remove".length());
+        }
+
+        // DELETE /api/admin/sessions/{id}
+        if (pathInfo.startsWith("/sessions/")) {
+            String targetSessionId = pathInfo.substring("/sessions/".length());
+            boolean ok = SessionRegistry.terminateSession(targetSessionId);
+            if (ok) {
+                writeSuccess(resp, "Session terminated successfully", null);
+            } else {
+                writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NOT_FOUND", "Session not found or already inactive");
+            }
+            return;
         }
 
         // DELETE /api/admin/participants/{id} or /api/admin/registrations/{id}

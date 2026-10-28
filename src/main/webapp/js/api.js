@@ -202,88 +202,129 @@ function handleMockFallback(endpoint, options) {
     };
   }
 
+  function recordMockSession(user) {
+    try {
+      const activeSessions = JSON.parse(localStorage.getItem('ccms_active_sessions') || '[]');
+      const hex = Math.random().toString(16).substring(2, 10).toUpperCase() + Math.random().toString(16).substring(2, 10).toUpperCase();
+      const sessionId = 'JSESSIONID-' + hex;
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const formattedDate = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const entry = {
+        sessionId: sessionId,
+        userId: user.userId || 101,
+        username: user.username,
+        fullName: user.fullName || user.username,
+        role: user.role || 'STUDENT',
+        loginTime: formattedDate,
+        lastAccessTime: formattedDate,
+        ipAddress: '127.0.0.1 (Localhost)',
+        active: true
+      };
+      const updated = [entry, ...activeSessions.filter(s => s.username !== user.username || !s.active)].slice(0, 30);
+      localStorage.setItem('ccms_active_sessions', JSON.stringify(updated));
+      return sessionId;
+    } catch (e) {
+      return 'JSESSIONID-' + Date.now();
+    }
+  }
+
+  if (endpoint.includes('/admin/sessions')) {
+    let sessions = JSON.parse(localStorage.getItem('ccms_active_sessions') || '[]');
+    if (sessions.length === 0) {
+      sessions = [
+        { sessionId: 'JSESSIONID-A48F9B2C3D1E5089', userId: 1, username: 'admin', fullName: 'System Administrator', role: 'ADMIN', loginTime: '2026-10-28 17:45:10', lastAccessTime: '2026-10-28 17:58:20', ipAddress: '127.0.0.1 (Localhost)', active: true },
+        { sessionId: 'JSESSIONID-7E2A91D4C8B34021', userId: 101, username: 'student01', fullName: 'Rahul Kumar', role: 'STUDENT', loginTime: '2026-10-28 17:30:15', lastAccessTime: '2026-10-28 17:55:00', ipAddress: '192.168.1.15', active: true },
+        { sessionId: 'JSESSIONID-5B3F11E9C0A78234', userId: 2, username: 'coord01', fullName: 'Dr. S. Arul', role: 'COORDINATOR', loginTime: '2026-10-28 16:15:00', lastAccessTime: '2026-10-28 17:40:12', ipAddress: '192.168.1.28', active: true }
+      ];
+      localStorage.setItem('ccms_active_sessions', JSON.stringify(sessions));
+    }
+
+    if (method === 'DELETE' || endpoint.endsWith('/terminate')) {
+      const parts = endpoint.split('/');
+      const targetId = parts[parts.length - 1] === 'terminate' ? parts[parts.length - 2] : parts[parts.length - 1];
+      const match = sessions.find(s => s.sessionId === targetId);
+      if (match) {
+        match.active = false;
+        match.lastAccessTime = 'Terminated by Admin';
+        localStorage.setItem('ccms_active_sessions', JSON.stringify(sessions));
+        return { success: true, message: 'Session terminated successfully' };
+      }
+      return { success: false, message: 'Session not found' };
+    }
+
+    return { success: true, data: sessions };
+  }
+
   if (endpoint.includes('login')) {
     const { username, password } = body;
+    function successLogin(data) {
+      const sid = recordMockSession(data);
+      data.sessionId = sid;
+      data.token = sid;
+      return { success: true, data };
+    }
+
     if (username === 'admin' && (password === 'admin123' || password === 'Admin@123')) {
-      return {
-        success: true,
-        data: {
-          token: 'token-admin-' + Date.now(),
-          userId: 1,
-          username: 'admin',
-          fullName: 'System Administrator',
-          role: 'ADMIN'
-        }
-      };
+      return successLogin({
+        userId: 1,
+        username: 'admin',
+        fullName: 'System Administrator',
+        role: 'ADMIN'
+      });
     }
     if (username === 'coord01' && (password === 'coord123' || password === 'Coord@123')) {
-      return {
-        success: true,
-        data: {
-          token: 'token-coord-' + Date.now(),
-          userId: 2,
-          username: 'coord01',
-          fullName: 'Club Coordinator',
-          role: 'COORDINATOR'
-        }
-      };
+      return successLogin({
+        userId: 2,
+        username: 'coord01',
+        fullName: 'Club Coordinator',
+        role: 'COORDINATOR'
+      });
     }
     if (username === 'student01' && (password === 'pass1234' || password === 'Student@123')) {
-      return {
-        success: true,
-        data: {
-          token: 'token-student-' + Date.now(),
-          userId: 101,
-          username: 'student01',
-          fullName: 'Rahul Kumar',
-          email: 'rahul.kumar@college.edu',
-          rollNumber: '26MCA001',
-          department: 'Computer Applications',
-          course: 'MCA',
-          year: 1,
-          role: 'STUDENT'
-        }
-      };
+      return successLogin({
+        userId: 101,
+        username: 'student01',
+        fullName: 'Rahul Kumar',
+        email: 'rahul.kumar@college.edu',
+        rollNumber: '26MCA001',
+        department: 'Computer Applications',
+        course: 'MCA',
+        year: 1,
+        role: 'STUDENT'
+      });
     }
     const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
     const match = users.find(u => u.username === username);
     if (match) {
       if (match.password === password) {
-        return {
-          success: true,
-          data: {
-            token: 'token-' + Date.now(),
-            userId: match.userId || 102,
-            username: match.username,
-            fullName: match.fullName || match.username,
-            email: match.email || `${match.username}@college.edu`,
-            rollNumber: match.rollNumber || '26MCA042',
-            department: match.department || 'Computer Applications',
-            course: match.course || 'MCA',
-            year: match.year || 1,
-            role: 'STUDENT'
-          }
-        };
+        return successLogin({
+          userId: match.userId || 102,
+          username: match.username,
+          fullName: match.fullName || match.username,
+          email: match.email || `${match.username}@college.edu`,
+          rollNumber: match.rollNumber || '26MCA042',
+          department: match.department || 'Computer Applications',
+          course: match.course || 'MCA',
+          year: match.year || 1,
+          role: 'STUDENT'
+        });
       } else {
         return { success: false, message: 'Invalid password.' };
       }
     }
     if (password && password.length >= 6) {
-      return {
-        success: true,
-        data: {
-          token: 'token-' + Date.now(),
-          userId: 103,
-          username: username,
-          fullName: username,
-          email: `${username}@college.edu`,
-          rollNumber: '26MCA042',
-          department: 'Computer Applications',
-          course: 'MCA',
-          year: 1,
-          role: 'STUDENT'
-        }
-      };
+      return successLogin({
+        userId: 103,
+        username: username,
+        fullName: username,
+        email: `${username}@college.edu`,
+        rollNumber: '26MCA042',
+        department: 'Computer Applications',
+        course: 'MCA',
+        year: 1,
+        role: 'STUDENT'
+      });
     }
     return { success: false, message: 'Invalid username or password.' };
   }
@@ -1304,6 +1345,14 @@ export const api = {
     },
     auditLogs() {
       return apiFetch('/api/admin/audit-logs');
+    },
+    sessions() {
+      return apiFetch('/api/admin/sessions');
+    },
+    terminateSession(sessionId) {
+      return apiFetch(`/api/admin/sessions/${sessionId}`, {
+        method: 'DELETE'
+      });
     },
     announcements: {
       list() {

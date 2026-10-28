@@ -4,6 +4,7 @@ import com.collegeclub.exception.ClubSystemException;
 import com.collegeclub.model.Role;
 import com.collegeclub.model.User;
 import com.collegeclub.service.impl.UserService;
+import com.collegeclub.util.SessionRegistry;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,6 +68,9 @@ public class LoginServlet extends BaseApiServlet {
             session.setAttribute("user", user);
             session.setAttribute("csrfToken", csrfToken);
             session.setMaxInactiveInterval(30 * 60); // 30 minutes timeout
+
+            // Register active session for administrative monitoring
+            SessionRegistry.registerSession(session, user, req.getRemoteAddr());
 
             if (contentType != null && contentType.contains("application/json")) {
                 JsonObject resData = new JsonObject();

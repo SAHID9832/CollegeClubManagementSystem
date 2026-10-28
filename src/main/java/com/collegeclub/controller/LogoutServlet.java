@@ -1,5 +1,6 @@
 package com.collegeclub.controller;
 
+import com.collegeclub.util.SessionRegistry;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ public class LogoutServlet extends BaseApiServlet {
     private void handleLogout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
         if (session != null) {
+            SessionRegistry.removeSession(session.getId());
             session.invalidate();
         }
 

@@ -218,6 +218,9 @@
         <button class="cs-admin-menu-btn" data-target="reports">
           <span>📈</span> <span>Reports &amp; Analytics</span>
         </button>
+        <button class="cs-admin-menu-btn" data-target="sessions">
+          <span>🔑</span> <span>Active Sessions</span>
+        </button>
         <button class="cs-admin-menu-btn" data-target="settings">
           <span>⚙️</span> <span>Settings</span>
         </button>
@@ -291,6 +294,17 @@
             <div>
               <div class="cs-kpi-info-val" id="kpiRegistrations">1,245</div>
               <div class="cs-kpi-info-lbl">Event Registrations</div>
+            </div>
+          </div>
+
+          <!-- KPI 5: Active Sessions (Teacher Requirement) -->
+          <div class="cs-kpi-card" style="cursor: pointer;" onclick="switchSubView('sessions')" title="Click to view live user sessions and Session IDs">
+            <div class="cs-kpi-icon" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+              🔑
+            </div>
+            <div>
+              <div class="cs-kpi-info-val" id="kpiActiveSessions">1</div>
+              <div class="cs-kpi-info-lbl">Active Sessions ↗</div>
             </div>
           </div>
         </div>
@@ -646,6 +660,62 @@
         </div>
       </div>
 
+      <!-- SUB-VIEW: ACTIVE USER SESSIONS (Teacher Requirement) -->
+      <div id="view-sessions" class="admin-sub-view">
+        <div class="cs-admin-header">
+          <div>
+            <h1>Active User Sessions &amp; Security Monitor</h1>
+            <p style="color: var(--cs-text-muted); font-size: 0.88rem;">Live tracking of generated HTTP Session IDs, authenticated users, IP addresses, and real-time session controls.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="cs-btn-secondary" onclick="loadSessions()"><span>🔄</span> Refresh Sessions</button>
+          </div>
+        </div>
+
+        <!-- Metric alert banner explaining the Session architecture -->
+        <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--cs-radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.5rem;">🛡️</span>
+            <div>
+              <strong style="color: #38bdf8; font-size: 0.92rem;">Enterprise Session Tracking Architecture</strong>
+              <div style="font-size: 0.82rem; color: var(--cs-text-muted); margin-top: 0.15rem;">
+                Each login generates a unique <code>HttpSession</code> with a cryptographically secure <code>JSESSIONID</code>, protected against session fixation via <code>request.changeSessionId()</code>.
+              </div>
+            </div>
+          </div>
+          <div style="text-align: right; min-width: 130px;">
+            <span style="font-size: 0.75rem; color: var(--cs-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Live Active</span>
+            <div id="activeSessionBadgeCount" style="font-size: 1.4rem; font-weight: 800; color: #38bdf8;">0</div>
+          </div>
+        </div>
+
+        <div class="cs-table-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div style="font-size: 0.95rem; font-weight: 700; color: #fff;">Authenticated User Sessions</div>
+            <input type="text" id="sessionSearchInput" placeholder="Filter by username, role, or session ID..." class="cs-input" style="max-width: 320px; padding: 0.4rem 0.8rem; font-size: 0.82rem;" oninput="filterSessionsTable()">
+          </div>
+          <div class="cs-table-responsive">
+            <table class="cs-table">
+              <thead>
+                <tr>
+                  <th>Session ID</th>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>IP Address</th>
+                  <th>Login Time</th>
+                  <th>Last Active</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="sessionsTableBody">
+                <tr><td colspan="8" style="text-align:center; padding: 2rem;">Loading active sessions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- SUB-VIEW: SETTINGS -->
       <div id="view-settings" class="admin-sub-view">
         <div class="cs-admin-header">
@@ -854,6 +924,7 @@
       if (target === 'events') loadEvents();
       if (target === 'registrations') loadRegistrations();
       if (target === 'requests') loadClubRequests();
+      if (target === 'sessions') loadSessions();
     };
 
     document.querySelectorAll('.cs-admin-menu-btn[data-target]').forEach(btn => {
@@ -1482,6 +1553,10 @@
           }
           if (s.upcomingEvents) document.getElementById('kpiEvents').textContent = s.upcomingEvents;
           if (s.totalRegistrations) document.getElementById('kpiRegistrations').textContent = Number(s.totalRegistrations).toLocaleString();
+          if (s.activeSessions !== undefined) {
+            const kpiSess = document.getElementById('kpiActiveSessions');
+            if (kpiSess) kpiSess.textContent = s.activeSessions;
+          }
         }
       } catch (e) {
         console.warn('Using seeded telemetry metrics', e);
@@ -1711,6 +1786,112 @@
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">Error: ${e.message}</td></tr>`;
       }
     }
+
+    // =========================================================================
+    // Active User Sessions & Session ID Management (Teacher Requirement)
+    // =========================================================================
+    let allSessionsData = [];
+
+    async function loadSessions() {
+      const tbody = document.getElementById('sessionsTableBody');
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--cs-text-muted);">Fetching active sessions...</td></tr>';
+      try {
+        const res = await (api.admin.sessions ? api.admin.sessions() : apiFetch('/api/admin/sessions'));
+        let sessions = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        
+        // Merge with client-side sessions from localStorage if any
+        const localSess = JSON.parse(localStorage.getItem('ccms_active_sessions') || '[]');
+        const map = new Map();
+        sessions.forEach(s => map.set(s.sessionId, s));
+        localSess.forEach(s => {
+          if (!map.has(s.sessionId)) map.set(s.sessionId, s);
+        });
+        
+        allSessionsData = Array.from(map.values());
+        
+        const activeCount = allSessionsData.filter(s => s.active !== false).length;
+        const badgeEl = document.getElementById('activeSessionBadgeCount');
+        if (badgeEl) badgeEl.textContent = activeCount;
+        const kpiEl = document.getElementById('kpiActiveSessions');
+        if (kpiEl) kpiEl.textContent = activeCount;
+
+        renderSessions(allSessionsData);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--cs-red);">Failed to load sessions: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderSessions(list) {
+      const tbody = document.getElementById('sessionsTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2.5rem; color: var(--cs-text-muted);">No active sessions detected. Log in as a student or admin to see generated Session IDs here.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(s => {
+        const isCurrent = (session.get() && session.get().username === s.username);
+        const isActive = s.active !== false;
+        const statusBadge = isActive 
+          ? `<span class="cs-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; margin-right:4px;"></span> Active</span>`
+          : `<span class="cs-badge" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3);">Terminated</span>`;
+        
+        const roleBadge = s.role === 'ADMIN'
+          ? `<span class="cs-badge cs-badge-admin" style="background: rgba(244, 63, 94, 0.15); color: #fb7185;">ADMIN</span>`
+          : `<span class="cs-badge cs-badge-student" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">STUDENT</span>`;
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.4rem;">
+                <code style="background:rgba(255,255,255,0.06); padding:0.25rem 0.5rem; border-radius:4px; font-size:0.78rem; color:#38bdf8; font-family:monospace; user-select:all;" title="${s.sessionId}">${s.sessionId}</code>
+                <button onclick="navigator.clipboard.writeText('${s.sessionId}'); showToast('Session ID copied to clipboard!')" style="background:none; border:none; color:var(--cs-text-muted); cursor:pointer; font-size:0.85rem;" title="Copy Session ID">📋</button>
+              </div>
+            </td>
+            <td>
+              <strong style="color: #fff;">${escapeHtml(s.fullName || s.username)}</strong>
+              <div style="font-size: 0.74rem; color: var(--cs-text-muted);">@${escapeHtml(s.username)} ${isCurrent ? '<span style="color:#38bdf8; font-weight:700;">(You)</span>' : ''}</div>
+            </td>
+            <td>${roleBadge}</td>
+            <td style="font-size:0.8rem; color:var(--cs-text-muted); font-family:monospace;">${escapeHtml(s.ipAddress || '127.0.0.1')}</td>
+            <td style="font-size:0.8rem; color:var(--cs-text-muted);">${escapeHtml(s.loginTime || 'Just now')}</td>
+            <td style="font-size:0.8rem; color:var(--cs-text-muted);">${escapeHtml(s.lastAccessTime || 'Just now')}</td>
+            <td>${statusBadge}</td>
+            <td>
+              ${isActive ? `
+                <button class="cs-btn-danger" style="padding: 0.3rem 0.65rem; font-size: 0.74rem;" onclick="terminateUserSession('${s.sessionId}', '${escapeHtml(s.username).replace(/'/g, "\\'")}')" ${isCurrent ? 'title="Cannot terminate own current session" disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                  Terminate
+                </button>
+              ` : `<span style="font-size:0.75rem; color:var(--cs-text-muted);">Closed</span>`}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    window.filterSessionsTable = () => {
+      const q = (document.getElementById('sessionSearchInput')?.value || '').toLowerCase();
+      if (!q) {
+        renderSessions(allSessionsData);
+        return;
+      }
+      const filtered = allSessionsData.filter(s => 
+        (s.sessionId && s.sessionId.toLowerCase().includes(q)) ||
+        (s.username && s.username.toLowerCase().includes(q)) ||
+        (s.fullName && s.fullName.toLowerCase().includes(q)) ||
+        (s.role && s.role.toLowerCase().includes(q))
+      );
+      renderSessions(filtered);
+    };
+
+    window.terminateUserSession = async (sessionId, username) => {
+      if (!confirm(`Are you sure you want to terminate session for user '${username}'?\nThe user will be immediately logged out.`)) return;
+      try {
+        await (api.admin.terminateSession ? api.admin.terminateSession(sessionId) : apiFetch(`/api/admin/sessions/${sessionId}`, { method: 'DELETE' }));
+        showToast(`Session for ${username} terminated.`);
+        loadSessions();
+      } catch (err) {
+        showToast(`Failed to terminate session: ${err.message}`, true);
+      }
+    };
 
     // Member & Participant Management Handlers
     window.viewClubMembers = async (clubId, clubName) => {

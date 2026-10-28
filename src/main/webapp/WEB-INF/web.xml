@@ -65,6 +65,11 @@
         <url-pattern>/api/stats</url-pattern>
     </servlet-mapping>
 
+    <!-- 6. Session Lifecycle & Monitoring Listener -->
+    <listener>
+        <listener-class>com.collegeclub.listener.UserSessionListener</listener-class>
+    </listener>
+
     <!-- Session Security Configuration -->
     <session-config>
         <session-timeout>30</session-timeout>
