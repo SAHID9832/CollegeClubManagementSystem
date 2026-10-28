@@ -2,6 +2,7 @@ package com.collegeclub.dao.impl;
 
 import com.collegeclub.dao.EventRegistrationDao;
 import com.collegeclub.model.Event;
+import com.collegeclub.model.Registration;
 import com.collegeclub.model.Role;
 import com.collegeclub.model.User;
 import com.collegeclub.util.DBConnection;
@@ -136,5 +137,63 @@ public class EventRegistrationDaoImpl implements EventRegistrationDao {
             }
         }
         return 0;
+    }
+
+    @Override
+    public List<Registration> findAllRegistrationsDetailed() throws SQLException {
+        List<Registration> list = new ArrayList<>();
+        String sql = "SELECT er.id, er.event_id, er.user_id, er.status, er.registered_at, " +
+                "e.title AS event_title, c.name AS club_name, " +
+                "u.username, u.full_name AS student_name, u.email, " +
+                "s.student_id, s.department, s.course " +
+                "FROM event_registrations er " +
+                "INNER JOIN events e ON er.event_id = e.id " +
+                "LEFT JOIN clubs c ON e.club_id = c.id " +
+                "INNER JOIN users u ON er.user_id = u.id " +
+                "LEFT JOIN students s ON u.id = s.user_id " +
+                "ORDER BY er.id DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Registration r = new Registration();
+                r.setId(rs.getInt("id"));
+                r.setEventId(rs.getInt("event_id"));
+                r.setUserId(rs.getInt("user_id"));
+                r.setStatus(rs.getString("status"));
+                r.setRegisteredAt(rs.getString("registered_at"));
+                r.setEventTitle(rs.getString("event_title"));
+                r.setClubName(rs.getString("club_name") != null ? rs.getString("club_name") : "Campus Community");
+                r.setUsername(rs.getString("username"));
+                r.setStudentName(rs.getString("student_name"));
+                r.setEmail(rs.getString("email"));
+                r.setStudentId(rs.getString("student_id") != null ? rs.getString("student_id") : "STU-" + rs.getInt("user_id"));
+                r.setDepartment(rs.getString("department") != null ? rs.getString("department") : "General");
+                r.setCourse(rs.getString("course") != null ? rs.getString("course") : "MCA");
+                list.add(r);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public boolean updateRegistrationStatus(int registrationId, String status) throws SQLException {
+        String sql = "UPDATE event_registrations SET status = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status != null ? status.trim().toUpperCase() : "CONFIRMED");
+            ps.setInt(2, registrationId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean deleteRegistration(int registrationId) throws SQLException {
+        String sql = "DELETE FROM event_registrations WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, registrationId);
+            return ps.executeUpdate() > 0;
+        }
     }
 }

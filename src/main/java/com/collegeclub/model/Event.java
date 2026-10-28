@@ -47,6 +47,10 @@ public class Event {
         return id;
     }
 
+    public void setEventId(int eventId) {
+        setId(eventId);
+    }
+
     public String getStatus() {
         return "OPEN";
     }

@@ -145,22 +145,6 @@
         </button>
       </form>
 
-      <!-- Live JSON & XML Data Representation (Syllabus Requirement) -->
-      <div class="payload-box">
-        <div class="payload-title">
-          <span>Live JSON Payload (In-Memory)</span>
-          <span id="jsonBadge" style="color: #10b981;">SYNCED</span>
-        </div>
-        <div id="jsonPreview">{\n  "username": "",\n  "password": ""\n}</div>
-      </div>
-
-      <div class="payload-box" style="margin-top: 0.75rem;">
-        <div class="payload-title">
-          <span>Live XML Structure (Slides Standard)</span>
-          <span style="color: #06b6d4;">XML 1.0</span>
-        </div>
-        <div id="xmlPreview">&lt;user&gt;\n  &lt;username&gt;&lt;/username&gt;\n  &lt;password&gt;[protected]&lt;/password&gt;\n&lt;/user&gt;</div>
-      </div>
     </div>
 
     <!-- SECTION 2: LOGIN SECTION (Starts Hidden) -->
@@ -229,8 +213,6 @@
     const loginPassError = document.getElementById('loginPassError');
 
     const messageDiv = document.getElementById('message');
-    const jsonPreview = document.getElementById('jsonPreview');
-    const xmlPreview = document.getElementById('xmlPreview');
 
     // Section Toggle Handling
     function switchToRegister() {
@@ -263,37 +245,6 @@
       messageDiv.textContent = text;
       messageDiv.className = isSuccess ? 'success' : 'error-msg';
     }
-
-    // Live Payload Preview Updater
-    function updatePreviews() {
-      const u = regUsername.value.trim();
-      const p = regPassword.value;
-
-      const jsonObj = {
-        username: u,
-        password: p ? '•'.repeat(Math.min(p.length, 12)) : ''
-      };
-      jsonPreview.textContent = JSON.stringify(jsonObj, null, 2);
-
-      const xmlStr = `<?xml version="1.0" encoding="UTF-8"?>\n<user>\n  <username>${escapeXml(u)}</username>\n  <password>${p ? '••••••••' : ''}</password>\n</user>`;
-      xmlPreview.textContent = xmlStr;
-    }
-
-    function escapeXml(str) {
-      if (!str) return '';
-      return str.replace(/[<>&'"]/g, c => {
-        switch (c) {
-          case '<': return '&lt;';
-          case '>': return '&gt;';
-          case '&': return '&amp;';
-          case '\'': return '&apos;';
-          case '"': return '&quot;';
-        }
-      });
-    }
-
-    regUsername.addEventListener('input', updatePreviews);
-    regPassword.addEventListener('input', updatePreviews);
 
     // Registration Form Handler (Exact Faculty Rules)
     regForm.addEventListener('submit', function(e) {

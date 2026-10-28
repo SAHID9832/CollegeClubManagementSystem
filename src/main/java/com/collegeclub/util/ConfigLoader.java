@@ -26,11 +26,15 @@ public class ConfigLoader {
     }
 
     public static String getDbUrl() {
+        String prop = System.getProperty("CLUB_DB_URL");
+        if (prop != null && !prop.trim().isEmpty()) {
+            return prop.trim();
+        }
         String env = System.getenv("CLUB_DB_URL");
         if (env != null && !env.trim().isEmpty()) {
             return env.trim();
         }
-        String raw = properties.getProperty("db.url", "jdbc:h2:${user.home}/collegeclub-data/collegeclub;DB_CLOSE_DELAY=-1;MODE=MySQL");
+        String raw = properties.getProperty("db.url", "jdbc:h2:${user.home}/collegeclub-data/collegeclub;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MODE=MySQL");
         String userHome = System.getProperty("user.home", ".");
         return raw.replace("${user.home}", userHome.replace("\\", "/"));
     }
@@ -57,6 +61,14 @@ public class ConfigLoader {
             return "com.mysql.cj.jdbc.Driver";
         }
         return properties.getProperty("db.driver", "org.h2.Driver");
+    }
+
+    public static String getAdminUsername() {
+        String env = System.getenv("CLUB_ADMIN_USERNAME");
+        if (env != null && !env.trim().isEmpty()) {
+            return env.trim();
+        }
+        return properties.getProperty("app.admin.username", "admin");
     }
 
     public static String getAdminPassword() {

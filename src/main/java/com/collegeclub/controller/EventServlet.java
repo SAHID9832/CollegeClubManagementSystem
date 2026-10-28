@@ -105,26 +105,49 @@ public class EventServlet extends BaseApiServlet {
                 return;
             }
 
-            // Path pattern: /{id}/register
-            String[] parts = pathInfo.split("/");
+            // Path pattern: /{id}/register, /{id}/cancel, or query parameters
+            String[] parts = pathInfo != null ? pathInfo.split("/") : new String[0];
+            int eventId = -1;
+            String action = "";
+
             if (parts.length >= 3) {
-                int eventId = Integer.parseInt(parts[1]);
-                String action = parts[2];
+                try {
+                    eventId = Integer.parseInt(parts[1]);
+                } catch (NumberFormatException ignored) {}
+                action = parts[2];
+            } else if (parts.length == 2) {
+                action = parts[1];
+            }
 
-                if (currentUser == null) {
-                    writeError(resp, HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED", "Please log in to register for events");
-                    return;
-                }
+            if (eventId <= 0 && req.getParameter("eventId") != null) {
+                try {
+                    eventId = Integer.parseInt(req.getParameter("eventId"));
+                } catch (NumberFormatException ignored) {}
+            }
+            if (eventId <= 0 && req.getParameter("id") != null) {
+                try {
+                    eventId = Integer.parseInt(req.getParameter("id"));
+                } catch (NumberFormatException ignored) {}
+            }
 
-                if ("register".equalsIgnoreCase(action)) {
-                    eventService.registerForEvent(eventId, currentUser.getUserId());
-                    writeSuccess(resp, "Successfully registered for event!", null);
-                    return;
-                } else if ("cancel".equalsIgnoreCase(action)) {
-                    eventService.cancelEventRegistration(eventId, currentUser.getUserId());
-                    writeSuccess(resp, "Event registration cancelled.", null);
-                    return;
-                }
+            if (eventId <= 0) {
+                writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "INVALID_ID", "Event ID must be numeric");
+                return;
+            }
+
+            if (currentUser == null) {
+                writeError(resp, HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED", "Please log in to register for events");
+                return;
+            }
+
+            if ("register".equalsIgnoreCase(action)) {
+                eventService.registerForEvent(eventId, currentUser.getUserId());
+                writeSuccess(resp, "Successfully registered for event!", null);
+                return;
+            } else if ("cancel".equalsIgnoreCase(action)) {
+                eventService.cancelEventRegistration(eventId, currentUser.getUserId());
+                writeSuccess(resp, "Event registration cancelled.", null);
+                return;
             }
 
             writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NOT_FOUND", "Action not recognized");
@@ -150,16 +173,31 @@ public class EventServlet extends BaseApiServlet {
         try {
             // DELETE /api/events/{id}/register
             String[] parts = pathInfo != null ? pathInfo.split("/") : new String[0];
-            if (parts.length >= 3 && "register".equalsIgnoreCase(parts[2])) {
-                int eventId = Integer.parseInt(parts[1]);
-                eventService.cancelEventRegistration(eventId, currentUser.getUserId());
-                writeSuccess(resp, "Event registration cancelled successfully.", null);
+            int eventId = -1;
+            if (parts.length >= 2) {
+                try {
+                    eventId = Integer.parseInt(parts[1]);
+                } catch (NumberFormatException ignored) {}
+            }
+            if (eventId <= 0 && req.getParameter("eventId") != null) {
+                try {
+                    eventId = Integer.parseInt(req.getParameter("eventId"));
+                } catch (NumberFormatException ignored) {}
+            }
+            if (eventId <= 0 && req.getParameter("id") != null) {
+                try {
+                    eventId = Integer.parseInt(req.getParameter("id"));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            if (eventId <= 0) {
+                writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "INVALID_ID", "Event ID must be numeric");
                 return;
             }
 
-            writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NOT_FOUND", "Resource not found");
-        } catch (NumberFormatException e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "INVALID_ID", "Event ID must be numeric");
+            eventService.cancelEventRegistration(eventId, currentUser.getUserId());
+            writeSuccess(resp, "Event registration cancelled successfully.", null);
+            return;
         } catch (ClubSystemException e) {
             writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getClass().getSimpleName(), e.getMessage());
         } catch (Exception e) {

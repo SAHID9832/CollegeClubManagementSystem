@@ -78,6 +78,21 @@ public abstract class BaseApiServlet extends HttpServlet {
                 return (User) u;
             }
         }
+
+        // Header fallback for SPA / API client authentication
+        String uidHeader = req.getHeader("X-User-Id");
+        if (uidHeader != null && !uidHeader.trim().isEmpty()) {
+            try {
+                int uid = Integer.parseInt(uidHeader.trim());
+                if (uid > 0) {
+                    com.collegeclub.dao.UserDao userDao = new com.collegeclub.dao.impl.UserDaoImpl();
+                    java.util.Optional<User> uOpt = userDao.findById(uid);
+                    if (uOpt.isPresent()) {
+                        return uOpt.get();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
         return null;
     }
 

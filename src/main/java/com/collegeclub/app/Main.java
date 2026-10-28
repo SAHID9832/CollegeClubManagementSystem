@@ -1,8 +1,6 @@
 package com.collegeclub.app;
 
 import com.collegeclub.exception.AuthenticationException;
-import com.collegeclub.exception.ClubNotFoundException;
-import com.collegeclub.exception.InvalidInputException;
 import com.collegeclub.model.Club;
 import com.collegeclub.model.Event;
 import com.collegeclub.model.Student;

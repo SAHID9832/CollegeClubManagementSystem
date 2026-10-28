@@ -75,6 +75,10 @@ public class UserService implements UserOperations {
             User user = userDao.findByUsername(username)
                     .orElseThrow(() -> new AuthenticationException("Invalid username or password."));
 
+            if (!user.isActive()) {
+                throw new AuthenticationException("Your account has been disabled by the administrator. Please contact support.");
+            }
+
             if (!PasswordUtil.verifyPassword(password, user.getPasswordHash())) {
                 throw new AuthenticationException("Invalid username or password.");
             }
@@ -255,19 +259,46 @@ public class UserService implements UserOperations {
 
     private void seedDefaultAdmin() {
         try {
-            if (userDao.findByUsername("admin").isEmpty()) {
-                String adminPass = ConfigLoader.getAdminPassword();
+            String adminUser = ConfigLoader.getAdminUsername();
+            String adminPass = ConfigLoader.getAdminPassword();
+            Optional<User> existing = userDao.findByUsername(adminUser);
+            if (existing.isEmpty()) {
                 User admin = new User(
-                        "admin",
+                        adminUser,
                         PasswordUtil.hashPassword(adminPass),
                         "admin@college.edu",
                         "System Administrator",
-                        Role.ADMIN
+                        Role.ADMIN,
+                        true
                 );
                 userDao.save(admin);
+            } else {
+                User admin = existing.get();
+                if (admin.getRole() != Role.ADMIN || !admin.isActive()) {
+                    userDao.updateUserRole(admin.getId(), Role.ADMIN);
+                    userDao.updateUserStatus(admin.getId(), true);
+                }
+            }
+
+            // Seed / Ensure default student 'sahid' with Password@123
+            Optional<User> studentExisting = userDao.findByUsername("sahid");
+            if (studentExisting.isEmpty()) {
+                User s = new User(
+                        "sahid",
+                        PasswordUtil.hashPassword("Password@123"),
+                        "sahid@college.edu",
+                        "Sahid Student",
+                        Role.STUDENT,
+                        true
+                );
+                userDao.save(s);
+            } else {
+                User s = studentExisting.get();
+                userDao.updatePassword(s.getId(), PasswordUtil.hashPassword("Password@123"));
+                userDao.updateUserStatus(s.getId(), true);
             }
         } catch (Exception e) {
-            System.err.println("Notice: Default admin seeding status: " + e.getMessage());
+            System.err.println("Notice: Default admin and student seeding status: " + e.getMessage());
         }
     }
 }

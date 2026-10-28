@@ -22,9 +22,9 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-badge">🏛️</div>
+                <img src="images/campussphere-logo.png" alt="CampusSphere" class="brand-logo-img">
                 <div>
-                    <div class="brand-text">CampusHub</div>
+                    <div class="brand-text">CampusSphere</div>
                     <div class="brand-sub">Student Profile</div>
                 </div>
             </div>
@@ -45,10 +45,6 @@
                 <a href="profile.jsp" class="nav-link active" style="text-decoration: none;">
                     <span class="nav-icon">👤</span>
                     <span>My Profile</span>
-                </a>
-                <a href="demo.html" class="nav-link" style="text-decoration: none;">
-                    <span class="nav-icon">⚡</span>
-                    <span>XML Lab</span>
                 </a>
             </nav>
 

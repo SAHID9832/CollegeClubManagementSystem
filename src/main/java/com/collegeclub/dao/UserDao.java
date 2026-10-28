@@ -13,6 +13,7 @@ public interface UserDao {
     List<User> findAll() throws SQLException;
     boolean updatePassword(int id, String newPasswordHash) throws SQLException;
     boolean updateUserRole(int id, com.collegeclub.model.Role role) throws SQLException;
+    boolean updateUserStatus(int id, boolean active) throws SQLException;
     boolean delete(int id) throws SQLException;
     int countTotalStudents() throws SQLException;
     List<User> getAllUsers();

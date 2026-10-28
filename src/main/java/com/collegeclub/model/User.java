@@ -17,9 +17,11 @@ public class User {
     private String fullName;
     private Role role;
     private String createdAt;
+    private boolean active = true;
 
     public User() {
         this.role = Role.STUDENT;
+        this.active = true;
         this.createdAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
@@ -31,10 +33,20 @@ public class User {
         this.email = email;
         this.fullName = fullName;
         this.role = (role != null) ? role : Role.STUDENT;
+        this.active = true;
+    }
+
+    public User(int id, String username, String passwordHash, String email, String fullName, Role role, boolean active) {
+        this(id, username, passwordHash, email, fullName, role);
+        this.active = active;
     }
 
     public User(String username, String passwordHash, String email, String fullName, Role role) {
         this(0, username, passwordHash, email, fullName, role);
+    }
+
+    public User(String username, String passwordHash, String email, String fullName, Role role, boolean active) {
+        this(0, username, passwordHash, email, fullName, role, active);
     }
 
     public int getId() {
@@ -101,6 +113,18 @@ public class User {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public boolean getActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     /**

@@ -54,6 +54,17 @@
         <url-pattern>/profile.jsp</url-pattern>
     </filter-mapping>
 
+    <!-- 5. Public Health and Stats Servlets -->
+    <servlet>
+        <servlet-name>HealthServlet</servlet-name>
+        <servlet-class>com.collegeclub.controller.HealthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HealthServlet</servlet-name>
+        <url-pattern>/api/health</url-pattern>
+        <url-pattern>/api/stats</url-pattern>
+    </servlet-mapping>
+
     <!-- Session Security Configuration -->
     <session-config>
         <session-timeout>30</session-timeout>

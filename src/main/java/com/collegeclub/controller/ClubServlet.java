@@ -102,26 +102,49 @@ public class ClubServlet extends BaseApiServlet {
                 return;
             }
 
-            // Path pattern: /{id}/join or /{id}/leave
-            String[] parts = pathInfo.split("/");
+            // Path pattern: /{id}/join, /{id}/leave, or query parameters
+            String[] parts = (pathInfo != null) ? pathInfo.split("/") : new String[0];
+            int clubId = -1;
+            String action = "";
+
             if (parts.length >= 3) {
-                int clubId = Integer.parseInt(parts[1]);
-                String action = parts[2];
+                try {
+                    clubId = Integer.parseInt(parts[1]);
+                } catch (NumberFormatException ignored) {}
+                action = parts[2];
+            } else if (parts.length == 2) {
+                action = parts[1];
+            }
 
-                if (currentUser == null) {
-                    writeError(resp, HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED", "Please log in to join or leave a club");
-                    return;
-                }
+            if (clubId <= 0 && req.getParameter("clubId") != null) {
+                try {
+                    clubId = Integer.parseInt(req.getParameter("clubId"));
+                } catch (NumberFormatException ignored) {}
+            }
+            if (clubId <= 0 && req.getParameter("id") != null) {
+                try {
+                    clubId = Integer.parseInt(req.getParameter("id"));
+                } catch (NumberFormatException ignored) {}
+            }
 
-                if ("join".equalsIgnoreCase(action)) {
-                    clubService.joinClub(clubId, currentUser.getUserId());
-                    writeSuccess(resp, "Successfully joined club!", null);
-                    return;
-                } else if ("leave".equalsIgnoreCase(action)) {
-                    clubService.leaveClub(clubId, currentUser.getUserId());
-                    writeSuccess(resp, "Successfully left club.", null);
-                    return;
-                }
+            if (clubId <= 0) {
+                writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "INVALID_ID", "Club ID must be numeric");
+                return;
+            }
+
+            if (currentUser == null) {
+                writeError(resp, HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED", "Please log in to join or leave a club");
+                return;
+            }
+
+            if ("join".equalsIgnoreCase(action)) {
+                clubService.joinClub(clubId, currentUser.getUserId());
+                writeSuccess(resp, "Successfully joined club!", null);
+                return;
+            } else if ("leave".equalsIgnoreCase(action)) {
+                clubService.leaveClub(clubId, currentUser.getUserId());
+                writeSuccess(resp, "Successfully left club.", null);
+                return;
             }
 
             writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NOT_FOUND", "Action not recognized");

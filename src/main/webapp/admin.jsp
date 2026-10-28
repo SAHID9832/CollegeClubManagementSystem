@@ -22,10 +22,10 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-badge">🛡️</div>
+                <img src="images/campussphere-logo.png" alt="CampusSphere" class="brand-logo-img">
                 <div>
-                    <div class="brand-text">CampusAdmin</div>
-                    <div class="brand-sub">Administration Portal</div>
+                    <div class="brand-text">CampusSphere</div>
+                    <div class="brand-sub">Administration</div>
                 </div>
             </div>
 
@@ -49,10 +49,6 @@
                 <a href="api/admin/reports/csv" class="nav-link" style="text-decoration: none;">
                     <span class="nav-icon">📥</span>
                     <span>Export CSV</span>
-                </a>
-                <a href="demo.html" class="nav-link" style="text-decoration: none;">
-                    <span class="nav-icon">⚡</span>
-                    <span>XML Lab</span>
                 </a>
             </nav>
 

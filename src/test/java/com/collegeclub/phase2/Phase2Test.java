@@ -8,7 +8,6 @@ import com.collegeclub.service.UserOperations;
 import com.collegeclub.service.impl.ClubService;
 import com.collegeclub.service.impl.EventService;
 import com.collegeclub.service.impl.UserService;
-import com.collegeclub.util.ConfigLoader;
 import com.collegeclub.util.DBConnection;
 import com.collegeclub.util.PasswordUtil;
 import org.junit.jupiter.api.*;
@@ -29,6 +28,8 @@ public class Phase2Test {
 
     @BeforeAll
     static void setUp() throws Exception {
+        // Use in-memory database for isolated, fast, non-blocking test execution
+        System.setProperty("CLUB_DB_URL", "jdbc:h2:mem:phase2test;DB_CLOSE_DELAY=-1;MODE=MySQL");
         // Use 1,000 iterations for test speed, production uses 600,000
         PasswordUtil.setDefaultIterations(1000);
 
@@ -45,6 +46,7 @@ public class Phase2Test {
     @AfterAll
     static void tearDown() {
         PasswordUtil.setDefaultIterations(600_000);
+        System.clearProperty("CLUB_DB_URL");
     }
 
     private String randomSuffix() {

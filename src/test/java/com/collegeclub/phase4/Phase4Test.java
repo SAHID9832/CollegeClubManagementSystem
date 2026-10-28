@@ -2,13 +2,10 @@ package com.collegeclub.phase4;
 
 import com.collegeclub.exception.InvalidRequestException;
 import com.collegeclub.model.Club;
-import com.collegeclub.model.Role;
 import com.collegeclub.model.Student;
-import com.collegeclub.model.User;
 import com.collegeclub.util.XmlUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
 
 import java.util.Collections;
 import java.util.List;

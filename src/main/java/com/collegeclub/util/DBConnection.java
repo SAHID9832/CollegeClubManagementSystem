@@ -78,13 +78,19 @@ public class DBConnection {
                 }
             }
 
-            // Backward-compatible column migrations for existing databases
+            // Backward-compatible column migrations and data hygiene for existing databases
             String[] migrations = {
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE",
+                    "UPDATE users SET active = TRUE WHERE active IS NULL",
+                    "ALTER TABLE event_registrations ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'CONFIRMED'",
                     "ALTER TABLE students ADD COLUMN IF NOT EXISTS course VARCHAR(50) DEFAULT 'MCA'",
                     "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS objectives VARCHAR(1000)",
                     "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS activities VARCHAR(1000)",
                     "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS icon VARCHAR(50) DEFAULT '🛡️'",
-                    "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS created_at VARCHAR(30)"
+                    "ALTER TABLE clubs ADD COLUMN IF NOT EXISTS created_at VARCHAR(30)",
+                    "DELETE FROM events WHERE title LIKE 'Event %'",
+                    "DELETE FROM clubs WHERE name LIKE 'Club %' OR name LIKE 'TinyClub %' OR name LIKE 'EvtClub %' OR name LIKE 'DelTest%' OR name LIKE 'UpdateTest%'",
+                    "DELETE FROM clubs WHERE name IN ('Coding Club', 'Coding & Open Source Club', 'Artificial Intelligence & Robotics Club', 'Cyber Security & Ethical Hacking Club', 'Web & Mobile App Development Club', 'Cloud Computing & DevOps Society', 'Data Science & Big Data Analytics Club', 'Internet of Things (IoT) & Embedded Systems Club', 'Literary & Debating Society', 'Dramatics & Theatre Club', 'Music & Acoustic Band Club', 'Fine Arts & Painting Club', 'Photography & Cinematography Club', 'Dance & Choreography Club', 'Sports & Athletics Association', 'Yoga & Wellness Club', 'National Service Scheme (NSS)', 'Youth Red Cross (YRC)', 'Environmental & Nature Conservation Club', 'Mathematics & Problem Solving Club', 'Entrepreneurship & Innovation Cell (E-Cell)', 'Quantum Computing & Advanced Physics Club', 'Blockchain & Web3 Developers Guild', 'AR/VR & Metaverse Experience Lab', 'Space Tech & Astronomy Guild', 'Bio-Informatics & Genomics Research Club', 'Game Design & Interactive Media Studio', 'Drone Technology & UAV Research Club', 'Fintech & Algorithmic Trading Society', 'Social Media & Digital Content Creators Club', 'Model United Nations (MUN) & Geopolitics Society')"
             };
 
             for (String mig : migrations) {

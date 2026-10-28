@@ -13,4 +13,7 @@ public interface EventRegistrationDao {
     List<Event> findEventsByUserId(int userId) throws SQLException;
     List<User> findAttendeesByEventId(int eventId) throws SQLException;
     int countTotalRegistrations() throws SQLException;
+    List<com.collegeclub.model.Registration> findAllRegistrationsDetailed() throws SQLException;
+    boolean updateRegistrationStatus(int registrationId, String status) throws SQLException;
+    boolean deleteRegistration(int registrationId) throws SQLException;
 }

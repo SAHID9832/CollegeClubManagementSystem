@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Leaderboard - CampusSphere</title>
+  <link rel="stylesheet" href="css/campussphere.css">
+  <style>
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--cs-radius-md);
+      background: #0f1c38;
+      border: 1px solid var(--cs-cyan);
+      box-shadow: 0 0 20px rgba(0, 229, 176, 0.2);
+      color: #fff;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAVBAR -->
+  <header class="cs-navbar-wrap">
+    <div class="cs-navbar">
+      <a href="index.html" class="cs-brand">
+        <img src="images/campussphere-logo.png" alt="CampusSphere" class="cs-brand-logo">
+        <div class="cs-brand-text">
+          <span class="cs-brand-title">CampusSphere</span>
+          <span class="cs-brand-sub">Connect. Create. Belong.</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="cs-nav-links">
+          <li><a href="index.html" class="cs-nav-link">Home</a></li>
+          <li><a href="clubs.html" class="cs-nav-link">Explore Clubs</a></li>
+          <li><a href="events.html" class="cs-nav-link">Events</a></li>
+          <li><a href="schedule.html" class="cs-nav-link">Schedule</a></li>
+          <li><a href="leaderboard.html" class="cs-nav-link active">Leaderboard</a></li>
+          <li id="navAdminLinkLi"><a href="admin.html" class="cs-nav-link" id="navAdminLink">Admin 👑</a></li>
+        </ul>
+      </nav>
+
+      <div class="cs-nav-right">
+        <div class="cs-nav-search">
+          <span class="cs-nav-search-icon">🔍</span>
+          <input type="text" placeholder="Search leaderboard...">
+        </div>
+        <div class="cs-theme-toggle" id="themeToggle" title="Toggle Theme">
+          <div class="cs-theme-toggle-thumb"></div>
+        </div>
+        <div id="authNavContainer">
+          <a href="login.html" class="cs-btn-signin">Login</a>
+          <a href="register.html" class="cs-btn-primary">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LEADERBOARD CONTENT (Panel 5) -->
+  <main class="cs-container">
+    
+    <!-- Page Header Matching Panel 5 -->
+    <div class="cs-page-header">
+      <div class="cs-page-header-text">
+        <h1>Club Leaderboard</h1>
+        <p>Clubs earn points through event participation and results.</p>
+      </div>
+      <div style="text-align: right;">
+        <select class="cs-sort-select" style="padding: 0.55rem 1.25rem; font-weight: 600;">
+          <option>Current Season 2026 ▾</option>
+          <option>Season 2025</option>
+          <option>All Time Standings</option>
+        </select>
+        <div style="font-size: 0.75rem; color: var(--cs-text-dim); margin-top: 0.4rem;">
+          Final results will be announced on 30 Nov 2026
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Section (Podium + Top Achievements) Matching Panel 5 -->
+    <div class="cs-leaderboard-top">
+      
+      <!-- 3D Podium Standings -->
+      <div class="cs-podium-card">
+        <div class="cs-podium-stages">
+          
+          <!-- Rank 2: AI & ML Club (Silver) -->
+          <div class="cs-podium-column">
+            <div class="cs-podium-trophy">🥈</div>
+            <div class="cs-podium-name">AI &amp; ML Club</div>
+            <div class="cs-podium-points">280 pts</div>
+            <div class="cs-podium-pillar cs-pillar-silver">2</div>
+          </div>
+
+          <!-- Rank 1: Coding & Development Club (Gold - Center & Elevated) -->
+          <div class="cs-podium-column" style="width: 160px;">
+            <div class="cs-podium-trophy" style="font-size: 3.25rem;">🏆</div>
+            <div class="cs-podium-name" style="font-size: 1.05rem;">Coding &amp; Development Club</div>
+            <div class="cs-podium-points" style="font-size: 0.95rem; font-weight: 700;">325 pts</div>
+            <div class="cs-podium-pillar cs-pillar-gold">1</div>
+          </div>
+
+          <!-- Rank 3: Sports Club (Bronze) -->
+          <div class="cs-podium-column">
+            <div class="cs-podium-trophy">🥉</div>
+            <div class="cs-podium-name">Sports Club</div>
+            <div class="cs-podium-points">250 pts</div>
+            <div class="cs-podium-pillar cs-pillar-bronze">3</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Top Achievements Card Matching Panel 5 -->
+      <div class="cs-achievements-card">
+        <h3 class="cs-achievements-title">
+          <span>🏆</span> <span>Top Achievements</span>
+        </h3>
+        <div>
+          <div class="cs-achievement-item">
+            <div class="cs-achievement-icon" style="color: #fbbf24;">🏆</div>
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.92rem;">Most Wins</div>
+              <div style="font-size: 0.8rem; color: var(--cs-text-muted);">Coding &amp; Development Club</div>
+            </div>
+          </div>
+
+          <div class="cs-achievement-item">
+            <div class="cs-achievement-icon" style="color: #38bdf8;">⭐</div>
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.92rem;">Best Participation</div>
+              <div style="font-size: 0.8rem; color: var(--cs-text-muted);">AI &amp; ML Club</div>
+            </div>
+          </div>
+
+          <div class="cs-achievement-item">
+            <div class="cs-achievement-icon" style="color: #f97316;">🚀</div>
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.92rem;">Fastest Growing Club</div>
+              <div style="font-size: 0.8rem; color: var(--cs-text-muted);">Entrepreneurship Club</div>
+            </div>
+          </div>
+
+          <div class="cs-achievement-item">
+            <div class="cs-achievement-icon" style="color: #ec4899;">👑</div>
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.92rem;">Highest Audience Events</div>
+              <div style="font-size: 0.8rem; color: var(--cs-text-muted);">Cultural Club</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Full Standings Table Matching Panel 5 -->
+    <div class="cs-table-card">
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">#</th>
+            <th>Club Name</th>
+            <th>Events Participated</th>
+            <th>Wins</th>
+            <th>Total Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rank 4: Entrepreneurship Club -->
+          <tr>
+            <td style="font-weight: 700; color: var(--cs-text-muted);">4</td>
+            <td style="font-weight: 600; color: #fff;">Entrepreneurship Club</td>
+            <td>8</td>
+            <td>3</td>
+            <td>
+              <div style="display: flex; align-items: center; justify-content: space-between; max-width: 280px;">
+                <span style="font-weight: 700; color: var(--cs-cyan);">220</span>
+                <span style="font-size: 0.75rem; color: var(--cs-text-dim);">68%</span>
+              </div>
+              <div class="cs-progress-bar-wrap" style="max-width: 280px;">
+                <div class="cs-progress-bar" style="width: 68%;"></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rank 5: Cultural Club -->
+          <tr>
+            <td style="font-weight: 700; color: var(--cs-text-muted);">5</td>
+            <td style="font-weight: 600; color: #fff;">Cultural Club</td>
+            <td>7</td>
+            <td>2</td>
+            <td>
+              <div style="display: flex; align-items: center; justify-content: space-between; max-width: 280px;">
+                <span style="font-weight: 700; color: var(--cs-cyan);">200</span>
+                <span style="font-size: 0.75rem; color: var(--cs-text-dim);">62%</span>
+              </div>
+              <div class="cs-progress-bar-wrap" style="max-width: 280px;">
+                <div class="cs-progress-bar" style="width: 62%;"></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rank 6: Photography Club -->
+          <tr>
+            <td style="font-weight: 700; color: var(--cs-text-muted);">6</td>
+            <td style="font-weight: 600; color: #fff;">Photography Club</td>
+            <td>6</td>
+            <td>2</td>
+            <td>
+              <div style="display: flex; align-items: center; justify-content: space-between; max-width: 280px;">
+                <span style="font-weight: 700; color: var(--cs-cyan);">180</span>
+                <span style="font-size: 0.75rem; color: var(--cs-text-dim);">55%</span>
+              </div>
+              <div class="cs-progress-bar-wrap" style="max-width: 280px;">
+                <div class="cs-progress-bar" style="width: 55%;"></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rank 7: Music Club -->
+          <tr>
+            <td style="font-weight: 700; color: var(--cs-text-muted);">7</td>
+            <td style="font-weight: 600; color: #fff;">Music Club</td>
+            <td>6</td>
+            <td>2</td>
+            <td>
+              <div style="display: flex; align-items: center; justify-content: space-between; max-width: 280px;">
+                <span style="font-weight: 700; color: var(--cs-cyan);">170</span>
+                <span style="font-size: 0.75rem; color: var(--cs-text-dim);">52%</span>
+              </div>
+              <div class="cs-progress-bar-wrap" style="max-width: 280px;">
+                <div class="cs-progress-bar" style="width: 52%;"></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rank 8: Literary Club -->
+          <tr>
+            <td style="font-weight: 700; color: var(--cs-text-muted);">8</td>
+            <td style="font-weight: 600; color: #fff;">Literary Club</td>
+            <td>5</td>
+            <td>1</td>
+            <td>
+              <div style="display: flex; align-items: center; justify-content: space-between; max-width: 280px;">
+                <span style="font-weight: 700; color: var(--cs-cyan);">150</span>
+                <span style="font-size: 0.75rem; color: var(--cs-text-dim);">46%</span>
+              </div>
+              <div class="cs-progress-bar-wrap" style="max-width: 280px;">
+                <div class="cs-progress-bar" style="width: 46%;"></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- GLOBAL FOOTER -->
+  <footer class="cs-footer">
+    <div class="cs-footer-inner">
+      <a href="index.html" class="cs-brand">
+        <img src="images/campussphere-logo.png" alt="CampusSphere" class="cs-brand-logo" style="width: 32px; height: 32px;">
+        <div class="cs-brand-text">
+          <span class="cs-brand-title" style="font-size: 1rem;">CampusSphere</span>
+          <span class="cs-brand-sub" style="font-size: 0.65rem;">Connect. Create. Belong.</span>
+        </div>
+      </a>
+
+      <div class="cs-footer-links">
+        <a href="index.html">Home</a>
+        <a href="clubs.html">Clubs</a>
+        <a href="events.html">Events</a>
+        <a href="schedule.html">Schedule</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="admin.html" id="footerAdminLink">Admin</a>
+      </div>
+
+      <div class="cs-footer-socials">
+        <a href="#" class="cs-social-icon" title="Instagram">📸</a>
+        <a href="#" class="cs-social-icon" title="LinkedIn">💼</a>
+        <a href="#" class="cs-social-icon" title="YouTube">📺</a>
+        <a href="#" class="cs-social-icon" title="GitHub">🐙</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session } from './js/api.js';
+
+    // User auth pill
+    const user = session.get();
+    const isUserAdmin = user && String(user.role).toUpperCase() === 'ADMIN';
+    const navAdmin = document.getElementById('navAdminLinkLi');
+    if (navAdmin) {
+      navAdmin.style.display = isUserAdmin ? 'block' : 'none';
+    }
+    const footerAdmin = document.getElementById('footerAdminLink');
+    if (footerAdmin) {
+      footerAdmin.style.display = isUserAdmin ? 'inline' : 'none';
+    }
+
+    if (user && user.username) {
+      document.getElementById('authNavContainer').innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.06); border:1px solid var(--cs-border); padding:0.3rem 0.8rem; border-radius:var(--cs-radius-pill);">
+          <span style="font-size:0.8rem; color:${isUserAdmin ? '#fb7185' : 'var(--cs-cyan)'};">${isUserAdmin ? '👑 Admin' : '🎓'} @${user.username}</span>
+          <button id="logoutNavBtn" style="background:none; border:none; color:var(--cs-red); cursor:pointer; font-size:0.75rem;">Logout</button>
+        </div>
+      `;
+      document.getElementById('logoutNavBtn')?.addEventListener('click', async () => {
+        await api.auth.logout();
+      });
+    }
+
+    // Theme Toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('light-theme');
+    });
+  </script>
+</body>
+</html>

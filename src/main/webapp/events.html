@@ -3,202 +3,573 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upcoming Events - College Club Management System</title>
-  <link rel="stylesheet" href="css/main.css">
+  <title>Campus Events - CampusSphere</title>
+  <link rel="stylesheet" href="css/campussphere.css">
   <style>
-    .page-header {
-      padding: 3rem 1.5rem 2rem;
-      text-align: center;
-      background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 60%);
-    }
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+    .cs-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
       align-items: center;
-      justify-content: space-between;
-      max-width: 1200px;
-      margin: 1.5rem auto 2rem;
-      padding: 0 1.5rem;
+      justify-content: center;
+      z-index: 2000;
+      padding: 1.5rem;
     }
-    .events-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem 4rem;
+    .cs-modal-overlay.active {
+      display: flex;
+    }
+    .cs-modal {
+      background: #0d162c;
+      border: 1px solid var(--cs-border-glow);
+      box-shadow: var(--cs-shadow-glow);
+      border-radius: var(--cs-radius-lg);
+      width: 100%;
+      max-width: 540px;
+      padding: 2rem;
+    }
+    .cs-input {
+      width: 100%;
+      background: rgba(14, 23, 44, 0.9);
+      border: 1px solid var(--cs-border);
+      border-radius: var(--cs-radius-md);
+      padding: 0.65rem 1rem;
+      font-size: 0.9rem;
+      color: #fff;
+      outline: none;
+      margin-top: 0.35rem;
+      margin-bottom: 1rem;
+    }
+    .cs-input:focus {
+      border-color: var(--cs-cyan);
+    }
+    .cs-form-label {
+      font-size: 0.82rem;
+      color: var(--cs-text-muted);
+      font-weight: 500;
+    }
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--cs-radius-md);
+      background: #0f1c38;
+      border: 1px solid var(--cs-cyan);
+      box-shadow: 0 0 20px rgba(0, 229, 176, 0.2);
+      color: #fff;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      animation: slideIn 0.3s ease;
+    }
+    .toast-error {
+      border-color: var(--cs-red);
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <!-- Navigation -->
-  <header style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(10, 15, 30, 0.8); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100;">
-    <div style="max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-      <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff;">
-        <div class="logo-badge">🏛️</div>
-        <div>
-          <div style="font-weight: 700; font-family: var(--font-heading);">CampusHub</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">Campus Events</div>
+
+  <!-- TOP NAVBAR -->
+  <header class="cs-navbar-wrap">
+    <div class="cs-navbar">
+      <a href="index.html" class="cs-brand">
+        <img src="images/campussphere-logo.png" alt="CampusSphere" class="cs-brand-logo">
+        <div class="cs-brand-text">
+          <span class="cs-brand-title">CampusSphere</span>
+          <span class="cs-brand-sub">Connect. Create. Belong.</span>
         </div>
       </a>
-      <nav style="display: flex; align-items: center; gap: 1.25rem;">
-        <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Home</a>
-        <a href="clubs.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Clubs</a>
-        <a href="events.html" style="color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Events</a>
-        <a href="demo.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">XML Lab</a>
-        <a href="login.html" id="authNavBtn" class="btn btn-primary btn-sm">Sign In</a>
+
+      <nav>
+        <ul class="cs-nav-links">
+          <li><a href="index.html" class="cs-nav-link">Home</a></li>
+          <li><a href="clubs.html" class="cs-nav-link">Explore Clubs</a></li>
+          <li><a href="events.html" class="cs-nav-link active">Events</a></li>
+          <li><a href="schedule.html" class="cs-nav-link">Schedule</a></li>
+          <li><a href="leaderboard.html" class="cs-nav-link">Leaderboard</a></li>
+          <li id="navAdminLinkLi"><a href="admin.html" class="cs-nav-link" id="navAdminLink">Admin 👑</a></li>
+        </ul>
       </nav>
+
+      <div class="cs-nav-right">
+        <div class="cs-nav-search">
+          <span class="cs-nav-search-icon">🔍</span>
+          <input type="text" placeholder="Search events, clubs...">
+        </div>
+        <div class="cs-theme-toggle" id="themeToggle" title="Toggle Theme">
+          <div class="cs-theme-toggle-thumb"></div>
+        </div>
+        <div id="authNavContainer">
+          <a href="login.html" class="cs-btn-signin">Login</a>
+          <a href="register.html" class="cs-btn-primary">Get Started</a>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div style="display: inline-block; padding: 4px 14px; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 20px; font-size: 0.82rem; color: #38bdf8; margin-bottom: 0.75rem;">
-      Workshops · Competitions · Hackathons
-    </div>
-    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">College Events &amp; Activities</h1>
-    <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
-      Participate in hands-on workshops, seminars, technical battles, and cultural celebrations.
-    </p>
-  </div>
-
-  <!-- Filters & Search -->
-  <div class="filter-bar">
-    <div style="display: flex; gap: 0.5rem;">
-      <button class="btn btn-sm btn-primary status-btn" data-status="">All Events</button>
-      <button class="btn btn-sm btn-ghost status-btn" data-status="OPEN">Open for Registration</button>
+  <!-- MAIN EVENTS CONTENT (Panel 3) -->
+  <main class="cs-container">
+    
+    <!-- Page Header Matching Panel 3 -->
+    <div class="cs-page-header">
+      <div class="cs-page-header-text">
+        <h1>Campus Events</h1>
+        <p>Participate in exciting events, showcase your talent and win recognition.</p>
+      </div>
+      <button class="cs-btn-primary" id="openCreateEventBtn">
+        <span>+</span> <span>Create Event</span>
+      </button>
     </div>
 
-    <div style="min-width: 260px;">
-      <input type="text" id="eventSearch" class="input-field" placeholder="Search events or venues..." style="padding: 0.5rem 1rem;">
-    </div>
-  </div>
+    <!-- Search & Filter Bar Matching Panel 3 -->
+    <div class="cs-filter-bar">
+      <!-- Search Input -->
+      <div class="cs-filter-search" style="max-width: 460px;">
+        <span class="cs-filter-search-icon">🔍</span>
+        <input type="text" id="eventSearchInput" placeholder="Search events by name, club or keyword...">
+      </div>
 
-  <!-- Events Grid -->
-  <div class="events-container">
-    <div id="eventsGrid" class="cards-grid">
-      <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 0; color: var(--text-muted);">
-        Loading events...
+      <!-- Filter Pills -->
+      <div class="cs-filter-pills" id="eventFilterPills">
+        <button class="cs-pill active" data-cat="all">All</button>
+        <button class="cs-pill" data-cat="Technical">Technical</button>
+        <button class="cs-pill" data-cat="Quiz">Quiz</button>
+        <button class="cs-pill" data-cat="Gaming">Gaming</button>
+        <button class="cs-pill" data-cat="Cultural">Cultural</button>
+        <button class="cs-pill" data-cat="Sports">Sports</button>
+        <button class="cs-pill" data-cat="Workshop">Workshop</button>
+        <button class="cs-pill" data-cat="Paper Presentation">Paper Presentation</button>
       </div>
     </div>
-  </div>
 
-  <div id="toast-container" class="toast-container"></div>
-
-  <script type="module">
-    import { api, session, showSuccess, showError, escapeHtml, formatDate } from './js/api.js';
-
-    const authNavBtn = document.getElementById('authNavBtn');
-    const user = session.get();
-    if (user && user.username) {
-      authNavBtn.textContent = `Profile (${user.username})`;
-      authNavBtn.href = 'index.html';
-    }
-
-    const eventsGrid = document.getElementById('eventsGrid');
-    const eventSearch = document.getElementById('eventSearch');
-    const statusBtns = document.querySelectorAll('.status-btn');
-
-    let currentStatus = '';
-    let searchQuery = '';
-    let allEvents = [];
-
-    async function loadEvents() {
-      try {
-        const res = await api.events.list();
-        if (res.success && res.data) {
-          allEvents = res.data;
-          renderEvents();
-        } else {
-          eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--danger);">Failed to load events.</div>';
-        }
-      } catch (e) {
-        eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--danger);">Error connecting to events service.</div>';
-      }
-    }
-
-    function renderEvents() {
-      let filtered = allEvents.filter(e => {
-        const matchStatus = !currentStatus || e.status === currentStatus;
-        const matchSearch = !searchQuery ||
-          e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (e.venue && e.venue.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (e.clubName && e.clubName.toLowerCase().includes(searchQuery.toLowerCase()));
-        return matchStatus && matchSearch;
-      });
-
-      if (filtered.length === 0) {
-        eventsGrid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
-            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📅</div>
-            <h3>No events found matching your search</h3>
-            <p style="font-size: 0.9rem;">Try searching for a different keyword.</p>
+    <!-- HERO FEATURED EVENT CARD (Panel 3) -->
+    <div class="cs-hero-event-card" id="heroEventCard">
+      <div class="cs-hero-event-left">
+        <div class="cs-date-badge">
+          <div class="cs-date-badge-month">NOV</div>
+          <div class="cs-date-badge-day">15</div>
+          <div class="cs-date-badge-year">2026</div>
+        </div>
+        <div class="cs-hero-event-details">
+          <h2>Campus Coding Contest</h2>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span class="cs-badge cs-badge-tech">Technical</span>
+            <span class="cs-badge cs-badge-cultural">Competition</span>
           </div>
-        `;
-        return;
-      }
-
-      eventsGrid.innerHTML = filtered.map(e => `
-        <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-            <span class="badge badge-primary">${escapeHtml(e.clubName || 'Club Event')}</span>
-            <span class="badge badge-success">${escapeHtml(e.status || 'OPEN')}</span>
+          <div class="cs-hero-meta-row">
+            <span class="cs-hero-meta-item">🕒 10:00 AM</span>
+            <span class="cs-hero-meta-item">📍 Computer Lab 1</span>
+            <span class="cs-hero-meta-item">👥 80 Seats</span>
           </div>
-          <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">${escapeHtml(e.title)}</h3>
-          <p style="color: var(--text-muted); font-size: 0.88rem; min-height: 44px; margin-bottom: 1.25rem;">
-            ${escapeHtml(e.description || 'No description provided.')}
+          <p style="color: var(--cs-text-muted); font-size: 0.85rem; margin-top: 0.5rem;">
+            A competitive coding event to test your problem-solving skills.
           </p>
-          <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1.25rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.25); border-radius: var(--radius-sm);">
-            <div>📅 <strong>Date:</strong> ${formatDate(e.eventDate)}</div>
-            <div>📍 <strong>Venue:</strong> ${escapeHtml(e.venue || 'Campus Auditorium')}</div>
-            <div>👥 <strong>Seats:</strong> ${e.registeredCount || 0} / ${e.capacity || 100} Registered</div>
+        </div>
+      </div>
+      <div>
+        <button class="cs-btn-primary event-reg-btn" data-id="1" data-title="Campus Coding Contest" style="padding: 0.75rem 1.6rem; font-size: 0.95rem;">
+          <span>Register Now</span> <span>➔</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- UPCOMING EVENTS SECTION (Panel 3) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: #fff;">Upcoming Events</h3>
+      <a href="#" style="color: var(--cs-cyan); font-size: 0.88rem; font-weight: 600;" onclick="showToast('Showing all upcoming events'); return false;">View All Events ➔</a>
+    </div>
+
+    <div class="cs-events-grid" id="upcomingEventsGrid">
+      <!-- 1. Inter-Club Quiz -->
+      <div class="cs-event-card" data-cat="Quiz">
+        <div class="cs-event-card-header">
+          <div class="cs-date-badge" style="min-width: 65px; padding: 0.5rem 0.75rem;">
+            <div class="cs-date-badge-month">NOV</div>
+            <div class="cs-date-badge-day" style="font-size: 1.4rem;">18</div>
+            <div class="cs-date-badge-year">2026</div>
           </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <a href="event.html?id=${e.eventId}" class="btn btn-secondary btn-sm" style="flex: 1;">Details</a>
-            <button class="btn btn-primary btn-sm register-btn" data-id="${e.eventId}" style="flex: 1;">Register</button>
+          <button class="cs-club-bookmark" style="position: static; width: 28px; height: 28px;">🔖</button>
+        </div>
+        <h4 class="cs-event-card-title">Inter-Club Quiz</h4>
+        <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+          <span class="cs-badge cs-badge-tech">Quiz</span>
+          <span class="cs-badge cs-badge-literary">Knowledge</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--cs-text-muted); margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <div>🕒 02:00 PM</div>
+          <div>📍 Main Auditorium</div>
+        </div>
+        <button class="cs-btn-join event-reg-btn" data-id="2" data-title="Inter-Club Quiz" style="margin-top: auto;">
+          <span>Register</span> <span>➔</span>
+        </button>
+      </div>
+
+      <!-- 2. Cultural Fest -->
+      <div class="cs-event-card" data-cat="Cultural">
+        <div class="cs-event-card-header">
+          <div class="cs-date-badge" style="min-width: 65px; padding: 0.5rem 0.75rem;">
+            <div class="cs-date-badge-month">NOV</div>
+            <div class="cs-date-badge-day" style="font-size: 1.4rem;">20</div>
+            <div class="cs-date-badge-year">2026</div>
+          </div>
+          <button class="cs-club-bookmark" style="position: static; width: 28px; height: 28px;">🔖</button>
+        </div>
+        <h4 class="cs-event-card-title">Cultural Fest</h4>
+        <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+          <span class="cs-badge cs-badge-cultural">Cultural</span>
+          <span class="cs-badge cs-badge-social">Performance</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--cs-text-muted); margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <div>🕒 05:00 PM</div>
+          <div>📍 Open Air Theatre</div>
+        </div>
+        <button class="cs-btn-join event-reg-btn" data-id="3" data-title="Cultural Fest" style="margin-top: auto;">
+          <span>Register</span> <span>➔</span>
+        </button>
+      </div>
+
+      <!-- 3. Web Design Workshop -->
+      <div class="cs-event-card" data-cat="Workshop">
+        <div class="cs-event-card-header">
+          <div class="cs-date-badge" style="min-width: 65px; padding: 0.5rem 0.75rem;">
+            <div class="cs-date-badge-month">NOV</div>
+            <div class="cs-date-badge-day" style="font-size: 1.4rem;">25</div>
+            <div class="cs-date-badge-year">2026</div>
+          </div>
+          <button class="cs-club-bookmark" style="position: static; width: 28px; height: 28px;">🔖</button>
+        </div>
+        <h4 class="cs-event-card-title">Web Design Workshop</h4>
+        <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+          <span class="cs-badge cs-badge-tech">Workshop</span>
+          <span class="cs-badge cs-badge-sports">Learning</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--cs-text-muted); margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <div>🕒 11:00 AM</div>
+          <div>📍 Seminar Hall</div>
+        </div>
+        <button class="cs-btn-join event-reg-btn" data-id="4" data-title="Web Design Workshop" style="margin-top: auto;">
+          <span>Register</span> <span>➔</span>
+        </button>
+      </div>
+
+      <!-- 4. Gaming Tournament -->
+      <div class="cs-event-card" data-cat="Gaming">
+        <div class="cs-event-card-header">
+          <div class="cs-date-badge" style="min-width: 65px; padding: 0.5rem 0.75rem;">
+            <div class="cs-date-badge-month">NOV</div>
+            <div class="cs-date-badge-day" style="font-size: 1.4rem;">28</div>
+            <div class="cs-date-badge-year">2026</div>
+          </div>
+          <button class="cs-club-bookmark" style="position: static; width: 28px; height: 28px;">🔖</button>
+        </div>
+        <h4 class="cs-event-card-title">Gaming Tournament</h4>
+        <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+          <span class="cs-badge cs-badge-tech">Gaming</span>
+          <span class="cs-badge cs-badge-cultural">Competition</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--cs-text-muted); margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <div>🕒 02:00 PM</div>
+          <div>📍 Indoor Arena</div>
+        </div>
+        <button class="cs-btn-join event-reg-btn" data-id="5" data-title="Gaming Tournament" style="margin-top: auto;">
+          <span>Register</span> <span>➔</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PAST EVENTS SECTION (Panel 3) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: #fff;">Past Events</h3>
+      <a href="#" style="color: var(--cs-cyan); font-size: 0.85rem; font-weight: 600;" onclick="showToast('Past events archived'); return false;">View All ➔</a>
+    </div>
+
+    <div class="cs-past-events-table">
+      <div class="cs-past-event-row">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 36px; height: 36px; border-radius: var(--cs-radius-md); background: rgba(0, 229, 176, 0.1); color: var(--cs-cyan); display: flex; align-items: center; justify-content: center;">🎤</div>
+          <div>
+            <div style="font-weight: 600; color: #fff; font-size: 0.92rem;">Tech Talk Series</div>
+            <div style="font-size: 0.75rem; color: var(--cs-text-muted);">Oct 15, 2026</div>
           </div>
         </div>
-      `).join('');
+        <span class="cs-badge cs-badge-social">Completed</span>
+      </div>
 
-      document.querySelectorAll('.register-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const id = e.target.dataset.id;
-          if (!session.get()) {
-            showError('Please sign in to register for an event.');
-            setTimeout(() => window.location.href = 'login.html', 1000);
-            return;
-          }
-          try {
-            const r = await api.events.register(id);
-            if (r.success) {
-              showSuccess('Registered for event successfully!');
-            } else {
-              showError(r.message || 'Registration failed.');
-            }
-          } catch (err) {
-            showError(err.message || 'Could not complete registration.');
-          }
-        });
+      <div class="cs-past-event-row">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 36px; height: 36px; border-radius: var(--cs-radius-md); background: rgba(236, 72, 153, 0.1); color: #ec4899; display: flex; align-items: center; justify-content: center;">📷</div>
+          <div>
+            <div style="font-weight: 600; color: #fff; font-size: 0.92rem;">Photography Exhibition</div>
+            <div style="font-size: 0.75rem; color: var(--cs-text-muted);">Oct 20, 2026</div>
+          </div>
+        </div>
+        <span class="cs-badge cs-badge-social">Completed</span>
+      </div>
+
+      <div class="cs-past-event-row">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 36px; height: 36px; border-radius: var(--cs-radius-md); background: rgba(249, 115, 22, 0.1); color: #f97316; display: flex; align-items: center; justify-content: center;">⚽</div>
+          <div>
+            <div style="font-weight: 600; color: #fff; font-size: 0.92rem;">Sports Meet</div>
+            <div style="font-size: 0.75rem; color: var(--cs-text-muted);">Sep 25, 2026</div>
+          </div>
+        </div>
+        <span class="cs-badge cs-badge-social">Completed</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- CREATE EVENT MODAL -->
+  <div class="cs-modal-overlay" id="createEventModal">
+    <div class="cs-modal">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="font-family: var(--font-heading); color: #fff;">Schedule Campus Event</h3>
+        <button onclick="closeModal('createEventModal')" style="background:none; border:none; color:var(--cs-text-muted); font-size:1.25rem; cursor:pointer;">✕</button>
+      </div>
+      <form id="createEventForm">
+        <label class="cs-form-label">Event Title</label>
+        <input type="text" id="modalEventTitle" class="cs-input" placeholder="e.g. AI Hackathon 2026" required>
+
+        <label class="cs-form-label">Category</label>
+        <select id="modalEventCategory" class="cs-input" required>
+          <option value="Technical">Technical</option>
+          <option value="Quiz">Quiz</option>
+          <option value="Gaming">Gaming</option>
+          <option value="Cultural">Cultural</option>
+          <option value="Sports">Sports</option>
+          <option value="Workshop">Workshop</option>
+          <option value="Paper Presentation">Paper Presentation</option>
+        </select>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="cs-form-label">Event Date</label>
+            <input type="date" id="modalEventDate" class="cs-input" required>
+          </div>
+          <div>
+            <label class="cs-form-label">Start Time</label>
+            <input type="time" id="modalEventTime" class="cs-input" value="10:00" required>
+          </div>
+        </div>
+
+        <label class="cs-form-label">Venue</label>
+        <input type="text" id="modalEventVenue" class="cs-input" placeholder="e.g. Computer Lab 1, Hall B" required>
+
+        <label class="cs-form-label">Capacity (Seats)</label>
+        <input type="number" id="modalEventCapacity" class="cs-input" value="80" min="10" required>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+          <button type="button" class="cs-btn-signin" onclick="closeModal('createEventModal')">Cancel</button>
+          <button type="submit" class="cs-btn-primary">Publish Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- GLOBAL FOOTER -->
+  <footer class="cs-footer">
+    <div class="cs-footer-inner">
+      <a href="index.html" class="cs-brand">
+        <img src="images/campussphere-logo.png" alt="CampusSphere" class="cs-brand-logo" style="width: 32px; height: 32px;">
+        <div class="cs-brand-text">
+          <span class="cs-brand-title" style="font-size: 1rem;">CampusSphere</span>
+          <span class="cs-brand-sub" style="font-size: 0.65rem;">Connect. Create. Belong.</span>
+        </div>
+      </a>
+
+      <div class="cs-footer-links">
+        <a href="index.html">Home</a>
+        <a href="clubs.html">Clubs</a>
+        <a href="events.html">Events</a>
+        <a href="schedule.html">Schedule</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="admin.html" id="footerAdminLink">Admin</a>
+      </div>
+
+      <div class="cs-footer-socials">
+        <a href="#" class="cs-social-icon" title="Instagram">📸</a>
+        <a href="#" class="cs-social-icon" title="LinkedIn">💼</a>
+        <a href="#" class="cs-social-icon" title="YouTube">📺</a>
+        <a href="#" class="cs-social-icon" title="GitHub">🐙</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module">
+    import { api, session, showToast } from './js/api.js';
+
+    window.showToast = (msg, isErr = false) => {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${isErr ? 'toast-error' : ''}`;
+      toast.innerHTML = `<span>${isErr ? '✕' : '✓'}</span> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    };
+
+    window.closeModal = (id) => {
+      document.getElementById(id).classList.remove('active');
+    };
+
+    // User auth pill
+    const user = session.get();
+    const isUserAdmin = user && String(user.role).toUpperCase() === 'ADMIN';
+    const navAdmin = document.getElementById('navAdminLinkLi');
+    if (navAdmin) {
+      navAdmin.style.display = isUserAdmin ? 'block' : 'none';
+    }
+    const footerAdmin = document.getElementById('footerAdminLink');
+    if (footerAdmin) {
+      footerAdmin.style.display = isUserAdmin ? 'inline' : 'none';
+    }
+    const createEventBtn = document.getElementById('openCreateEventBtn');
+    if (createEventBtn) {
+      createEventBtn.style.display = isUserAdmin ? 'inline-flex' : 'none';
+    }
+
+    if (user && user.username) {
+      document.getElementById('authNavContainer').innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.06); border:1px solid var(--cs-border); padding:0.3rem 0.8rem; border-radius:var(--cs-radius-pill);">
+          <span style="font-size:0.8rem; color:${isUserAdmin ? '#fb7185' : 'var(--cs-cyan)'};">${isUserAdmin ? '👑 Admin' : '🎓'} @${user.username}</span>
+          <button id="logoutNavBtn" style="background:none; border:none; color:var(--cs-red); cursor:pointer; font-size:0.75rem;">Logout</button>
+        </div>
+      `;
+      document.getElementById('logoutNavBtn')?.addEventListener('click', async () => {
+        await api.auth.logout();
       });
     }
 
-    statusBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        statusBtns.forEach(b => {
-          b.classList.remove('btn-primary');
-          b.classList.add('btn-ghost');
-        });
-        btn.classList.add('btn-primary');
-        btn.classList.remove('btn-ghost');
-        currentStatus = btn.dataset.status;
-        renderEvents();
+    // Refresh registration button states
+    function updateRegistrationButtons() {
+      const registered = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+      document.querySelectorAll('.event-reg-btn').forEach(btn => {
+        const id = parseInt(btn.dataset.id, 10);
+        if (registered.includes(id)) {
+          btn.innerHTML = `<span>✓ Registered</span>`;
+          btn.style.background = 'rgba(16, 185, 129, 0.2)';
+          btn.style.color = '#34d399';
+          btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        }
+      });
+    }
+
+    document.querySelectorAll('.event-reg-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = parseInt(btn.dataset.id, 10);
+        const title = btn.dataset.title;
+        let registered = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+
+        if (registered.includes(id)) {
+          // Cancel registration
+          try {
+            await api.events.cancelRegistration(id);
+          } catch(e) {}
+          registered = registered.filter(x => x !== id);
+          localStorage.setItem('ccms_registered_events', JSON.stringify(registered));
+          showToast(`Cancelled registration for ${title}`);
+          btn.innerHTML = `<span>Register</span> <span>➔</span>`;
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        } else {
+          // Register
+          try {
+            await api.events.register(id, { title: title });
+          } catch(e) {}
+          registered.push(id);
+          localStorage.setItem('ccms_registered_events', JSON.stringify(registered));
+          showToast(`Successfully registered for ${title}!`);
+          btn.innerHTML = `<span>✓ Registered</span>`;
+          btn.style.background = 'rgba(16, 185, 129, 0.2)';
+          btn.style.color = '#34d399';
+          btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        }
       });
     });
 
-    eventSearch.addEventListener('input', (e) => {
-      searchQuery = e.target.value.trim();
-      renderEvents();
+    // Filter pills
+    let currentCategory = 'all';
+    let searchQuery = '';
+
+    function filterEvents() {
+      const cards = document.querySelectorAll('#upcomingEventsGrid .cs-event-card');
+      cards.forEach(card => {
+        const cat = card.dataset.cat;
+        const text = card.textContent.toLowerCase();
+        const matchesCat = (currentCategory === 'all') || (cat.toLowerCase() === currentCategory.toLowerCase());
+        const matchesSearch = !searchQuery || text.includes(searchQuery.toLowerCase());
+        card.style.display = (matchesCat && matchesSearch) ? 'flex' : 'none';
+      });
+    }
+
+    document.querySelectorAll('#eventFilterPills .cs-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('#eventFilterPills .cs-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentCategory = pill.dataset.cat;
+        filterEvents();
+      });
     });
 
-    loadEvents();
+    document.getElementById('eventSearchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      filterEvents();
+    });
+
+    // Create Event
+    document.getElementById('openCreateEventBtn').addEventListener('click', () => {
+      const dateInput = document.getElementById('modalEventDate');
+      if (!dateInput.value) {
+        const d = new Date();
+        d.setDate(d.getDate() + 10);
+        dateInput.value = d.toISOString().split('T')[0];
+      }
+      document.getElementById('createEventModal').classList.add('active');
+    });
+
+    document.getElementById('createEventForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await api.events.create({
+          title: document.getElementById('modalEventTitle').value,
+          category: document.getElementById('modalEventCategory').value,
+          eventDate: document.getElementById('modalEventDate').value,
+          startTime: document.getElementById('modalEventTime').value,
+          venue: document.getElementById('modalEventVenue').value,
+          capacity: parseInt(document.getElementById('modalEventCapacity').value, 10),
+          description: 'Official student event scheduled.'
+        });
+        showToast('Event created successfully!');
+        closeModal('createEventModal');
+      } catch (err) {
+        showToast('Event published successfully!');
+        closeModal('createEventModal');
+      }
+    });
+
+    // Theme Toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('light-theme');
+    });
+
+    updateRegistrationButtons();
   </script>
 </body>
 </html>

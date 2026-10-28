@@ -187,50 +187,57 @@ public class EventService implements EventOperations {
 
     private void seedDefaultEvents() {
         try {
-            if (eventDao.findAll().isEmpty()) {
-                List<Club> clubs = clubDao.findAll();
-                if (clubs.isEmpty()) return;
+            List<Club> clubs = clubDao.findAll();
+            if (clubs.isEmpty()) return;
 
-                int codingClubId = findClubIdByName(clubs, "Coding & Open Source Club", clubs.get(0).getId());
-                int aiClubId = findClubIdByName(clubs, "Artificial Intelligence & Robotics Club", codingClubId);
-                int cyberClubId = findClubIdByName(clubs, "Cyber Security & Ethical Hacking Club", codingClubId);
-                int litClubId = findClubIdByName(clubs, "Literary & Debating Society", codingClubId);
-                int photoClubId = findClubIdByName(clubs, "Photography & Cinematography Club", codingClubId);
-                int sportsClubId = findClubIdByName(clubs, "Sports & Athletics Association", codingClubId);
-                int musicClubId = findClubIdByName(clubs, "Music & Acoustic Band Club", codingClubId);
-                int ecellId = findClubIdByName(clubs, "Entrepreneurship & Innovation Cell (E-Cell)", codingClubId);
+            int codingClubId = findClubIdByName(clubs, "ByteCraft", clubs.get(0).getId());
+            int aiClubId = findClubIdByName(clubs, "RoboTech", codingClubId);
+            int cyberClubId = findClubIdByName(clubs, "NullSector", codingClubId);
+            int litClubId = findClubIdByName(clubs, "Athena", codingClubId);
+            int photoClubId = findClubIdByName(clubs, "ShutterBug", codingClubId);
+            int sportsClubId = findClubIdByName(clubs, "Titans", codingClubId);
+            int musicClubId = findClubIdByName(clubs, "Rhapsody", codingClubId);
+            int ecellId = findClubIdByName(clubs, "VentureLab", codingClubId);
 
-                eventDao.save(new Event(codingClubId, "Annual 24-Hour University Hackathon 2026",
+            List<Event> existing = eventDao.findAll();
+            java.util.Set<String> titles = new java.util.HashSet<>();
+            for (Event e : existing) {
+                if (e.getTitle() != null) {
+                    titles.add(e.getTitle().trim().toLowerCase());
+                }
+            }
+
+            Event[] defaults = {
+                new Event(codingClubId, "Annual 24-Hour University Hackathon 2026",
                         "Build cutting-edge full-stack and AI software solutions. Cash prizes, mentor support, and industry judging.",
-                        "2026-10-25 09:00", "Main Auditorium & Computing Center", 150));
-
-                eventDao.save(new Event(aiClubId, "Autonomous Robotics & AI Expo 2026",
+                        "2026-10-25 09:00", "Main Auditorium & Computing Center", 150),
+                new Event(aiClubId, "Autonomous Robotics & AI Expo 2026",
                         "Live demonstrations of computer vision robots, obstacle-avoiding rovers, and generative AI models.",
-                        "2026-10-28 10:30", "Robotics Innovation Lab - Block C", 100));
-
-                eventDao.save(new Event(cyberClubId, "Campus Cyber Defense CTF Challenge",
+                        "2026-10-28 10:30", "Robotics Innovation Lab - Block C", 100),
+                new Event(cyberClubId, "Campus Cyber Defense CTF Challenge",
                         "Inter-collegiate ethical hacking challenge covering cryptography, reverse engineering, and web exploits.",
-                        "2026-11-05 14:00", "Cyber Security Cyber-Range Lab", 80));
-
-                eventDao.save(new Event(litClubId, "National Parliamentary Debate Championship",
+                        "2026-11-05 14:00", "Cyber Security Cyber-Range Lab", 80),
+                new Event(litClubId, "National Parliamentary Debate Championship",
                         "Oxford-style debating on global affairs, AI ethics, and economic policy.",
-                        "2026-11-12 10:00", "Senate Hall, Admin Building", 120));
-
-                eventDao.save(new Event(photoClubId, "Campus Life Photo Walk & Film Screening",
+                        "2026-11-12 10:00", "Senate Hall, Admin Building", 120),
+                new Event(photoClubId, "Campus Life Photo Walk & Film Screening",
                         "Guided photography walk around heritage campus followed by screening of student short films.",
-                        "2026-11-18 15:30", "Open Air Theatre & Media Studio", 90));
-
-                eventDao.save(new Event(sportsClubId, "Annual Inter-Department Athletics Meet",
+                        "2026-11-18 15:30", "Open Air Theatre & Media Studio", 90),
+                new Event(sportsClubId, "Annual Inter-Department Athletics Meet",
                         "Sprint races, relay, long jump, badminton, and basketball tournaments across all university branches.",
-                        "2026-11-25 08:00", "University Sports Complex Stadium", 200));
-
-                eventDao.save(new Event(musicClubId, "Acoustic Unplugged & Rock Band Night",
+                        "2026-11-25 08:00", "University Sports Complex Stadium", 200),
+                new Event(musicClubId, "Acoustic Unplugged & Rock Band Night",
                         "Live instrumental, classical fusion, and acoustic band performances under the stars.",
-                        "2026-12-02 18:00", "Campus Amphitheatre", 250));
-
-                eventDao.save(new Event(ecellId, "E-Summit 2026: Venture Pitch Showcase",
+                        "2026-12-02 18:00", "Campus Amphitheatre", 250),
+                new Event(ecellId, "E-Summit 2026: Venture Pitch Showcase",
                         "Student founders pitch startup ideas to angel investors and venture capitalists with seed grants.",
-                        "2026-12-10 11:00", "Convention Center Hall A", 120));
+                        "2026-12-10 11:00", "Convention Center Hall A", 120)
+            };
+
+            for (Event ev : defaults) {
+                if (!titles.contains(ev.getTitle().trim().toLowerCase())) {
+                    eventDao.save(ev);
+                }
             }
         } catch (Exception e) {
             System.err.println("Notice on seeding events: " + e.getMessage());

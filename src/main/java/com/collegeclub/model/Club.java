@@ -63,6 +63,10 @@ public class Club {
         return id;
     }
 
+    public void setClubId(int clubId) {
+        setId(clubId);
+    }
+
     public void setId(int id) {
         if (id < 0) {
             throw new IllegalArgumentException("Club ID cannot be negative.");
@@ -76,6 +80,10 @@ public class Club {
 
     public String getClubName() {
         return name;
+    }
+
+    public void setClubName(String clubName) {
+        setName(clubName);
     }
 
     public void setName(String name) {
@@ -111,6 +119,10 @@ public class Club {
 
     public String getCoordinatorName() {
         return coordinator;
+    }
+
+    public void setCoordinatorName(String coordinatorName) {
+        setCoordinator(coordinatorName);
     }
 
     public String getCoordinatorEmail() {
@@ -203,5 +215,16 @@ public class Club {
 
     public int getAvailableSlots() {
         return Math.max(0, capacity - memberCount);
+    }
+
+    public void displayClub() {
+        System.out.println("\n--- Club Details ---");
+        System.out.println("ID          : " + id);
+        System.out.println("Name        : " + name);
+        System.out.println("Category    : " + category);
+        System.out.println("Coordinator : " + coordinator);
+        System.out.println("Capacity    : " + capacity);
+        System.out.println("Members     : " + memberCount + "/" + capacity);
+        System.out.println("Status      : " + (active ? "Active" : "Inactive"));
     }
 }

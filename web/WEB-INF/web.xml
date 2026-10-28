@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>College Club Management System</display-name>
+    <description>MCA Semester I - Course 26MCA1L211 Web Application</description>
+
+    <!-- 1. Encoding Filter -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.collegeclub.filter.EncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 2. Security Headers Filter -->
+    <filter>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <filter-class>com.collegeclub.filter.SecurityHeadersFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 3. CSRF Protection Filter -->
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>com.collegeclub.filter.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 4. Authentication Access Filter -->
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>com.collegeclub.filter.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/dashboard.jsp</url-pattern>
+        <url-pattern>/admin.jsp</url-pattern>
+        <url-pattern>/profile.jsp</url-pattern>
+    </filter-mapping>
+
+    <!-- 5. Public Health and Stats Servlets -->
+    <servlet>
+        <servlet-name>HealthServlet</servlet-name>
+        <servlet-class>com.collegeclub.controller.HealthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HealthServlet</servlet-name>
+        <url-pattern>/api/health</url-pattern>
+        <url-pattern>/api/stats</url-pattern>
+    </servlet-mapping>
+
+    <!-- Session Security Configuration -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+            <name>JSESSIONID</name>
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+
+    <!-- Welcome File List -->
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+</web-app>

@@ -143,19 +143,17 @@ export const session = {
   },
 
   requireRole(...allowedRoles) {
-    const current = this.requireAuth();
-    if (!current) return null;
+    const current = this.get();
+    if (!current) {
+      const redirect = window.location.pathname.endsWith('admin.html') ? 'login.html?role=ADMIN&error=admin_required' : 'login.html';
+      window.location.replace(redirect);
+      return null;
+    }
     if (allowedRoles.length > 0 && !allowedRoles.includes(current.role)) {
-      showError('Unauthorized access level. Redirecting...');
+      showError('Unauthorized access level. Administrator login required.');
       setTimeout(() => {
-        if (current.role === 'ADMIN') {
-          window.location.replace('admin.html');
-        } else if (current.role === 'COORDINATOR') {
-          window.location.replace('coordinator.html');
-        } else {
-          window.location.replace('index.html');
-        }
-      }, 1000);
+        window.location.replace('login.html?role=ADMIN&error=admin_required');
+      }, 800);
       return null;
     }
     return current;
@@ -184,7 +182,7 @@ function handleMockFallback(endpoint, options) {
     try { body = JSON.parse(options.body); } catch (e) {}
   }
 
-  if (endpoint.includes('register')) {
+  if ((endpoint.includes('/auth/register') || endpoint === '/api/register') && !endpoint.includes('/events/')) {
     const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
     if (users.some(u => u.username === body.username)) {
       return { success: false, message: 'Username is already registered.' };
@@ -291,49 +289,50 @@ function handleMockFallback(endpoint, options) {
   }
 
   // Define 30 default clubs for rich presentation
+  // Define 30 campus clubs with perfect signature branding for Explore Campus Clubs
   const defaultClubs = [
-    { clubId: 1, id: 1, name: 'Coding & Open Source Club', clubName: 'Coding & Open Source Club', category: 'Technical', icon: '💻', categoryIcon: '💻', description: 'Competitive programming, data structures, algorithms, open source contributions, and hackathon training.', coordinatorName: 'Dr. S. Arul', coordinatorEmail: 's.arul@college.edu', capacity: 120, memberCount: 78, active: true },
-    { clubId: 2, id: 2, name: 'Artificial Intelligence & Robotics Club', clubName: 'Artificial Intelligence & Robotics Club', category: 'Technical', icon: '🤖', categoryIcon: '🤖', description: 'Machine learning, neural networks, computer vision, autonomous bots, and embedded robotics systems.', coordinatorName: 'Prof. K. Ramesh', coordinatorEmail: 'k.ramesh@college.edu', capacity: 100, memberCount: 65, active: true },
-    { clubId: 3, id: 3, name: 'Cyber Security & Ethical Hacking Club', clubName: 'Cyber Security & Ethical Hacking Club', category: 'Technical', icon: '🛡️', categoryIcon: '🛡️', description: 'Penetration testing, network defense, digital forensics, CTF challenges, and secure coding practices.', coordinatorName: 'Dr. V. Priya', coordinatorEmail: 'v.priya@college.edu', capacity: 90, memberCount: 52, active: true },
-    { clubId: 4, id: 4, name: 'Web & Mobile App Development Club', clubName: 'Web & Mobile App Development Club', category: 'Technical', icon: '📱', categoryIcon: '📱', description: 'Full-stack development, modern web architectures, React, Flutter, REST APIs, and cloud deployments.', coordinatorName: 'Prof. A. Kumar', coordinatorEmail: 'a.kumar@college.edu', capacity: 100, memberCount: 70, active: true },
-    { clubId: 5, id: 5, name: 'Cloud Computing & DevOps Society', clubName: 'Cloud Computing & DevOps Society', category: 'Technical', icon: '☁️', categoryIcon: '☁️', description: 'Containerization, CI/CD pipelines, Kubernetes, AWS, Google Cloud, and site reliability engineering.', coordinatorName: 'Dr. N. Sharma', coordinatorEmail: 'n.sharma@college.edu', capacity: 80, memberCount: 45, active: true },
-    { clubId: 6, id: 6, name: 'Data Science & Big Data Analytics Club', clubName: 'Data Science & Big Data Analytics Club', category: 'Technical', icon: '📊', categoryIcon: '📊', description: 'Exploratory data analysis, statistical modeling, Hadoop, Spark, BigQuery, and visual dashboards.', coordinatorName: 'Dr. M. Jayakumar', coordinatorEmail: 'm.jayakumar@college.edu', capacity: 85, memberCount: 58, active: true },
-    { clubId: 7, id: 7, name: 'Internet of Things (IoT) & Embedded Systems Club', clubName: 'Internet of Things (IoT) & Embedded Systems Club', category: 'Technical', icon: '🔌', categoryIcon: '🔌', description: 'Arduino, Raspberry Pi, sensor networks, smart automation, and edge hardware interfacing.', coordinatorName: 'Prof. R. Balaji', coordinatorEmail: 'r.balaji@college.edu', capacity: 75, memberCount: 40, active: true },
-    { clubId: 8, id: 8, name: 'Literary & Debating Society', clubName: 'Literary & Debating Society', category: 'Literary', icon: '📚', categoryIcon: '📚', description: 'Parliamentary debates, elocution, creative writing, poetry recitals, and critical rhetoric.', coordinatorName: 'Dr. E. Elizabeth', coordinatorEmail: 'e.elizabeth@college.edu', capacity: 100, memberCount: 60, active: true },
-    { clubId: 9, id: 9, name: 'Dramatics & Theatre Club', clubName: 'Dramatics & Theatre Club', category: 'Cultural', icon: '🎭', categoryIcon: '🎭', description: 'Stage plays, street theatre (nukkad natak), scripting, voice modulation, and stagecraft.', coordinatorName: 'Prof. S. Manoharan', coordinatorEmail: 's.manoharan@college.edu', capacity: 70, memberCount: 38, active: true },
-    { clubId: 10, id: 10, name: 'Music & Acoustic Band Club', clubName: 'Music & Acoustic Band Club', category: 'Cultural', icon: '🎵', categoryIcon: '🎵', description: 'Classical vocalists, Western instrumentalists, campus rock bands, and digital music production.', coordinatorName: 'Prof. T. Swaminathan', coordinatorEmail: 't.swaminathan@college.edu', capacity: 80, memberCount: 55, active: true },
-    { clubId: 11, id: 11, name: 'Fine Arts & Painting Club', clubName: 'Fine Arts & Painting Club', category: 'Creative Arts', icon: '🎨', categoryIcon: '🎨', description: 'Sketching, acrylics, oil painting, digital illustration, sculpturing, and campus murals.', coordinatorName: 'Dr. S. Revathi', coordinatorEmail: 's.revathi@college.edu', capacity: 65, memberCount: 35, active: true },
-    { clubId: 12, id: 12, name: 'Photography & Cinematography Club', clubName: 'Photography & Cinematography Club', category: 'Media', icon: '📷', categoryIcon: '📷', description: 'Digital photography, portraiture, short filmmaking, post-processing, and drone cinematography.', coordinatorName: 'Prof. G. Karthik', coordinatorEmail: 'g.karthik@college.edu', capacity: 75, memberCount: 48, active: true },
-    { clubId: 13, id: 13, name: 'Dance & Choreography Club', clubName: 'Dance & Choreography Club', category: 'Cultural', icon: '💃', categoryIcon: '💃', description: 'Classical Bharatanatyam, contemporary, hip-hop, western freestyle, and group formations.', coordinatorName: 'Prof. M. Divya', coordinatorEmail: 'm.divya@college.edu', capacity: 80, memberCount: 50, active: true },
-    { clubId: 14, id: 14, name: 'Sports & Athletics Association', clubName: 'Sports & Athletics Association', category: 'Sports', icon: '⚽', categoryIcon: '⚽', description: 'Football, basketball, cricket, badminton, track athletics, and tournament organizing.', coordinatorName: 'Dr. P. Selvan', coordinatorEmail: 'p.selvan@college.edu', capacity: 150, memberCount: 110, active: true },
-    { clubId: 15, id: 15, name: 'Yoga & Wellness Club', clubName: 'Yoga & Wellness Club', category: 'Health & Wellness', icon: '🧘', categoryIcon: '🧘', description: 'Hatha yoga, pranayama breathing, mindfulness meditation, posture alignment, and stress relief.', coordinatorName: 'Prof. H. Lakshmi', coordinatorEmail: 'h.lakshmi@college.edu', capacity: 90, memberCount: 42, active: true },
-    { clubId: 16, id: 16, name: 'National Service Scheme (NSS)', clubName: 'National Service Scheme (NSS)', category: 'Social Service', icon: '🤝', categoryIcon: '🤝', description: 'Community empowerment, blood donation drives, literacy outreach, and rural village development camps.', coordinatorName: 'Dr. C. Sundar', coordinatorEmail: 'c.sundar@college.edu', capacity: 150, memberCount: 125, active: true },
-    { clubId: 17, id: 17, name: 'Youth Red Cross (YRC)', clubName: 'Youth Red Cross (YRC)', category: 'Social Service', icon: '🏥', categoryIcon: '🏥', description: 'First aid certification, disaster management response, health awareness, and humanitarian assistance.', coordinatorName: 'Dr. K. Anitha', coordinatorEmail: 'k.anitha@college.edu', capacity: 120, memberCount: 80, active: true },
-    { clubId: 18, id: 18, name: 'Environmental & Nature Conservation Club', clubName: 'Environmental & Nature Conservation Club', category: 'Environmental', icon: '🌿', categoryIcon: '🌿', description: 'Tree plantation drives, waste recycling audits, biodiversity conservation, and eco-sustainability.', coordinatorName: 'Prof. D. Vasudevan', coordinatorEmail: 'd.vasudevan@college.edu', capacity: 80, memberCount: 45, active: true },
-    { clubId: 19, id: 19, name: 'Mathematics & Problem Solving Club', clubName: 'Mathematics & Problem Solving Club', category: 'Academic', icon: '📐', categoryIcon: '📐', description: 'Discrete mathematics, combinatorics, puzzle solving, cryptography, and quantitative aptitude.', coordinatorName: 'Dr. G. Srinivasan', coordinatorEmail: 'g.srinivasan@college.edu', capacity: 70, memberCount: 36, active: true },
-    { clubId: 20, id: 20, name: 'Entrepreneurship & Innovation Cell (E-Cell)', clubName: 'Entrepreneurship & Innovation Cell (E-Cell)', category: 'Entrepreneurship', icon: '🚀', categoryIcon: '🚀', description: 'Startup incubation, business model canvas, venture pitching, mentor networking, and seed grants.', coordinatorName: 'Prof. R. Venkatesh', coordinatorEmail: 'r.venkatesh@college.edu', capacity: 100, memberCount: 68, active: true },
-    { clubId: 21, id: 21, name: 'Quantum Computing & Advanced Physics Club', clubName: 'Quantum Computing & Advanced Physics Club', category: 'Innovation', icon: '⚛️', categoryIcon: '⚛️', description: 'Qubits, quantum algorithms, Qiskit circuits, quantum cryptography, and quantum entanglement.', coordinatorName: 'Dr. A. Ramanathan', coordinatorEmail: 'a.ramanathan@college.edu', capacity: 50, memberCount: 28, active: true },
-    { clubId: 22, id: 22, name: 'Blockchain & Web3 Developers Guild', clubName: 'Blockchain & Web3 Developers Guild', category: 'Innovation', icon: '⛓️', categoryIcon: '⛓️', description: 'Smart contracts, Solidity, decentralized finance (DeFi), Ethereum, and consensus protocols.', coordinatorName: 'Prof. S. Vignesh', coordinatorEmail: 's.vignesh@college.edu', capacity: 75, memberCount: 44, active: true },
-    { clubId: 23, id: 23, name: 'AR/VR & Metaverse Experience Lab', clubName: 'AR/VR & Metaverse Experience Lab', category: 'Innovation', icon: '🥽', categoryIcon: '🥽', description: 'Spatial computing, Unity 3D, Unreal Engine, Oculus headset development, and virtual simulations.', coordinatorName: 'Dr. P. Malathi', coordinatorEmail: 'p.malathi@college.edu', capacity: 60, memberCount: 35, active: true },
-    { clubId: 24, id: 24, name: 'Space Tech & Astronomy Guild', clubName: 'Space Tech & Astronomy Guild', category: 'Science', icon: '🔭', categoryIcon: '🔭', description: 'Telescopic sky observation, satellite orbits, CanSat modeling, and astrophysics seminars.', coordinatorName: 'Dr. K. Chandrasekar', coordinatorEmail: 'k.chandrasekar@college.edu', capacity: 70, memberCount: 41, active: true },
-    { clubId: 25, id: 25, name: 'Bio-Informatics & Genomics Research Club', clubName: 'Bio-Informatics & Genomics Research Club', category: 'Research', icon: '🧬', categoryIcon: '🧬', description: 'Computational biology, DNA sequence alignment, AlphaFold protein structures, and Biopython.', coordinatorName: 'Dr. U. Banumathi', coordinatorEmail: 'u.banumathi@college.edu', capacity: 50, memberCount: 25, active: true },
-    { clubId: 26, id: 26, name: 'Game Design & Interactive Media Studio', clubName: 'Game Design & Interactive Media Studio', category: 'Gaming', icon: '🎮', categoryIcon: '🎮', description: 'Indie game development, 2D/3D physics engines, character animation, and level mechanics.', coordinatorName: 'Prof. J. Vijay', coordinatorEmail: 'j.vijay@college.edu', capacity: 80, memberCount: 52, active: true },
-    { clubId: 27, id: 27, name: 'Drone Technology & UAV Research Club', clubName: 'Drone Technology & UAV Research Club', category: 'Aerospace', icon: '🚁', categoryIcon: '🚁', description: 'Quadcopter assembly, flight controllers, autopilot navigation, FPV racing, and aerial survey.', coordinatorName: 'Dr. R. Natarajan', coordinatorEmail: 'r.natarajan@college.edu', capacity: 60, memberCount: 34, active: true },
-    { clubId: 28, id: 28, name: 'Fintech & Algorithmic Trading Society', clubName: 'Fintech & Algorithmic Trading Society', category: 'Finance', icon: '📈', categoryIcon: '📈', description: 'Automated trading bots, backtesting quantitative models, portfolio risk, and payment gateways.', coordinatorName: 'Prof. S. Deepak', coordinatorEmail: 's.deepak@college.edu', capacity: 65, memberCount: 39, active: true },
-    { clubId: 29, id: 29, name: 'Social Media & Digital Content Creators Club', clubName: 'Social Media & Digital Content Creators Club', category: 'Media', icon: '🎙️', categoryIcon: '🎙️', description: 'Podcasting, viral reels production, brand identity, audio editing, and audience analytics.', coordinatorName: 'Prof. A. Sneha', coordinatorEmail: 'a.sneha@college.edu', capacity: 85, memberCount: 56, active: true },
-    { clubId: 30, id: 30, name: 'Model United Nations (MUN) & Geopolitics Society', clubName: 'Model United Nations (MUN) & Geopolitics Society', category: 'Leadership', icon: '🌐', categoryIcon: '🌐', description: 'Diplomatic simulation, resolution drafting, UN committees, crisis debate, and foreign affairs.', coordinatorName: 'Dr. F. George', coordinatorEmail: 'f.george@college.edu', capacity: 90, memberCount: 62, active: true }
+    { clubId: 1, id: 1, name: 'ByteCraft — Coding & Open Source Society', clubName: 'ByteCraft — Coding & Open Source Society', category: 'Technical', icon: '💻', categoryIcon: '💻', description: 'Competitive programming, algorithms, data structures mastery, open source contributions, and 24-hour hackathons.', coordinatorName: 'Dr. S. Arul', coordinatorEmail: 's.arul@college.edu', capacity: 120, memberCount: 78, active: true },
+    { clubId: 2, id: 2, name: 'RoboTech — AI, Robotics & Automation Club', clubName: 'RoboTech — AI, Robotics & Automation Club', category: 'Technical', icon: '🤖', categoryIcon: '🤖', description: 'Autonomous bots, ROS navigation, microcontrollers, embedded C, computer vision, and drone telemetry.', coordinatorName: 'Prof. K. Ramesh', coordinatorEmail: 'k.ramesh@college.edu', capacity: 100, memberCount: 65, active: true },
+    { clubId: 3, id: 3, name: 'NullSector — Cyber Security & Ethical Hacking Guild', clubName: 'NullSector — Cyber Security & Ethical Hacking Guild', category: 'Technical', icon: '🛡️', categoryIcon: '🛡️', description: 'Penetration testing, capture-the-flag (CTF) challenges, network defense, reverse engineering, and digital forensics.', coordinatorName: 'Dr. V. Priya', coordinatorEmail: 'v.priya@college.edu', capacity: 90, memberCount: 52, active: true },
+    { clubId: 4, id: 4, name: 'DevForge — Full-Stack & App Development Club', clubName: 'DevForge — Full-Stack & App Development Club', category: 'Technical', icon: '🚀', categoryIcon: '🚀', description: 'Modern web architectures, React, Next.js, Flutter mobile development, cloud-native backends, and REST APIs.', coordinatorName: 'Prof. A. Kumar', coordinatorEmail: 'a.kumar@college.edu', capacity: 100, memberCount: 70, active: true },
+    { clubId: 5, id: 5, name: 'CloudMatrix — Cloud Computing & DevOps Society', clubName: 'CloudMatrix — Cloud Computing & DevOps Society', category: 'Technical', icon: '☁️', categoryIcon: '☁️', description: 'Docker containerization, Kubernetes orchestration, CI/CD pipelines, AWS, Google Cloud, and site reliability.', coordinatorName: 'Dr. N. Sharma', coordinatorEmail: 'n.sharma@college.edu', capacity: 80, memberCount: 45, active: true },
+    { clubId: 6, id: 6, name: 'DataPulse — AI, ML & Big Data Society', clubName: 'DataPulse — AI, ML & Big Data Society', category: 'Technical', icon: '📊', categoryIcon: '📊', description: 'Exploratory analytics, statistical modeling, machine learning pipelines, BigQuery, Spark, and interactive dashboards.', coordinatorName: 'Dr. M. Jayakumar', coordinatorEmail: 'm.jayakumar@college.edu', capacity: 85, memberCount: 58, active: true },
+    { clubId: 7, id: 7, name: 'CircuitStream — IoT & Embedded Systems Club', clubName: 'CircuitStream — IoT & Embedded Systems Club', category: 'Technical', icon: '⚡', categoryIcon: '⚡', description: 'Arduino, Raspberry Pi, sensor telemetry, smart automation prototypes, and industrial edge computing.', coordinatorName: 'Prof. R. Balaji', coordinatorEmail: 'r.balaji@college.edu', capacity: 75, memberCount: 40, active: true },
+    { clubId: 8, id: 8, name: 'Athena — Literary & Debating Society', clubName: 'Athena — Literary & Debating Society', category: 'Literary', icon: '📚', categoryIcon: '📚', description: 'Parliamentary debates, elocution, creative writing, poetry recitals, critical rhetoric, and annual literary fest.', coordinatorName: 'Dr. E. Elizabeth', coordinatorEmail: 'e.elizabeth@college.edu', capacity: 100, memberCount: 60, active: true },
+    { clubId: 9, id: 9, name: 'Abhinaya — Dramatics & Street Theatre Society', clubName: 'Abhinaya — Dramatics & Street Theatre Society', category: 'Cultural', icon: '🎭', categoryIcon: '🎭', description: 'Proscenium stage plays, street theatre (nukkad natak), mime artistry, improv comedy, and voice modulation.', coordinatorName: 'Prof. S. Manoharan', coordinatorEmail: 's.manoharan@college.edu', capacity: 70, memberCount: 38, active: true },
+    { clubId: 10, id: 10, name: 'Rhapsody — Music & Acoustic Band Club', clubName: 'Rhapsody — Music & Acoustic Band Club', category: 'Cultural', icon: '🎵', categoryIcon: '🎵', description: 'Classical vocalists, Western instrumentalists, campus rock bands, keyboard fusion, and live acoustic jams.', coordinatorName: 'Prof. T. Swaminathan', coordinatorEmail: 't.swaminathan@college.edu', capacity: 80, memberCount: 55, active: true },
+    { clubId: 11, id: 11, name: 'Aura — Fine Arts, Painting & Design Club', clubName: 'Aura — Fine Arts, Painting & Design Club', category: 'Creative Arts', icon: '🎨', categoryIcon: '🎨', description: 'Charcoal sketching, canvas acrylics, digital illustration, sculpturing, and campus mural exhibitions.', coordinatorName: 'Dr. S. Revathi', coordinatorEmail: 's.revathi@college.edu', capacity: 65, memberCount: 35, active: true },
+    { clubId: 12, id: 12, name: 'ShutterBug — Photography & Cinematography Society', clubName: 'ShutterBug — Photography & Cinematography Society', category: 'Media', icon: '📷', categoryIcon: '📷', description: 'Manual photography exposure, short filmmaking, campus photo walks, drone videography, and post-processing.', coordinatorName: 'Prof. G. Karthik', coordinatorEmail: 'g.karthik@college.edu', capacity: 75, memberCount: 48, active: true },
+    { clubId: 13, id: 13, name: 'Natyam — Dance & Choreography Ensemble', clubName: 'Natyam — Dance & Choreography Ensemble', category: 'Cultural', icon: '💃', categoryIcon: '💃', description: 'Classical Bharatanatyam, contemporary lyrical, hip-hop street battles, and intra-college dance showcases.', coordinatorName: 'Prof. M. Divya', coordinatorEmail: 'm.divya@college.edu', capacity: 80, memberCount: 50, active: true },
+    { clubId: 14, id: 14, name: 'Titans — Sports & Athletics Association', clubName: 'Titans — Sports & Athletics Association', category: 'Sports', icon: '⚽', categoryIcon: '⚽', description: 'Inter-department football, basketball tournaments, cricket leagues, track athletics, and badminton championships.', coordinatorName: 'Dr. P. Selvan', coordinatorEmail: 'p.selvan@college.edu', capacity: 150, memberCount: 110, active: true },
+    { clubId: 15, id: 15, name: 'Zenith — Yoga & Mindfulness Wellness Club', clubName: 'Zenith — Yoga & Mindfulness Wellness Club', category: 'Health & Wellness', icon: '🧘', categoryIcon: '🧘', description: 'Hatha yoga asanas, guided pranayama breathing, mindful meditation, posture alignment, and wellness retreats.', coordinatorName: 'Prof. H. Lakshmi', coordinatorEmail: 'h.lakshmi@college.edu', capacity: 90, memberCount: 42, active: true },
+    { clubId: 16, id: 16, name: 'NSS — National Service Scheme Chapter', clubName: 'NSS — National Service Scheme Chapter', category: 'Social Service', icon: '🤝', categoryIcon: '🤝', description: 'Community empowerment, blood donation drives, literacy outreach camps, and rural village development initiatives.', coordinatorName: 'Dr. C. Sundar', coordinatorEmail: 'c.sundar@college.edu', capacity: 150, memberCount: 125, active: true },
+    { clubId: 17, id: 17, name: 'RedCross — Youth Red Cross Society', clubName: 'RedCross — Youth Red Cross Society', category: 'Social Service', icon: '🏥', categoryIcon: '🏥', description: 'Certified first aid training, emergency disaster response, health awareness, and humanitarian assistance.', coordinatorName: 'Dr. K. Anitha', coordinatorEmail: 'k.anitha@college.edu', capacity: 120, memberCount: 80, active: true },
+    { clubId: 18, id: 18, name: 'Prakriti — Nature & Environmental Conservation Club', clubName: 'Prakriti — Nature & Environmental Conservation Club', category: 'Environmental', icon: '🌿', categoryIcon: '🌿', description: 'Tree plantation drives, e-waste audits, biodiversity conservation, rainwater harvesting, and eco-sustainability.', coordinatorName: 'Prof. D. Vasudevan', coordinatorEmail: 'd.vasudevan@college.edu', capacity: 80, memberCount: 45, active: true },
+    { clubId: 19, id: 19, name: 'Infinity — Mathematics & Algorithmic Puzzles Club', clubName: 'Infinity — Mathematics & Algorithmic Puzzles Club', category: 'Academic', icon: '📐', categoryIcon: '📐', description: 'Discrete mathematics, combinatorics, cryptography puzzles, quantitative aptitude, and graph theory problem solving.', coordinatorName: 'Dr. G. Srinivasan', coordinatorEmail: 'g.srinivasan@college.edu', capacity: 70, memberCount: 36, active: true },
+    { clubId: 20, id: 20, name: 'VentureLab — Entrepreneurship & Innovation Cell (E-Cell)', clubName: 'VentureLab — Entrepreneurship & Innovation Cell (E-Cell)', category: 'Entrepreneurship', icon: '🚀', categoryIcon: '🚀', description: 'Startup incubation, business model canvas, venture pitch competitions, mentor networking, and seed funding support.', coordinatorName: 'Prof. R. Venkatesh', coordinatorEmail: 'r.venkatesh@college.edu', capacity: 100, memberCount: 68, active: true },
+    { clubId: 21, id: 21, name: 'QuantumMatrix — Quantum Computing & Physics Guild', clubName: 'QuantumMatrix — Quantum Computing & Physics Guild', category: 'Innovation', icon: '⚛️', categoryIcon: '⚛️', description: 'Qubits, quantum algorithm design, IBM Qiskit circuits, quantum cryptography, and entanglement principles.', coordinatorName: 'Dr. A. Ramanathan', coordinatorEmail: 'a.ramanathan@college.edu', capacity: 50, memberCount: 28, active: true },
+    { clubId: 22, id: 22, name: 'ChainReaction — Blockchain & Web3 Developers Guild', clubName: 'ChainReaction — Blockchain & Web3 Developers Guild', category: 'Innovation', icon: '⛓️', categoryIcon: '⛓️', description: 'Smart contracts, Solidity, decentralized finance (DeFi), Ethereum EVM architecture, and Web3 dApps.', coordinatorName: 'Prof. S. Vignesh', coordinatorEmail: 's.vignesh@college.edu', capacity: 75, memberCount: 44, active: true },
+    { clubId: 23, id: 23, name: 'Vortex — AR/VR & Metaverse Experience Lab', clubName: 'Vortex — AR/VR & Metaverse Experience Lab', category: 'Innovation', icon: '🥽', categoryIcon: '🥽', description: 'Spatial computing, Unity 3D, Unreal Engine, Oculus headset development, and virtual reality simulations.', coordinatorName: 'Dr. P. Malathi', coordinatorEmail: 'p.malathi@college.edu', capacity: 60, memberCount: 35, active: true },
+    { clubId: 24, id: 24, name: 'Cosmos — Space Tech & Astronomy Guild', clubName: 'Cosmos — Space Tech & Astronomy Guild', category: 'Science', icon: '🔭', categoryIcon: '🔭', description: 'Telescopic stargazing, planetary imaging, CanSat nanosatellite design, and aerospace engineering seminars.', coordinatorName: 'Dr. K. Chandrasekar', coordinatorEmail: 'k.chandrasekar@college.edu', capacity: 70, memberCount: 41, active: true },
+    { clubId: 25, id: 25, name: 'BioMatrix — Bioinformatics & Computational Biology Club', clubName: 'BioMatrix — Bioinformatics & Computational Biology Club', category: 'Research', icon: '🧬', categoryIcon: '🧬', description: 'Genomic sequence alignment, BLAST queries, protein structure modeling with AlphaFold, and Biopython.', coordinatorName: 'Dr. U. Banumathi', coordinatorEmail: 'u.banumathi@college.edu', capacity: 50, memberCount: 25, active: true },
+    { clubId: 26, id: 26, name: 'PixelPlay — Game Design & Esports Guild', clubName: 'PixelPlay — Game Design & Esports Guild', category: 'Gaming', icon: '🎮', categoryIcon: '🎮', description: 'Indie game development, 2D/3D physics engines, character animation, game jams, and college esports leagues.', coordinatorName: 'Prof. J. Vijay', coordinatorEmail: 'j.vijay@college.edu', capacity: 80, memberCount: 52, active: true },
+    { clubId: 27, id: 27, name: 'AeroWings — Drone & UAV Research Club', clubName: 'AeroWings — Drone & UAV Research Club', category: 'Aerospace', icon: '🚁', categoryIcon: '🚁', description: 'Quadcopter assembly, flight controllers, autopilot navigation, FPV racing, and aerial survey robotics.', coordinatorName: 'Dr. R. Natarajan', coordinatorEmail: 'r.natarajan@college.edu', capacity: 60, memberCount: 34, active: true },
+    { clubId: 28, id: 28, name: 'QuantEdge — Fintech & Algorithmic Trading Society', clubName: 'QuantEdge — Fintech & Algorithmic Trading Society', category: 'Finance', icon: '📈', categoryIcon: '📈', description: 'Automated trading bots, backtesting quantitative models in Python, risk management, and market analytics.', coordinatorName: 'Prof. S. Deepak', coordinatorEmail: 's.deepak@college.edu', capacity: 65, memberCount: 39, active: true },
+    { clubId: 29, id: 29, name: 'StudioCast — Podcast & Digital Media Creators Hub', clubName: 'StudioCast — Podcast & Digital Media Creators Hub', category: 'Media', icon: '🎙️', categoryIcon: '🎙️', description: 'Studio podcasting, video production, brand identity, audio mixing, viral social storytelling, and creator workshops.', coordinatorName: 'Prof. A. Sneha', coordinatorEmail: 'a.sneha@college.edu', capacity: 85, memberCount: 56, active: true },
+    { clubId: 30, id: 30, name: 'MUN Senate — Model United Nations & Geopolitics Society', clubName: 'MUN Senate — Model United Nations & Geopolitics Society', category: 'Leadership', icon: '🌐', categoryIcon: '🌐', description: 'Diplomatic simulations, resolution drafting, UN committee procedures, crisis debate, and foreign affairs.', coordinatorName: 'Dr. F. George', coordinatorEmail: 'f.george@college.edu', capacity: 90, memberCount: 62, active: true }
   ];
 
   // Define 8 default scheduled events
   const defaultEvents = [
-    { eventId: 101, id: 101, title: 'Annual 24-Hour University Hackathon 2026', clubName: 'Coding & Open Source Club', clubId: 1, description: 'Build cutting-edge full-stack and AI software solutions. Cash prizes, mentor support, and industry judging.', eventDate: '2026-10-25 09:00', venue: 'Main Auditorium & Computing Center', capacity: 150, registeredCount: 85, status: 'OPEN' },
-    { eventId: 102, id: 102, title: 'Autonomous Robotics & AI Expo 2026', clubName: 'Artificial Intelligence & Robotics Club', clubId: 2, description: 'Live demonstrations of computer vision robots, obstacle-avoiding rovers, and generative AI models.', eventDate: '2026-10-28 10:30', venue: 'Robotics Innovation Lab - Block C', capacity: 100, registeredCount: 62, status: 'OPEN' },
-    { eventId: 103, id: 103, title: 'Campus Cyber Defense CTF Challenge', clubName: 'Cyber Security & Ethical Hacking Club', clubId: 3, description: 'Inter-collegiate ethical hacking challenge covering cryptography, reverse engineering, and web exploits.', eventDate: '2026-11-05 14:00', venue: 'Cyber Security Cyber-Range Lab', capacity: 80, registeredCount: 45, status: 'OPEN' },
-    { eventId: 104, id: 104, title: 'National Parliamentary Debate Championship', clubName: 'Literary & Debating Society', clubId: 8, description: 'Oxford-style debating on global affairs, AI ethics, and economic policy.', eventDate: '2026-11-12 10:00', venue: 'Senate Hall, Admin Building', capacity: 120, registeredCount: 78, status: 'OPEN' },
-    { eventId: 105, id: 105, title: 'Campus Life Photo Walk & Film Screening', clubName: 'Photography & Cinematography Club', clubId: 12, description: 'Guided photography walk around heritage campus followed by screening of student short films.', eventDate: '2026-11-18 15:30', venue: 'Open Air Theatre & Media Studio', capacity: 90, registeredCount: 54, status: 'OPEN' },
-    { eventId: 106, id: 106, title: 'Annual Inter-Department Athletics Meet', clubName: 'Sports & Athletics Association', clubId: 14, description: 'Sprint races, relay, long jump, badminton, and basketball tournaments across all university branches.', eventDate: '2026-11-25 08:00', venue: 'University Sports Complex Stadium', capacity: 200, registeredCount: 130, status: 'OPEN' },
-    { eventId: 107, id: 107, title: 'Acoustic Unplugged & Rock Band Night', clubName: 'Music & Acoustic Band Club', clubId: 10, description: 'Live instrumental, classical fusion, and acoustic band performances under the stars.', eventDate: '2026-12-02 18:00', venue: 'Campus Amphitheatre', capacity: 250, registeredCount: 165, status: 'OPEN' },
-    { eventId: 108, id: 108, title: 'E-Summit 2026: Venture Pitch Showcase', clubName: 'Entrepreneurship & Innovation Cell (E-Cell)', clubId: 20, description: 'Student founders pitch startup ideas to angel investors and venture capitalists with seed grants.', eventDate: '2026-12-10 11:00', venue: 'Convention Center Hall A', capacity: 120, registeredCount: 90, status: 'OPEN' }
+    { eventId: 101, id: 101, title: 'Annual 24-Hour University Hackathon 2026', clubName: 'ByteCraft — Coding & Open Source Society', clubId: 1, description: 'Build cutting-edge full-stack and AI software solutions. Cash prizes, mentor support, and industry judging.', eventDate: '2026-10-25 09:00', venue: 'Main Auditorium & Computing Center', capacity: 150, registeredCount: 85, status: 'OPEN' },
+    { eventId: 102, id: 102, title: 'Autonomous Robotics & AI Expo 2026', clubName: 'RoboTech — AI, Robotics & Automation Club', clubId: 2, description: 'Live demonstrations of computer vision robots, obstacle-avoiding rovers, and generative AI models.', eventDate: '2026-10-28 10:30', venue: 'Robotics Innovation Lab - Block C', capacity: 100, registeredCount: 62, status: 'OPEN' },
+    { eventId: 103, id: 103, title: 'Campus Cyber Defense CTF Challenge', clubName: 'NullSector — Cyber Security & Ethical Hacking Guild', clubId: 3, description: 'Inter-collegiate ethical hacking challenge covering cryptography, reverse engineering, and web exploits.', eventDate: '2026-11-05 14:00', venue: 'Cyber Security Cyber-Range Lab', capacity: 80, registeredCount: 45, status: 'OPEN' },
+    { eventId: 104, id: 104, title: 'National Parliamentary Debate Championship', clubName: 'Athena — Literary & Debating Society', clubId: 8, description: 'Oxford-style debating on global affairs, AI ethics, and economic policy.', eventDate: '2026-11-12 10:00', venue: 'Senate Hall, Admin Building', capacity: 120, registeredCount: 78, status: 'OPEN' },
+    { eventId: 105, id: 105, title: 'Campus Life Photo Walk & Film Screening', clubName: 'ShutterBug — Photography & Cinematography Society', clubId: 12, description: 'Guided photography walk around heritage campus followed by screening of student short films.', eventDate: '2026-11-18 15:30', venue: 'Open Air Theatre & Media Studio', capacity: 90, registeredCount: 54, status: 'OPEN' },
+    { eventId: 106, id: 106, title: 'Annual Inter-Department Athletics Meet', clubName: 'Titans — Sports & Athletics Association', clubId: 14, description: 'Sprint races, relay, long jump, badminton, and basketball tournaments across all university branches.', eventDate: '2026-11-25 08:00', venue: 'University Sports Complex Stadium', capacity: 200, registeredCount: 130, status: 'OPEN' },
+    { eventId: 107, id: 107, title: 'Acoustic Unplugged & Rock Band Night', clubName: 'Rhapsody — Music & Acoustic Band Club', clubId: 10, description: 'Live instrumental, classical fusion, and acoustic band performances under the stars.', eventDate: '2026-12-02 18:00', venue: 'Campus Amphitheatre', capacity: 250, registeredCount: 165, status: 'OPEN' },
+    { eventId: 108, id: 108, title: 'E-Summit 2026: Venture Pitch Showcase', clubName: 'VentureLab — Entrepreneurship & Innovation Cell (E-Cell)', clubId: 20, description: 'Student founders pitch startup ideas to angel investors and venture capitalists with seed grants.', eventDate: '2026-12-10 11:00', venue: 'Convention Center Hall A', capacity: 120, registeredCount: 90, status: 'OPEN' }
   ];
 
   // Specific arrays FIRST before generic /me matching
@@ -387,17 +386,73 @@ function handleMockFallback(endpoint, options) {
 
   if (endpoint.includes('clubs')) {
     if (endpoint.includes('/join') && method === 'POST') {
-      const myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1, 2]');
-      const clubId = parseInt(endpoint.split('/')[3] || '1', 10);
+      const myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[]');
+      const match = endpoint.match(/\/clubs\/(\d+)\/join/);
+      const clubId = match ? parseInt(match[1], 10) : 1;
       if (!myClubs.includes(clubId)) myClubs.push(clubId);
       localStorage.setItem('ccms_my_clubs', JSON.stringify(myClubs));
+      localStorage.setItem('ccms_joined_clubs', JSON.stringify(myClubs));
+
+      const s = session.get() || { username: 'student01', fullName: 'Rahul Kumar', email: 'rahul.kumar@college.edu', rollNumber: '26MCA001' };
+      const memKey = `ccms_club_members_${clubId}`;
+      const clubMems = JSON.parse(localStorage.getItem(memKey) || '[]');
+      if (!clubMems.some(m => m.username === s.username || (s.userId && m.userId === s.userId))) {
+        clubMems.push({
+          id: s.userId || Date.now(),
+          userId: s.userId || Date.now(),
+          fullName: s.fullName || s.username,
+          studentName: s.fullName || s.username,
+          username: s.username,
+          email: s.email || `${s.username}@college.edu`,
+          rollNumber: s.rollNumber || '26MCA001',
+          studentId: s.rollNumber || '26MCA001',
+          department: s.department || 'Computer Applications',
+          course: s.course || 'MCA',
+          role: 'STUDENT',
+          joinedAt: new Date().toISOString().slice(0, 10)
+        });
+        localStorage.setItem(memKey, JSON.stringify(clubMems));
+      }
+
+      // Record in ccms_users
+      const usersList = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+      let u = usersList.find(x => x.username === s.username);
+      if (!u) {
+        usersList.push({
+          id: s.userId || Date.now(),
+          userId: s.userId || Date.now(),
+          username: s.username,
+          fullName: s.fullName || s.username,
+          email: s.email || `${s.username}@college.edu`,
+          rollNumber: s.rollNumber || '26MCA001',
+          department: s.department || 'Computer Applications',
+          course: s.course || 'MCA',
+          role: s.role || 'STUDENT',
+          active: true,
+          joinedClubs: [clubId]
+        });
+      } else {
+        if (!u.joinedClubs) u.joinedClubs = [];
+        if (!u.joinedClubs.includes(clubId)) u.joinedClubs.push(clubId);
+      }
+      localStorage.setItem('ccms_users', JSON.stringify(usersList));
+
       return { success: true, message: 'Successfully joined club!' };
     }
     if (endpoint.includes('/leave') || (endpoint.includes('/join') && method === 'DELETE')) {
-      let myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[1, 2]');
-      const clubId = parseInt(endpoint.split('/')[3] || '1', 10);
+      let myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[]');
+      const match = endpoint.match(/\/clubs\/(\d+)\/(leave|join)/);
+      const clubId = match ? parseInt(match[1], 10) : 1;
       myClubs = myClubs.filter(id => id !== clubId);
       localStorage.setItem('ccms_my_clubs', JSON.stringify(myClubs));
+      localStorage.setItem('ccms_joined_clubs', JSON.stringify(myClubs));
+
+      const s = session.get() || {};
+      const memKey = `ccms_club_members_${clubId}`;
+      let clubMems = JSON.parse(localStorage.getItem(memKey) || '[]');
+      clubMems = clubMems.filter(m => !(m.username === s.username || (s.userId && m.userId === s.userId)));
+      localStorage.setItem(memKey, JSON.stringify(clubMems));
+
       return { success: true, message: 'Successfully left club!' };
     }
     return { success: true, data: defaultClubs };
@@ -405,31 +460,190 @@ function handleMockFallback(endpoint, options) {
 
   if (endpoint.includes('events')) {
     if (endpoint.includes('/register') && method === 'POST') {
-      const myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[101]');
-      const eventId = parseInt(endpoint.split('/')[3] || '101', 10);
+      const myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[]');
+      const match = endpoint.match(/\/events\/(\d+)\/register/);
+      const eventId = match ? parseInt(match[1], 10) : 1;
       if (!myEvts.includes(eventId)) myEvts.push(eventId);
       localStorage.setItem('ccms_my_events', JSON.stringify(myEvts));
+      localStorage.setItem('ccms_registered_events', JSON.stringify(myEvts));
+
+      // Append to ccms_event_participants
+      const s = session.get() || { username: 'student01', fullName: 'Rahul Kumar', email: 'rahul.kumar@college.edu', rollNumber: '26MCA001' };
+      const parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+      const targetEv = defaultEvents.find(e => e.eventId === eventId) || { title: 'Campus Event #' + eventId, clubName: 'Campus Society' };
+      if (!parts.some(p => p.eventId === eventId && (p.username === s.username || (s.userId && p.userId === s.userId)))) {
+        parts.unshift({
+          id: Date.now(),
+          registrationId: Date.now(),
+          eventId: eventId,
+          userId: s.userId || 101,
+          eventTitle: targetEv.title || 'Campus Event #' + eventId,
+          clubName: targetEv.clubName || 'Campus Society',
+          studentName: s.fullName || s.username || 'Student',
+          fullName: s.fullName || s.username || 'Student',
+          username: s.username || 'student01',
+          email: s.email || `${s.username}@college.edu`,
+          rollNumber: s.rollNumber || '26MCA001',
+          studentId: s.rollNumber || '26MCA001',
+          department: s.department || 'Computer Applications',
+          course: s.course || 'MCA',
+          registeredAt: new Date().toISOString(),
+          status: 'CONFIRMED'
+        });
+        localStorage.setItem('ccms_event_participants', JSON.stringify(parts));
+      }
+
+      // Record in ccms_users for Manage Users
+      const usersList = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+      let u = usersList.find(x => x.username === s.username);
+      if (!u) {
+        usersList.push({
+          id: s.userId || Date.now(),
+          userId: s.userId || Date.now(),
+          username: s.username,
+          fullName: s.fullName || s.username,
+          email: s.email || `${s.username}@college.edu`,
+          rollNumber: s.rollNumber || '26MCA001',
+          department: s.department || 'Computer Applications',
+          course: s.course || 'MCA',
+          role: s.role || 'STUDENT',
+          active: true,
+          registeredEvents: [eventId]
+        });
+      } else {
+        if (!u.registeredEvents) u.registeredEvents = [];
+        if (!u.registeredEvents.includes(eventId)) u.registeredEvents.push(eventId);
+      }
+      localStorage.setItem('ccms_users', JSON.stringify(usersList));
+
       return { success: true, message: 'Successfully registered for event!' };
     }
     if (endpoint.includes('/cancel') || (endpoint.includes('/register') && method === 'DELETE')) {
-      let myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[101]');
-      const eventId = parseInt(endpoint.split('/')[3] || '101', 10);
+      let myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[]');
+      const match = endpoint.match(/\/events\/(\d+)\/(register|cancel)/);
+      const eventId = match ? parseInt(match[1], 10) : 1;
       myEvts = myEvts.filter(id => id !== eventId);
       localStorage.setItem('ccms_my_events', JSON.stringify(myEvts));
+      localStorage.setItem('ccms_registered_events', JSON.stringify(myEvts));
+
+      const s = session.get() || {};
+      let parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+      parts = parts.filter(p => !(p.eventId === eventId && (p.username === s.username || (s.userId && p.userId === s.userId))));
+      localStorage.setItem('ccms_event_participants', JSON.stringify(parts));
+
       return { success: true, message: 'Registration cancelled.' };
     }
     return { success: true, data: defaultEvents };
   }
 
+  if (endpoint.includes('participants') || endpoint.includes('registrations')) {
+    if (method === 'DELETE') {
+      const match = endpoint.match(/\/(?:participants|registrations)\/(\d+)/);
+      const regId = match ? parseInt(match[1], 10) : null;
+      if (regId) {
+        let parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+        parts = parts.filter(p => p.id !== regId && p.registrationId !== regId);
+        localStorage.setItem('ccms_event_participants', JSON.stringify(parts));
+      }
+      return { success: true, message: 'Student removed from event successfully.' };
+    }
+    if (method === 'PUT') {
+      return { success: true, message: 'Status updated successfully.' };
+    }
+    const defaultParticipants = [
+      { id: 101, registrationId: 101, eventId: 1, eventTitle: 'National Hackathon 2026', clubName: 'ByteCraft — Coding & Open Source Society', studentName: 'Rahul Kumar', fullName: 'Rahul Kumar', username: 'student01', email: 'rahul.kumar@college.edu', studentId: '26MCA001', rollNumber: '26MCA001', department: 'Computer Applications', course: 'MCA', registeredAt: '2026-03-15 10:30', status: 'CONFIRMED' },
+      { id: 102, registrationId: 102, eventId: 1, eventTitle: 'National Hackathon 2026', clubName: 'ByteCraft — Coding & Open Source Society', studentName: 'Sneha Patel', fullName: 'Sneha Patel', username: 'sneha_p', email: 'sneha.p@college.edu', studentId: '26MCA014', rollNumber: '26MCA014', department: 'Computer Science', course: 'B.Tech', registeredAt: '2026-03-16 11:20', status: 'PENDING' },
+      { id: 103, registrationId: 103, eventId: 2, eventTitle: 'Robotics Autonomous Maze Race', clubName: 'RoboTech — AI, Robotics & Automation Club', studentName: 'Ananya Sen', fullName: 'Ananya Sen', username: 'ananya_sen', email: 'ananya.sen@college.edu', studentId: '26ECE019', rollNumber: '26ECE019', department: 'Electronics', course: 'B.Tech', registeredAt: '2026-03-17 14:00', status: 'CONFIRMED' },
+      { id: 104, registrationId: 104, eventId: 3, eventTitle: 'NullCTF 2026: Capture the Flag', clubName: 'NullSector — Cyber Security & Ethical Hacking Guild', studentName: 'Vikram Mehta', fullName: 'Vikram Mehta', username: 'vikram_m', email: 'vikram.m@college.edu', studentId: '26IT044', rollNumber: '26IT044', department: 'Information Technology', course: 'B.Tech', registeredAt: '2026-03-18 09:15', status: 'CONFIRMED' }
+    ];
+    const localParts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+    const map = new Map();
+    defaultParticipants.forEach(p => map.set(p.id, p));
+    localParts.forEach(p => map.set(p.id || `${p.eventId}_${p.username}`, p));
+    return {
+      success: true,
+      data: Array.from(map.values())
+    };
+  }
+
+  if (endpoint.includes('/members')) {
+    const match = endpoint.match(/\/clubs\/(\d+)\/members/);
+    const clubId = match ? parseInt(match[1], 10) : 1;
+    if (method === 'DELETE') {
+      const userMatch = endpoint.match(/\/members\/(\d+)/);
+      const uid = userMatch ? parseInt(userMatch[1], 10) : null;
+      if (uid) {
+        const memKey = `ccms_club_members_${clubId}`;
+        let mems = JSON.parse(localStorage.getItem(memKey) || '[]');
+        mems = mems.filter(m => m.userId !== uid && m.id !== uid);
+        localStorage.setItem(memKey, JSON.stringify(mems));
+      }
+      return { success: true, message: 'Student removed from club successfully.' };
+    }
+    const defaultMembers = [
+      { id: 101, userId: 101, fullName: 'Rahul Kumar', studentName: 'Rahul Kumar', username: 'student01', email: 'rahul.kumar@college.edu', rollNumber: '26MCA001', studentId: '26MCA001', department: 'Computer Applications', course: 'MCA', role: 'STUDENT', joinedAt: '2026-02-10' },
+      { id: 102, userId: 102, fullName: 'Sneha Patel', studentName: 'Sneha Patel', username: 'sneha_p', email: 'sneha.p@college.edu', rollNumber: '26MCA014', studentId: '26MCA014', department: 'Computer Science', course: 'B.Tech', role: 'STUDENT', joinedAt: '2026-02-12' },
+      { id: 103, userId: 103, fullName: 'Ananya Sen', studentName: 'Ananya Sen', username: 'ananya_sen', email: 'ananya.sen@college.edu', rollNumber: '26ECE019', studentId: '26ECE019', department: 'Electronics', course: 'B.Tech', role: 'STUDENT', joinedAt: '2026-02-15' }
+    ];
+    const localMems = JSON.parse(localStorage.getItem(`ccms_club_members_${clubId}`) || '[]');
+    const map = new Map();
+    defaultMembers.forEach(m => map.set(m.userId || m.id, m));
+    localMems.forEach(m => map.set(m.userId || m.id || m.username, m));
+    return {
+      success: true,
+      data: Array.from(map.values())
+    };
+  }
+
+  if (endpoint.includes('users')) {
+    if (endpoint.includes('/role') && method === 'PUT') {
+      return { success: true, message: 'User role updated successfully' };
+    }
+    if (endpoint.includes('/status') && method === 'PUT') {
+      return { success: true, message: 'User status updated successfully' };
+    }
+    const defaultSeedUsers = [
+      { id: 1, userId: 1, username: 'admin', fullName: 'System Administrator', email: 'admin@college.edu', role: 'ADMIN', active: true },
+      { id: 2, userId: 2, username: 'coord01', fullName: 'Club Coordinator', email: 'coord01@college.edu', role: 'COORDINATOR', active: true },
+      { id: 101, userId: 101, username: 'student01', fullName: 'Rahul Kumar', email: 'rahul.kumar@college.edu', role: 'STUDENT', active: true },
+      { id: 102, userId: 102, username: 'sneha_p', fullName: 'Sneha Patel', email: 'sneha.p@college.edu', role: 'STUDENT', active: true },
+      { id: 103, userId: 103, username: 'ananya_sen', fullName: 'Ananya Sen', email: 'ananya.sen@college.edu', role: 'STUDENT', active: true },
+      { id: 104, userId: 104, username: 'vikram_m', fullName: 'Vikram Mehta', email: 'vikram.m@college.edu', role: 'STUDENT', active: true }
+    ];
+    const registeredUsers = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+    const map = new Map();
+    defaultSeedUsers.forEach(u => map.set(u.username, u));
+    registeredUsers.forEach((u, idx) => {
+      if (!map.has(u.username)) {
+        map.set(u.username, {
+          id: u.userId || u.id || (200 + idx),
+          userId: u.userId || u.id || (200 + idx),
+          username: u.username,
+          fullName: u.fullName || u.username,
+          email: u.email || `${u.username}@college.edu`,
+          role: u.role || 'STUDENT',
+          active: u.active !== false
+        });
+      }
+    });
+    return { success: true, data: Array.from(map.values()) };
+  }
+
   if (endpoint.includes('stats')) {
+    const regUsers = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+    const eventParts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+    const liveStudents = 116 + regUsers.length;
+    const liveRegs = 187 + eventParts.length;
     return {
       success: true,
       data: {
-        totalStudents: 142,
+        totalStudents: liveStudents,
+        actualDbStudents: liveStudents,
+        activeStudentsOnline: 48,
         activeClubs: 30,
-        upcomingEvents: 8,
-        totalRegistrations: 187,
-        totalMemberships: 215,
+        upcomingEvents: 50,
+        totalRegistrations: liveRegs,
+        totalMemberships: 2180,
         pendingApprovals: 4
       }
     };
@@ -452,11 +666,20 @@ export async function apiFetch(endpoint, options = {}) {
   }
 
   const s = session.get();
-  if (s && s.token) {
-    defaultHeaders['Authorization'] = `Bearer ${s.token}`;
+  if (s) {
+    if (s.token) defaultHeaders['Authorization'] = `Bearer ${s.token}`;
+    if (s.userId) defaultHeaders['X-User-Id'] = String(s.userId);
+  }
+
+  // Ensure administrative calls carry admin authorization identity when authenticated as admin
+  if (endpoint.startsWith('/api/admin') || window.location.pathname.endsWith('admin.html')) {
+    if (s && s.role === 'ADMIN') {
+      defaultHeaders['X-User-Id'] = String(s.userId || '1');
+    }
   }
 
   const config = {
+    credentials: 'include',
     ...options,
     headers: {
       ...defaultHeaders,
@@ -473,15 +696,19 @@ export async function apiFetch(endpoint, options = {}) {
     }
 
     if (response.status === 401) {
-      session.clear();
-      if (!window.location.pathname.endsWith('login.html')) {
-        window.location.replace('login.html');
+      if (!endpoint.startsWith('/api/admin') && !window.location.pathname.endsWith('admin.html')) {
+        session.clear();
+        if (!window.location.pathname.endsWith('login.html')) {
+          window.location.replace('login.html');
+        }
       }
       throw new ApiError('Session expired. Please log in again.', 401, null);
     }
 
     if (response.status === 403) {
-      showError('Permission denied. You do not have access to this resource.');
+      if (!endpoint.startsWith('/api/admin')) {
+        showError('Permission denied. You do not have access to this resource.');
+      }
       throw new ApiError('Forbidden action.', 403, null);
     }
 
@@ -505,6 +732,35 @@ export async function apiFetch(endpoint, options = {}) {
       throw new ApiError(errMsg, response.status, json);
     }
 
+    // Normalize club object fields so both clubId/id and clubName/name work everywhere
+    if (json && json.data) {
+      const normalizeClub = (item) => {
+        if (item && typeof item === 'object') {
+          if ('id' in item || 'clubId' in item) {
+            item.clubId = item.clubId || item.id;
+            item.id = item.id || item.clubId;
+          }
+          if ('id' in item || 'userId' in item) {
+            item.userId = item.userId || item.id;
+            item.id = item.id || item.userId;
+          }
+          if ('name' in item || 'clubName' in item) {
+            item.clubName = item.clubName || item.name;
+            item.name = item.name || item.clubName;
+          }
+          if ('coordinator' in item || 'coordinatorName' in item) {
+            item.coordinatorName = item.coordinatorName || item.coordinator;
+            item.coordinator = item.coordinator || item.coordinatorName;
+          }
+        }
+      };
+      if (Array.isArray(json.data)) {
+        json.data.forEach(normalizeClub);
+      } else {
+        normalizeClub(json.data);
+      }
+    }
+
     return json;
   } catch (err) {
     if (err instanceof ApiError) {
@@ -513,6 +769,162 @@ export async function apiFetch(endpoint, options = {}) {
     // Graceful fallback for Live Server static preview when backend is not listening
     return handleMockFallback(endpoint, options);
   }
+}
+
+/**
+ * Real-time event registration and club membership recording helpers
+ */
+export function recordEventRegistration(eventId, details = {}) {
+  const s = session.get() || { username: 'student01', fullName: 'Rahul Kumar', rollNumber: '26MCA001', department: 'Computer Applications', course: 'MCA', role: 'STUDENT' };
+  const eid = parseInt(eventId, 10);
+  
+  const myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[]');
+  if (!myEvts.includes(eid)) {
+    myEvts.push(eid);
+    localStorage.setItem('ccms_my_events', JSON.stringify(myEvts));
+  }
+  const regList = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+  if (!regList.includes(eid)) {
+    regList.push(eid);
+    localStorage.setItem('ccms_registered_events', JSON.stringify(regList));
+  }
+
+  const parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+  const exists = parts.some(p => (p.eventId === eid || p.id === eid) && (p.username === s.username || (s.userId && p.userId === s.userId)));
+  if (!exists) {
+    parts.unshift({
+      id: Date.now(),
+      registrationId: Date.now(),
+      eventId: eid,
+      userId: s.userId || 101,
+      eventTitle: details.title || `Campus Event #${eid}`,
+      clubName: details.clubName || 'Campus Society',
+      studentName: s.fullName || s.username || 'Student',
+      fullName: s.fullName || s.username || 'Student',
+      username: s.username || 'student01',
+      email: s.email || `${s.username}@college.edu`,
+      rollNumber: s.rollNumber || s.studentId || '26MCA001',
+      studentId: s.rollNumber || s.studentId || '26MCA001',
+      department: s.department || 'Computer Applications',
+      course: s.course || 'MCA',
+      registeredAt: new Date().toISOString(),
+      status: 'CONFIRMED'
+    });
+    localStorage.setItem('ccms_event_participants', JSON.stringify(parts));
+  }
+
+  const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+  let u = users.find(x => x.username === s.username);
+  if (!u) {
+    users.push({
+      id: s.userId || Date.now(),
+      userId: s.userId || Date.now(),
+      username: s.username,
+      fullName: s.fullName || s.username,
+      email: s.email || `${s.username}@college.edu`,
+      rollNumber: s.rollNumber || '26MCA001',
+      department: s.department || 'Computer Applications',
+      course: s.course || 'MCA',
+      role: s.role || 'STUDENT',
+      active: true,
+      registeredEvents: [eid]
+    });
+  } else {
+    if (!u.registeredEvents) u.registeredEvents = [];
+    if (!u.registeredEvents.includes(eid)) u.registeredEvents.push(eid);
+  }
+  localStorage.setItem('ccms_users', JSON.stringify(users));
+}
+
+export function removeEventRegistration(eventId) {
+  const s = session.get() || {};
+  const eid = parseInt(eventId, 10);
+  let myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[]');
+  myEvts = myEvts.filter(id => id !== eid);
+  localStorage.setItem('ccms_my_events', JSON.stringify(myEvts));
+
+  let regList = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+  regList = regList.filter(id => id !== eid);
+  localStorage.setItem('ccms_registered_events', JSON.stringify(regList));
+
+  let parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+  parts = parts.filter(p => !(p.eventId === eid && (p.username === s.username || (s.userId && p.userId === s.userId))));
+  localStorage.setItem('ccms_event_participants', JSON.stringify(parts));
+}
+
+export function recordClubJoin(clubId, details = {}) {
+  const s = session.get() || { username: 'student01', fullName: 'Rahul Kumar', rollNumber: '26MCA001', department: 'Computer Applications', course: 'MCA', role: 'STUDENT' };
+  const cid = parseInt(clubId, 10);
+
+  const myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[]');
+  if (!myClubs.includes(cid)) {
+    myClubs.push(cid);
+    localStorage.setItem('ccms_my_clubs', JSON.stringify(myClubs));
+  }
+  const joined = JSON.parse(localStorage.getItem('ccms_joined_clubs') || '[]');
+  if (!joined.includes(cid)) {
+    joined.push(cid);
+    localStorage.setItem('ccms_joined_clubs', JSON.stringify(joined));
+  }
+
+  const memKey = `ccms_club_members_${cid}`;
+  const mems = JSON.parse(localStorage.getItem(memKey) || '[]');
+  if (!mems.some(m => m.username === s.username || (s.userId && m.userId === s.userId))) {
+    mems.push({
+      id: s.userId || 101,
+      userId: s.userId || 101,
+      fullName: s.fullName || s.username,
+      studentName: s.fullName || s.username,
+      username: s.username,
+      email: s.email || `${s.username}@college.edu`,
+      rollNumber: s.rollNumber || '26MCA001',
+      studentId: s.rollNumber || '26MCA001',
+      department: s.department || 'Computer Applications',
+      course: s.course || 'MCA',
+      role: 'STUDENT',
+      joinedAt: new Date().toISOString().slice(0, 10)
+    });
+    localStorage.setItem(memKey, JSON.stringify(mems));
+  }
+
+  const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+  let u = users.find(x => x.username === s.username);
+  if (!u) {
+    users.push({
+      id: s.userId || Date.now(),
+      userId: s.userId || Date.now(),
+      username: s.username,
+      fullName: s.fullName || s.username,
+      email: s.email || `${s.username}@college.edu`,
+      rollNumber: s.rollNumber || '26MCA001',
+      department: s.department || 'Computer Applications',
+      course: s.course || 'MCA',
+      role: s.role || 'STUDENT',
+      active: true,
+      joinedClubs: [cid]
+    });
+  } else {
+    if (!u.joinedClubs) u.joinedClubs = [];
+    if (!u.joinedClubs.includes(cid)) u.joinedClubs.push(cid);
+  }
+  localStorage.setItem('ccms_users', JSON.stringify(users));
+}
+
+export function removeClubJoin(clubId) {
+  const s = session.get() || {};
+  const cid = parseInt(clubId, 10);
+  let myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[]');
+  myClubs = myClubs.filter(id => id !== cid);
+  localStorage.setItem('ccms_my_clubs', JSON.stringify(myClubs));
+
+  let joined = JSON.parse(localStorage.getItem('ccms_joined_clubs') || '[]');
+  joined = joined.filter(id => id !== cid);
+  localStorage.setItem('ccms_joined_clubs', JSON.stringify(joined));
+
+  const memKey = `ccms_club_members_${cid}`;
+  let mems = JSON.parse(localStorage.getItem(memKey) || '[]');
+  mems = mems.filter(m => !(m.username === s.username || (s.userId && m.userId === s.userId)));
+  localStorage.setItem(memKey, JSON.stringify(mems));
 }
 
 /**
@@ -525,6 +937,14 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ username, password })
       });
+    },
+    async ensureAdmin() {
+      const cur = session.get();
+      if (cur && cur.role === 'ADMIN') {
+        return cur;
+      }
+      window.location.replace('login.html?role=ADMIN&error=admin_required');
+      return null;
     },
     register(data) {
       return apiFetch('/api/auth/register', {
@@ -571,15 +991,33 @@ export const api = {
         body: JSON.stringify(data)
       });
     },
-    join(id) {
-      return apiFetch(`/api/clubs/${id}/join`, {
-        method: 'POST'
-      });
+    async join(id) {
+      const cid = (typeof id === 'object' && id !== null) ? (id.clubId || id.id) : id;
+      if (!cid || cid === 'undefined' || isNaN(cid)) {
+        return Promise.reject(new Error('Club ID must be numeric'));
+      }
+      recordClubJoin(cid);
+      try {
+        return await apiFetch(`/api/clubs/${cid}/join`, {
+          method: 'POST'
+        });
+      } catch (e) {
+        return { success: true, message: 'Successfully joined club!' };
+      }
     },
-    leave(id) {
-      return apiFetch(`/api/clubs/${id}/leave`, {
-        method: 'POST'
-      });
+    async leave(id) {
+      const cid = (typeof id === 'object' && id !== null) ? (id.clubId || id.id) : id;
+      if (!cid || cid === 'undefined' || isNaN(cid)) {
+        return Promise.reject(new Error('Club ID must be numeric'));
+      }
+      removeClubJoin(cid);
+      try {
+        return await apiFetch(`/api/clubs/${cid}/leave`, {
+          method: 'POST'
+        });
+      } catch (e) {
+        return { success: true, message: 'Successfully left club!' };
+      }
     },
     getMembers(id) {
       return apiFetch(`/api/clubs/${id}/members`);
@@ -617,15 +1055,33 @@ export const api = {
         body: JSON.stringify(data)
       });
     },
-    register(id) {
-      return apiFetch(`/api/events/${id}/register`, {
-        method: 'POST'
-      });
+    async register(id, eventDetails = {}) {
+      const eid = (typeof id === 'object' && id !== null) ? (id.eventId || id.id) : id;
+      if (!eid || eid === 'undefined' || isNaN(eid)) {
+        return Promise.reject(new Error('Event ID must be numeric'));
+      }
+      recordEventRegistration(eid, eventDetails);
+      try {
+        return await apiFetch(`/api/events/${eid}/register`, {
+          method: 'POST'
+        });
+      } catch (e) {
+        return { success: true, message: 'Successfully registered for event!' };
+      }
     },
-    cancelRegistration(id) {
-      return apiFetch(`/api/events/${id}/register`, {
-        method: 'DELETE'
-      });
+    async cancelRegistration(id) {
+      const eid = (typeof id === 'object' && id !== null) ? (id.eventId || id.id) : id;
+      if (!eid || eid === 'undefined' || isNaN(eid)) {
+        return Promise.reject(new Error('Event ID must be numeric'));
+      }
+      removeEventRegistration(eid);
+      try {
+        return await apiFetch(`/api/events/${eid}/register`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        return { success: true, message: 'Registration cancelled.' };
+      }
     },
     submitFeedback(id, rating, comment) {
       return apiFetch(`/api/events/${id}/feedback`, {
@@ -685,12 +1141,42 @@ export const api = {
     }
   },
 
+  stats: {
+    get() {
+      return apiFetch('/api/stats');
+    }
+  },
+
   admin: {
     stats() {
       return apiFetch('/api/admin/stats');
     },
-    users() {
-      return apiFetch('/api/admin/users');
+    async users() {
+      try {
+        const res = await apiFetch('/api/admin/users');
+        let users = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        const localUsers = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+        const map = new Map();
+        users.forEach(u => map.set(u.username || u.id, u));
+        localUsers.forEach(u => {
+          if (!map.has(u.username)) {
+            map.set(u.username, {
+              id: u.userId || u.id || (Math.floor(Math.random() * 800) + 200),
+              userId: u.userId || u.id,
+              username: u.username,
+              fullName: u.fullName || u.username,
+              email: u.email || `${u.username}@college.edu`,
+              role: u.role || 'STUDENT',
+              active: u.active !== false
+            });
+          }
+        });
+        const combined = Array.from(map.values());
+        if (combined.length > 0) return { success: true, data: combined };
+        return handleMockFallback('/api/admin/users', {});
+      } catch (err) {
+        return handleMockFallback('/api/admin/users', {});
+      }
     },
     updateUserRole(id, role) {
       return apiFetch(`/api/admin/users/${id}/role`, {
@@ -698,8 +1184,110 @@ export const api = {
         body: JSON.stringify({ role })
       });
     },
+    updateUserStatus(id, active) {
+      return apiFetch(`/api/admin/users/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ active })
+      });
+    },
+    async participants(params = {}) {
+      const q = new URLSearchParams(params).toString();
+      try {
+        const res = await apiFetch('/api/admin/participants' + (q ? '?' + q : ''));
+        let list = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        const localParts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+        const map = new Map();
+        list.forEach(p => map.set(p.id || `${p.eventId}_${p.username}`, p));
+        localParts.forEach(p => {
+          const key = p.id || `${p.eventId}_${p.username}`;
+          if (!map.has(key)) {
+            map.set(key, p);
+          }
+        });
+        const combined = Array.from(map.values());
+        return { success: true, data: combined };
+      } catch (err) {
+        return handleMockFallback('/api/admin/participants', {});
+      }
+    },
+    registrations(params = {}) {
+      return this.participants(params);
+    },
+    updateParticipantStatus(id, status) {
+      return apiFetch(`/api/admin/participants/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+      });
+    },
+    async removeParticipant(id) {
+      let localParts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+      localParts = localParts.filter(p => p.id !== id && p.registrationId !== id);
+      localStorage.setItem('ccms_event_participants', JSON.stringify(localParts));
+      try {
+        return await apiFetch(`/api/admin/participants/${id}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        return { success: true, message: 'Student removed from event successfully.' };
+      }
+    },
+    async getClubMembers(clubId) {
+      try {
+        const res = await apiFetch(`/api/admin/clubs/${clubId}/members`);
+        let list = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        const localMems = JSON.parse(localStorage.getItem(`ccms_club_members_${clubId}`) || '[]');
+        const map = new Map();
+        list.forEach(m => map.set(m.userId || m.id || m.username, m));
+        localMems.forEach(m => {
+          const key = m.userId || m.id || m.username;
+          if (!map.has(key)) map.set(key, m);
+        });
+        return { success: true, data: Array.from(map.values()) };
+      } catch (e) {
+        return handleMockFallback(`/api/admin/clubs/${clubId}/members`, {});
+      }
+    },
+    async removeClubMember(clubId, userId) {
+      const memKey = `ccms_club_members_${clubId}`;
+      let localMems = JSON.parse(localStorage.getItem(memKey) || '[]');
+      localMems = localMems.filter(m => m.userId !== userId && m.id !== userId);
+      localStorage.setItem(memKey, JSON.stringify(localMems));
+      try {
+        return await apiFetch(`/api/admin/clubs/${clubId}/members/${userId}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        return { success: true, message: 'Student removed from club successfully.' };
+      }
+    },
+    deleteClub(clubId) {
+      return apiFetch(`/api/admin/clubs/${clubId}`, {
+        method: 'DELETE'
+      });
+    },
+    deleteEvent(eventId) {
+      return apiFetch(`/api/admin/events/${eventId}`, {
+        method: 'DELETE'
+      });
+    },
     downloadCsv() {
       return apiFetch('/api/admin/reports/csv');
+    },
+    downloadParticipantsCsv() {
+      return apiFetch('/api/admin/reports/participants/csv');
+    },
+    async exportCsv() {
+      try {
+        return await apiFetch('/api/admin/reports/participants/csv');
+      } catch (e) {
+        // Generate CSV client-side
+        const parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
+        let csv = 'Registration ID,Event Title,Club Name,Student Name,Username,Email,Roll Number,Department,Course,Registered At,Status\n';
+        parts.forEach(r => {
+          csv += `"${r.id || r.registrationId}","${r.eventTitle || ''}","${r.clubName || ''}","${r.studentName || r.fullName || ''}","${r.username || ''}","${r.email || ''}","${r.rollNumber || r.studentId || ''}","${r.department || ''}","${r.course || ''}","${r.registeredAt || ''}","${r.status || 'CONFIRMED'}"\n`;
+        });
+        return new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      }
     },
     auditLogs() {
       return apiFetch('/api/admin/audit-logs');

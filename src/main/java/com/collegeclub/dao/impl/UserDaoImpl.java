@@ -14,7 +14,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User save(User user) throws SQLException {
-        String sql = "INSERT INTO users (username, password_hash, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password_hash, email, full_name, role, created_at, active) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -24,6 +24,7 @@ public class UserDaoImpl implements UserDao {
             ps.setString(4, user.getFullName());
             ps.setString(5, user.getRole().name());
             ps.setString(6, user.getCreatedAt());
+            ps.setBoolean(7, user.isActive());
 
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -37,7 +38,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findById(int id) throws SQLException {
-        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at FROM users WHERE id = ?";
+        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -52,7 +53,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findByUsername(String username) throws SQLException {
-        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at FROM users WHERE username = ?";
+        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE username = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
@@ -67,7 +68,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findByEmail(String email) throws SQLException {
-        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at FROM users WHERE email = ?";
+        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -83,7 +84,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public List<User> findAll() throws SQLException {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at FROM users ORDER BY id ASC";
+        String sql = "SELECT id, username, password_hash, email, full_name, role, created_at, active FROM users ORDER BY id ASC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -127,6 +128,17 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public boolean updateUserStatus(int id, boolean active) throws SQLException {
+        String sql = "UPDATE users SET active = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, active);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    @Override
     public int countTotalStudents() throws SQLException {
         String sql = "SELECT COUNT(*) FROM users WHERE role = 'STUDENT'";
         try (Connection conn = DBConnection.getConnection();
@@ -157,6 +169,11 @@ public class UserDaoImpl implements UserDao {
         u.setFullName(rs.getString("full_name"));
         u.setRole(Role.fromString(rs.getString("role")));
         u.setCreatedAt(rs.getString("created_at"));
+        try {
+            u.setActive(rs.getBoolean("active"));
+        } catch (SQLException ignored) {
+            u.setActive(true);
+        }
         return u;
     }
 }
