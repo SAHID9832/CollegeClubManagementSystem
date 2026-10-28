@@ -126,6 +126,57 @@
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
+    /* Forgot Password Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 20, 0.88);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+      width: 100%;
+      max-width: 440px;
+      padding: 2rem;
+      position: relative;
+      animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(18px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
   </style>
 </head>
 <body class="auth-page">
@@ -196,8 +247,7 @@
           </button>
         </div>
         <div class="role-hint-banner" id="roleHintBanner">
-          <span>🎯</span>
-          <span id="roleHintText">Choose Admin or Student to proceed.</span>
+          <span id="roleHintText">🎓 <strong>Student Portal</strong> &mdash; Access Campus Clubs, Events &amp; Student Activities</span>
         </div>
       </div>
 
@@ -234,6 +284,9 @@
           <input type="checkbox" id="rememberMe" style="accent-color: var(--primary);">
           Remember me
         </label>
+        <button type="button" id="forgotPasswordBtn" style="background: none; border: none; font-size: 0.84rem; color: #38bdf8; cursor: pointer; text-decoration: underline; padding: 0;">
+          Forgot Password?
+        </button>
       </div>
 
       <div class="form-error" id="backendError" style="margin-bottom: 1rem; text-align: center;"></div>
@@ -249,10 +302,64 @@
     </div>
   </div>
 
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="fpModalTitle">
+    <div class="modal-card">
+      <button type="button" class="modal-close-btn" id="closeFpModalBtn" aria-label="Close">&times;</button>
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <span style="font-size: 2.2rem; display: inline-block; margin-bottom: 0.5rem;" id="fpIcon">🔑</span>
+        <h2 id="fpModalTitle" style="font-size: 1.35rem; font-weight: 700; margin: 0 0 0.35rem 0;">Reset Password</h2>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;" id="fpSubtitle">Enter account details to set a new password</p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+        <button type="button" id="fpRoleAdmin" class="role-option-pill role-admin" style="padding: 0.45rem; font-size: 0.85rem;">
+          <span>👑 Admin</span>
+        </button>
+        <button type="button" id="fpRoleStudent" class="role-option-pill role-student active" style="padding: 0.45rem; font-size: 0.85rem;">
+          <span>🎓 Student</span>
+        </button>
+      </div>
+
+      <form id="fpForm" novalidate>
+        <div class="form-group">
+          <label for="fpUsername" class="form-label">Username</label>
+          <input type="text" id="fpUsername" class="input-field" placeholder="Enter username" required>
+          <span class="form-error" id="fpUsernameError">Username is required</span>
+        </div>
+
+        <div class="form-group">
+          <label for="fpVerification" class="form-label" id="fpVerificationLabel">Student Verification</label>
+          <input type="text" id="fpVerification" class="input-field" placeholder="Student Roll Number or Registered Email" required>
+          <span class="form-error" id="fpVerificationError">Verification details required</span>
+        </div>
+
+        <div class="form-group">
+          <label for="fpNewPassword" class="form-label">New Password</label>
+          <input type="password" id="fpNewPassword" class="input-field" placeholder="Min. 8 characters with a digit" required>
+          <span class="form-error" id="fpNewPasswordError">Password must be at least 8 chars with a digit</span>
+        </div>
+
+        <div class="form-group">
+          <label for="fpConfirmPassword" class="form-label">Confirm New Password</label>
+          <input type="password" id="fpConfirmPassword" class="input-field" placeholder="Re-enter new password" required>
+          <span class="form-error" id="fpConfirmPasswordError">Passwords do not match</span>
+        </div>
+
+        <div class="form-error" id="fpBackendError" style="margin-bottom: 1rem; text-align: center;"></div>
+
+        <button type="submit" id="fpSubmitBtn" class="btn btn-primary btn-block btn-lg" style="margin-top: 0.5rem;">
+          <span id="fpBtnText">Update Password</span>
+          <span id="fpBtnSpinner" class="spinner spinner-sm" style="display: none;"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
-    import { api, session, showSuccess, showError } from './js/api.js?v=2.2';
+    import { api, session, showSuccess, showError } from './js/api.js?v=2.3';
 
     const urlParams = new URLSearchParams(window.location.search);
     const requestedRole = urlParams.get('role');
@@ -304,8 +411,8 @@
         submitBtn.style.background = 'linear-gradient(135deg, #f43f5e 0%, #be123c 100%)';
         submitBtn.style.boxShadow = '0 0 20px rgba(244, 63, 94, 0.45)';
         btnText.textContent = 'Sign In to Admin Dashboard ➔';
-        roleHintText.innerHTML = '👑 <strong>Admin:</strong> <code>admin</code> / <code>Admin@123</code> &bull; <a href="#" id="fillDemoBtn" style="color:#fb7185;text-decoration:underline;font-weight:600;margin-left:4px;">Fill Demo</a>';
-        roleStatusBadge.textContent = 'Admin Active';
+        roleHintText.innerHTML = '👑 <strong>Administrator Portal</strong> &mdash; Access Admin Dashboard, Club Controls &amp; Analytics';
+        roleStatusBadge.textContent = 'Admin Mode Active';
         roleStatusBadge.style.color = '#fb7185';
       } else {
         optStudent.classList.add('active');
@@ -318,25 +425,9 @@
         submitBtn.style.background = '';
         submitBtn.style.boxShadow = '';
         btnText.textContent = 'Sign In as Student ➔';
-        roleHintText.innerHTML = '🎓 <strong>Student:</strong> <code>student01</code> / <code>Student@123</code> &bull; <a href="#" id="fillDemoBtn" style="color:#818cf8;text-decoration:underline;font-weight:600;margin-left:4px;">Fill Demo</a>';
-        roleStatusBadge.textContent = 'Student Active';
+        roleHintText.innerHTML = '🎓 <strong>Student Portal</strong> &mdash; Access Campus Clubs, Events &amp; Student Activities';
+        roleStatusBadge.textContent = 'Student Mode Active';
         roleStatusBadge.style.color = '#818cf8';
-      }
-      const fillBtn = document.getElementById('fillDemoBtn');
-      if (fillBtn) {
-        fillBtn.onclick = (e) => {
-          e.preventDefault();
-          if (currentRole === 'ADMIN') {
-            usernameInput.value = 'admin';
-            passwordInput.value = 'Admin@123';
-          } else {
-            usernameInput.value = 'student01';
-            passwordInput.value = 'Student@123';
-          }
-          usernameError.classList.remove('visible');
-          passwordError.classList.remove('visible');
-          backendError.classList.remove('visible');
-        };
       }
       usernameError.classList.remove('visible');
       passwordError.classList.remove('visible');
@@ -348,6 +439,13 @@
 
     optAdmin.addEventListener('click', () => selectRole('ADMIN'));
     optStudent.addEventListener('click', () => selectRole('STUDENT'));
+
+    // Auto-select Admin if username 'admin' is typed
+    usernameInput.addEventListener('input', () => {
+      if (usernameInput.value.trim().toLowerCase() === 'admin' && currentRole !== 'ADMIN') {
+        selectRole('ADMIN');
+      }
+    });
 
     // Keyboard accessibility for radio options
     optAdmin.addEventListener('keydown', (e) => {
@@ -466,6 +564,7 @@
       }
     }
 
+    // Login Form Submission with Strict Role Separation
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       backendError.classList.remove('visible');
@@ -493,12 +592,14 @@
       btnSpinner.style.display = 'inline-block';
 
       try {
-        const res = await api.auth.login(username, password);
+        const res = await api.auth.login(username, password, currentRole);
         if (res.success && res.data) {
           const user = res.data;
           
-          // Precise role separation: Admin vs Student
-          const isAdmin = (currentRole === 'ADMIN' || username.trim().toLowerCase() === 'admin' || String(user.role).toUpperCase() === 'ADMIN');
+          // Strict Role Separation:
+          // If Admin Mode -> Always set ADMIN role and redirect to admin.html
+          // If Student Mode -> Always set STUDENT role and redirect to index.html
+          const isAdmin = (currentRole === 'ADMIN');
           const effectiveRole = isAdmin ? 'ADMIN' : 'STUDENT';
           user.role = effectiveRole;
 
@@ -512,15 +613,15 @@
           });
 
           if (effectiveRole === 'ADMIN') {
-            showSuccess('Admin access verified! Opening Admin Dashboard...');
+            showSuccess('Administrator access verified! Opening Admin Dashboard...');
             setTimeout(() => {
               window.location.replace('admin.html');
-            }, 500);
+            }, 300);
           } else {
             showSuccess(`Welcome, ${user.fullName || user.username}! Opening Campus Hub...`);
             setTimeout(() => {
               window.location.replace('index.html');
-            }, 500);
+            }, 300);
           }
         } else {
           backendError.textContent = res.message || 'Login failed. Please verify credentials.';
@@ -541,6 +642,147 @@
         submitBtn.disabled = false;
         btnText.style.display = 'inline';
         btnSpinner.style.display = 'none';
+      }
+    });
+
+    // Forgot Password Modal Logic
+    const fpModal = document.getElementById('forgotPasswordModal');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const closeFpModalBtn = document.getElementById('closeFpModalBtn');
+    const fpRoleAdmin = document.getElementById('fpRoleAdmin');
+    const fpRoleStudent = document.getElementById('fpRoleStudent');
+    const fpForm = document.getElementById('fpForm');
+    const fpUsername = document.getElementById('fpUsername');
+    const fpVerification = document.getElementById('fpVerification');
+    const fpVerificationLabel = document.getElementById('fpVerificationLabel');
+    const fpNewPassword = document.getElementById('fpNewPassword');
+    const fpConfirmPassword = document.getElementById('fpConfirmPassword');
+    const fpUsernameError = document.getElementById('fpUsernameError');
+    const fpVerificationError = document.getElementById('fpVerificationError');
+    const fpNewPasswordError = document.getElementById('fpNewPasswordError');
+    const fpConfirmPasswordError = document.getElementById('fpConfirmPasswordError');
+    const fpBackendError = document.getElementById('fpBackendError');
+    const fpSubmitBtn = document.getElementById('fpSubmitBtn');
+    const fpBtnText = document.getElementById('fpBtnText');
+    const fpBtnSpinner = document.getElementById('fpBtnSpinner');
+    const fpIcon = document.getElementById('fpIcon');
+    const fpSubtitle = document.getElementById('fpSubtitle');
+
+    let fpRole = 'STUDENT';
+
+    function setFpRole(role) {
+      fpRole = role;
+      if (role === 'ADMIN') {
+        fpRoleAdmin.classList.add('active');
+        fpRoleStudent.classList.remove('active');
+        fpIcon.textContent = '👑';
+        fpSubtitle.textContent = 'Reset Administrator master credentials';
+        fpVerificationLabel.textContent = 'Admin Verification (Master Key or Email)';
+        fpVerification.placeholder = 'ADMIN-RESET-2026 or admin@college.edu';
+      } else {
+        fpRoleStudent.classList.add('active');
+        fpRoleAdmin.classList.remove('active');
+        fpIcon.textContent = '🎓';
+        fpSubtitle.textContent = 'Reset Student credentials with Roll Number or Email';
+        fpVerificationLabel.textContent = 'Student Verification (Roll Number or Email)';
+        fpVerification.placeholder = 'e.g. 26MCA001 or registered email';
+      }
+      fpBackendError.classList.remove('visible');
+      fpBackendError.textContent = '';
+    }
+
+    if (forgotPasswordBtn) {
+      forgotPasswordBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        setFpRole(currentRole);
+        fpUsername.value = usernameInput.value.trim();
+        fpModal.classList.add('active');
+      });
+    }
+
+    if (closeFpModalBtn) {
+      closeFpModalBtn.addEventListener('click', () => {
+        fpModal.classList.remove('active');
+      });
+    }
+
+    // Close on outside click
+    if (fpModal) {
+      fpModal.addEventListener('click', (e) => {
+        if (e.target === fpModal) {
+          fpModal.classList.remove('active');
+        }
+      });
+    }
+
+    fpRoleAdmin.addEventListener('click', () => setFpRole('ADMIN'));
+    fpRoleStudent.addEventListener('click', () => setFpRole('STUDENT'));
+
+    fpForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      fpBackendError.classList.remove('visible');
+      fpUsernameError.classList.remove('visible');
+      fpVerificationError.classList.remove('visible');
+      fpNewPasswordError.classList.remove('visible');
+      fpConfirmPasswordError.classList.remove('visible');
+
+      const uname = fpUsername.value.trim();
+      const verif = fpVerification.value.trim();
+      const nPass = fpNewPassword.value;
+      const cPass = fpConfirmPassword.value;
+
+      let valid = true;
+      if (!uname) {
+        fpUsernameError.classList.add('visible');
+        valid = false;
+      }
+      if (!verif) {
+        fpVerificationError.classList.add('visible');
+        valid = false;
+      }
+      if (!nPass || nPass.length < 8 || !/\d/.test(nPass)) {
+        fpNewPasswordError.classList.add('visible');
+        valid = false;
+      }
+      if (nPass !== cPass) {
+        fpConfirmPasswordError.classList.add('visible');
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      fpSubmitBtn.disabled = true;
+      fpBtnText.style.display = 'none';
+      fpBtnSpinner.style.display = 'inline-block';
+
+      try {
+        const res = await api.auth.forgotPassword({
+          role: fpRole,
+          username: uname,
+          verification: verif,
+          newPassword: nPass
+        });
+
+        if (res.success) {
+          showSuccess(res.message || 'Password reset successfully! Please sign in.');
+          fpModal.classList.remove('active');
+          selectRole(fpRole);
+          usernameInput.value = uname;
+          passwordInput.value = '';
+          passwordInput.focus();
+        } else {
+          fpBackendError.textContent = res.message || 'Password reset failed.';
+          fpBackendError.classList.add('visible');
+          fpBackendError.style.color = 'var(--danger)';
+        }
+      } catch (err) {
+        fpBackendError.textContent = err.message || 'Unable to reset password. Please check your verification details.';
+        fpBackendError.classList.add('visible');
+        fpBackendError.style.color = 'var(--danger)';
+      } finally {
+        fpSubmitBtn.disabled = false;
+        fpBtnText.style.display = 'inline';
+        fpBtnSpinner.style.display = 'none';
       }
     });
   </script>

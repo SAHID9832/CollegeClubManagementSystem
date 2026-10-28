@@ -256,8 +256,29 @@ function handleMockFallback(endpoint, options) {
     return { success: true, data: sessions };
   }
 
+  if (endpoint.includes('forgot-password')) {
+    const { role, username, verification, newPassword } = body;
+    if (!username || !newPassword) {
+      return { success: false, message: 'Username and new password are required.' };
+    }
+    if (newPassword.length < 8) {
+      return { success: false, message: 'Password should contain at least 8 characters.' };
+    }
+    const users = JSON.parse(localStorage.getItem('ccms_users') || '[]');
+    const match = users.find(u => (u.username || '').toLowerCase() === (username || '').toLowerCase());
+    if (match) {
+      match.password = newPassword;
+      localStorage.setItem('ccms_users', JSON.stringify(users));
+    }
+    return {
+      success: true,
+      message: 'Password reset successfully! Please log in with your new password.',
+      data: { username, role }
+    };
+  }
+
   if (endpoint.includes('login')) {
-    const { username, password } = body;
+    const { username, password, role } = body;
     function successLogin(data) {
       const sid = recordMockSession(data);
       data.sessionId = sid;
@@ -266,11 +287,12 @@ function handleMockFallback(endpoint, options) {
     }
 
     const uLower = (username || '').trim().toLowerCase();
+    const isAdminRequested = (role === 'ADMIN' || uLower === 'admin');
 
-    if (uLower === 'admin') {
+    if (isAdminRequested) {
       return successLogin({
         userId: 1,
-        username: 'admin',
+        username: username || 'admin',
         fullName: 'System Administrator',
         role: 'ADMIN'
       });
@@ -1035,10 +1057,16 @@ export function removeClubJoin(clubId) {
  */
 export const api = {
   auth: {
-    login(username, password) {
+    login(username, password, role = 'STUDENT') {
       return apiFetch('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, role })
+      });
+    },
+    forgotPassword(data) {
+      return apiFetch('/api/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify(data)
       });
     },
     async ensureAdmin() {

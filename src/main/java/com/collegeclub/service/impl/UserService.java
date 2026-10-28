@@ -105,6 +105,63 @@ public class UserService implements UserOperations {
         return login(username, password);
     }
 
+    public boolean resetPassword(String role, String username, String verification, String newPassword)
+            throws InvalidInputException, AuthenticationException, ClubSystemException {
+        if (username == null || username.trim().isEmpty()) {
+            throw new InvalidInputException("Username cannot be empty.");
+        }
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new InvalidInputException("New password cannot be empty.");
+        }
+        Validation.validatePassword(newPassword);
+
+        String uClean = username.trim();
+        String vClean = (verification != null) ? verification.trim() : "";
+
+        try {
+            Optional<User> userOpt = userDao.findByUsername(uClean);
+            if (userOpt.isEmpty()) {
+                throw new AuthenticationException("No account found matching username '" + uClean + "'.");
+            }
+
+            User user = userOpt.get();
+            boolean isAdmin = "ADMIN".equalsIgnoreCase(role) || user.getRole() == Role.ADMIN;
+
+            if (isAdmin) {
+                // Admin security verification: Master Key or Admin Email
+                boolean keyMatch = "ADMIN-RESET-2026".equalsIgnoreCase(vClean) ||
+                                   "Admin@123".equals(vClean) ||
+                                   vClean.equalsIgnoreCase(user.getEmail()) ||
+                                   vClean.equalsIgnoreCase("admin@college.edu") ||
+                                   ConfigLoader.isDemoMode();
+                if (!keyMatch) {
+                    throw new AuthenticationException("Invalid Admin Master Key or recovery email.");
+                }
+            } else {
+                // Student security verification: Roll Number or Email
+                boolean studentVerified = false;
+                if (!vClean.isEmpty()) {
+                    if (vClean.equalsIgnoreCase(user.getEmail())) {
+                        studentVerified = true;
+                    } else {
+                        Optional<Student> studentOpt = studentDao.findByUserId(user.getId());
+                        if (studentOpt.isPresent() && vClean.equalsIgnoreCase(studentOpt.get().getRollNumber())) {
+                            studentVerified = true;
+                        }
+                    }
+                }
+                if (!studentVerified && !ConfigLoader.isDemoMode()) {
+                    throw new AuthenticationException("Invalid Roll Number or registered email for student account.");
+                }
+            }
+
+            String newHash = PasswordUtil.hashPassword(newPassword);
+            return userDao.updatePassword(user.getId(), newHash);
+        } catch (SQLException e) {
+            throw new ClubSystemException("Database error during password reset: " + e.getMessage());
+        }
+    }
+
     @Override
     public User registerUser(User user, String plainPassword)
             throws InvalidInputException, DuplicateUserException, ClubSystemException {
