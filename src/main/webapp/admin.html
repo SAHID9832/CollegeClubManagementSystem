@@ -1461,10 +1461,10 @@
 
     // Load Live Dashboard Data
     async function initDashboard() {
-      // Strict access control: Admin page is ONLY accessible through the login page!
+      // Strict access control: Admin page is ONLY accessible through the admin login page!
       const current = session.get();
       if (!current || current.role !== 'ADMIN') {
-        window.location.replace('login.html?role=ADMIN&error=admin_required');
+        window.location.replace('admin-login.html?error=admin_required');
         return;
       }
       document.getElementById('adminPillName').textContent = current.fullName || current.username || 'Admin';

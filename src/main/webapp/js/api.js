@@ -1193,11 +1193,16 @@ export const api = {
       });
     },
     logout() {
+      const wasAdmin = (session.get() && session.get().role === 'ADMIN');
       return apiFetch('/api/auth/logout', {
         method: 'POST'
       }).finally(() => {
         session.clear();
-        window.location.replace('login.html');
+        if (wasAdmin) {
+          window.location.replace('admin-login.html');
+        } else {
+          window.location.replace('login.html');
+        }
       });
     },
     me() {
