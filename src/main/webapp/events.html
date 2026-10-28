@@ -159,13 +159,13 @@
     <!-- HERO FEATURED EVENT CARD (Panel 3) -->
     <div class="cs-hero-event-card" id="heroEventCard">
       <div class="cs-hero-event-left">
-        <div class="cs-date-badge">
+        <div class="cs-date-badge" style="cursor: pointer;" onclick="window.location.href='event.html?id=1'" title="View Event Details">
           <div class="cs-date-badge-month">NOV</div>
           <div class="cs-date-badge-day">15</div>
           <div class="cs-date-badge-year">2026</div>
         </div>
         <div class="cs-hero-event-details">
-          <h2>Campus Coding Contest</h2>
+          <h2 style="cursor: pointer;" onclick="window.location.href='event.html?id=1'" title="View Event Details">Campus Coding Contest</h2>
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
             <span class="cs-badge cs-badge-tech">Technical</span>
             <span class="cs-badge cs-badge-cultural">Competition</span>
@@ -456,53 +456,177 @@
       });
     }
 
-    // Refresh registration button states
-    function updateRegistrationButtons() {
-      const registered = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+    const defaultEventCards = [
+      {
+        id: 2,
+        title: "Inter-Club Quiz",
+        category: "Quiz",
+        tags: ["Quiz", "Knowledge"],
+        month: "NOV",
+        day: "18",
+        year: "2026",
+        time: "02:00 PM",
+        venue: "Main Auditorium"
+      },
+      {
+        id: 3,
+        title: "Cultural Fest",
+        category: "Cultural",
+        tags: ["Cultural", "Performance"],
+        month: "NOV",
+        day: "20",
+        year: "2026",
+        time: "05:00 PM",
+        venue: "Open Air Theatre"
+      },
+      {
+        id: 4,
+        title: "Web Design Workshop",
+        category: "Workshop",
+        tags: ["Workshop", "Learning"],
+        month: "NOV",
+        day: "25",
+        year: "2026",
+        time: "11:00 AM",
+        venue: "Seminar Hall"
+      },
+      {
+        id: 5,
+        title: "Gaming Tournament",
+        category: "Gaming",
+        tags: ["Gaming", "Competition"],
+        month: "NOV",
+        day: "28",
+        year: "2026",
+        time: "02:00 PM",
+        venue: "Indoor Arena"
+      }
+    ];
+
+    function attachEventRegListeners() {
       document.querySelectorAll('.event-reg-btn').forEach(btn => {
-        const id = parseInt(btn.dataset.id, 10);
-        if (registered.includes(id)) {
-          btn.innerHTML = `<span>✓ Registered</span>`;
-          btn.style.background = 'rgba(16, 185, 129, 0.2)';
-          btn.style.color = '#34d399';
-          btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-        }
+        btn.onclick = async (e) => {
+          e.stopPropagation();
+          const id = parseInt(btn.dataset.id, 10);
+          const title = btn.dataset.title;
+          const currentUser = session.get();
+          if (!currentUser) {
+            showToast('Please login as a student to register for events', true);
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+            return;
+          }
+
+          let registered = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+
+          if (registered.includes(id)) {
+            // Cancel registration
+            try {
+              await api.events.cancelRegistration(id);
+            } catch(e) {}
+            registered = registered.filter(x => x !== id);
+            localStorage.setItem('ccms_registered_events', JSON.stringify(registered));
+            localStorage.setItem('ccms_my_events', JSON.stringify(registered));
+            showToast(`Cancelled registration for ${title}`);
+            loadUpcomingEvents();
+          } else {
+            // Register
+            try {
+              await api.events.register(id, { title: title });
+            } catch(e) {}
+            if (!registered.includes(id)) registered.push(id);
+            localStorage.setItem('ccms_registered_events', JSON.stringify(registered));
+            localStorage.setItem('ccms_my_events', JSON.stringify(registered));
+            showToast(`Successfully registered for ${title}!`);
+            loadUpcomingEvents();
+          }
+        };
       });
     }
 
-    document.querySelectorAll('.event-reg-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = parseInt(btn.dataset.id, 10);
-        const title = btn.dataset.title;
-        let registered = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
-
-        if (registered.includes(id)) {
-          // Cancel registration
-          try {
-            await api.events.cancelRegistration(id);
-          } catch(e) {}
-          registered = registered.filter(x => x !== id);
-          localStorage.setItem('ccms_registered_events', JSON.stringify(registered));
-          showToast(`Cancelled registration for ${title}`);
-          btn.innerHTML = `<span>Register</span> <span>➔</span>`;
-          btn.style.background = '';
-          btn.style.color = '';
-          btn.style.borderColor = '';
-        } else {
-          // Register
-          try {
-            await api.events.register(id, { title: title });
-          } catch(e) {}
-          registered.push(id);
-          localStorage.setItem('ccms_registered_events', JSON.stringify(registered));
-          showToast(`Successfully registered for ${title}!`);
-          btn.innerHTML = `<span>✓ Registered</span>`;
-          btn.style.background = 'rgba(16, 185, 129, 0.2)';
-          btn.style.color = '#34d399';
-          btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+    async function loadUpcomingEvents() {
+      const grid = document.getElementById('upcomingEventsGrid');
+      if (!grid) return;
+      
+      let events = [];
+      try {
+        const res = await api.events.list();
+        const list = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        if (list && list.length > 0) {
+          events = list.map(ev => {
+            const d = ev.eventDate ? new Date(ev.eventDate) : new Date();
+            const monthStr = isNaN(d.getTime()) ? 'NOV' : d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+            const dayStr = isNaN(d.getTime()) ? '15' : String(d.getDate()).padStart(2, '0');
+            const yearStr = isNaN(d.getTime()) ? '2026' : String(d.getFullYear());
+            return {
+              id: ev.eventId || ev.id,
+              title: ev.title,
+              category: ev.category || 'Technical',
+              tags: [ev.category || 'General', 'Campus'],
+              month: monthStr,
+              day: dayStr,
+              year: yearStr,
+              time: ev.startTime || '10:00 AM',
+              venue: ev.venue || 'Campus Hall'
+            };
+          });
         }
+      } catch (e) {}
+
+      if (events.length === 0) {
+        const customEvents = JSON.parse(localStorage.getItem('ccms_custom_events') || '[]');
+        const customFormatted = customEvents.map(ev => {
+          const d = ev.eventDate ? new Date(ev.eventDate) : new Date();
+          return {
+            id: ev.id || ev.eventId,
+            title: ev.title,
+            category: ev.category || 'Technical',
+            tags: [ev.category || 'General', 'Campus'],
+            month: isNaN(d.getTime()) ? 'NOV' : d.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+            day: isNaN(d.getTime()) ? '15' : String(d.getDate()).padStart(2, '0'),
+            year: isNaN(d.getTime()) ? '2026' : String(d.getFullYear()),
+            time: ev.startTime || '10:00 AM',
+            venue: ev.venue || 'Campus Hall'
+          };
+        });
+        events = [...defaultEventCards, ...customFormatted];
+      }
+
+      grid.innerHTML = '';
+      const registered = JSON.parse(localStorage.getItem('ccms_registered_events') || '[]');
+
+      events.forEach(item => {
+        const isReg = registered.includes(item.id);
+        const card = document.createElement('div');
+        card.className = 'cs-event-card';
+        card.dataset.cat = item.category;
+        card.innerHTML = `
+          <div class="cs-event-card-header">
+            <div class="cs-date-badge" style="min-width: 65px; padding: 0.5rem 0.75rem; cursor: pointer;" onclick="window.location.href='event.html?id=${item.id}'" title="View Event Details">
+              <div class="cs-date-badge-month">${item.month}</div>
+              <div class="cs-date-badge-day" style="font-size: 1.4rem;">${item.day}</div>
+              <div class="cs-date-badge-year">${item.year}</div>
+            </div>
+            <button class="cs-club-bookmark" style="position: static; width: 28px; height: 28px;">🔖</button>
+          </div>
+          <h4 class="cs-event-card-title" style="cursor: pointer;" onclick="window.location.href='event.html?id=${item.id}'" title="View Event Details">${item.title}</h4>
+          <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+            <span class="cs-badge cs-badge-tech">${item.category}</span>
+            <span class="cs-badge cs-badge-literary">${item.tags[1] || 'Campus'}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--cs-text-muted); margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.25rem;">
+            <div>🕒 ${item.time}</div>
+            <div>📍 ${item.venue}</div>
+          </div>
+          <button class="cs-btn-join event-reg-btn ${isReg ? 'registered' : ''}" data-id="${item.id}" data-title="${item.title}" style="margin-top: auto; ${isReg ? 'background: rgba(16,185,129,0.2); color:#34d399; border-color: rgba(16,185,129,0.4);' : ''}">
+            <span>${isReg ? '✓ Registered' : 'Register'}</span> <span>➔</span>
+          </button>
+        `;
+        grid.appendChild(card);
       });
-    });
+
+      attachEventRegListeners();
+      filterEvents();
+    }
 
     // Filter pills
     let currentCategory = 'all';
@@ -513,7 +637,7 @@
       cards.forEach(card => {
         const cat = card.dataset.cat;
         const text = card.textContent.toLowerCase();
-        const matchesCat = (currentCategory === 'all') || (cat.toLowerCase() === currentCategory.toLowerCase());
+        const matchesCat = (currentCategory === 'all') || (cat && cat.toLowerCase() === currentCategory.toLowerCase());
         const matchesSearch = !searchQuery || text.includes(searchQuery.toLowerCase());
         card.style.display = (matchesCat && matchesSearch) ? 'flex' : 'none';
       });
@@ -558,9 +682,11 @@
         });
         showToast('Event created successfully!');
         closeModal('createEventModal');
+        loadUpcomingEvents();
       } catch (err) {
         showToast('Event published successfully!');
         closeModal('createEventModal');
+        loadUpcomingEvents();
       }
     });
 
@@ -569,7 +695,7 @@
       document.body.classList.toggle('light-theme');
     });
 
-    updateRegistrationButtons();
+    loadUpcomingEvents();
   </script>
 </body>
 </html>

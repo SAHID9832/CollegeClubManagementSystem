@@ -95,7 +95,12 @@ public class EventServlet extends BaseApiServlet {
 
                 LocalDateTime eventDate;
                 try {
-                    eventDate = LocalDateTime.parse(dateStr.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    String cleanDate = dateStr.trim();
+                    if (cleanDate.length() == 10 && cleanDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                        eventDate = java.time.LocalDate.parse(cleanDate).atTime(10, 0);
+                    } else {
+                        eventDate = LocalDateTime.parse(cleanDate.replace(" ", "T"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    }
                 } catch (Exception e) {
                     eventDate = LocalDateTime.now().plusDays(7);
                 }

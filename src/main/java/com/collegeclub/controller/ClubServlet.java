@@ -91,7 +91,7 @@ public class ClubServlet extends BaseApiServlet {
                     return;
                 }
 
-                String clubName = json.has("clubName") ? json.get("clubName").getAsString() : "";
+                String clubName = json.has("clubName") ? json.get("clubName").getAsString() : (json.has("name") ? json.get("name").getAsString() : "");
                 String category = json.has("category") ? json.get("category").getAsString() : "General";
                 String description = json.has("description") ? json.get("description").getAsString() : "";
                 int coordinatorId = json.has("coordinatorId") ? json.get("coordinatorId").getAsInt() : currentUser.getUserId();

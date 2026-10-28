@@ -264,7 +264,12 @@
     }
     const createClubBtn = document.getElementById('openCreateClubBtn');
     if (createClubBtn) {
-      createClubBtn.style.display = isUserAdmin ? 'inline-flex' : 'none';
+      if (isUserAdmin) {
+        createClubBtn.innerHTML = `<span>+</span> <span>Create New Club</span>`;
+      } else {
+        createClubBtn.innerHTML = `<span>+</span> <span>Propose New Club</span>`;
+      }
+      createClubBtn.style.display = 'inline-flex';
     }
 
     if (user && user.username) {
@@ -441,10 +446,10 @@
           <button class="cs-club-bookmark ${isBookmarked ? 'bookmarked' : ''}" data-id="${club.id}" title="${isBookmarked ? 'Remove Bookmark' : 'Bookmark club'}" style="color: ${isBookmarked ? '#fbbf24' : 'var(--cs-text-muted)'}; border-color: ${isBookmarked ? '#fbbf24' : 'var(--cs-border)'};">
             ${isBookmarked ? '★' : '🔖'}
           </button>
-          <div class="cs-club-card-graphic" style="background: ${club.bg}; border: 1px solid rgba(255,255,255,0.06);">
+          <div class="cs-club-card-graphic" style="background: ${club.bg}; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;" onclick="window.location.href='club.html?id=${club.id}'" title="View Club Details">
             <span style="filter: drop-shadow(0 0 10px ${club.accent});">${club.icon}</span>
           </div>
-          <h3 class="cs-club-card-title">${club.name}</h3>
+          <h3 class="cs-club-card-title" style="cursor: pointer;" onclick="window.location.href='club.html?id=${club.id}'" title="View Club Details">${club.name}</h3>
           <p class="cs-club-card-tagline">${club.tagline}</p>
           <div class="cs-club-card-badges">
             <span class="cs-badge cs-badge-${club.category.toLowerCase()}">${club.category}</span>
@@ -546,6 +551,14 @@
 
     // Modal
     document.getElementById('openCreateClubBtn')?.addEventListener('click', () => {
+      const modalHeader = document.querySelector('#createClubModal h3');
+      const submitBtn = document.querySelector('#createClubForm button[type="submit"]');
+      if (modalHeader) {
+        modalHeader.textContent = isUserAdmin ? 'Register New Campus Club' : 'Propose New Campus Club';
+      }
+      if (submitBtn) {
+        submitBtn.textContent = isUserAdmin ? 'Submit Club' : 'Submit Proposal';
+      }
       document.getElementById('createClubModal').classList.add('active');
     });
 
@@ -556,26 +569,50 @@
       const tag = document.getElementById('modalClubTagline').value.trim();
       const coord = document.getElementById('modalClubCoordinator').value.trim();
 
-      const newClubObj = {
-        id: Date.now(),
-        clubId: Date.now(),
-        name: name,
-        category: cat,
-        description: tag,
-        coordinator: coord,
-        capacity: 100,
-        memberCount: 1
-      };
+      if (isUserAdmin) {
+        const newClubObj = {
+          id: Date.now(),
+          clubId: Date.now(),
+          name: name,
+          category: cat,
+          description: tag,
+          coordinator: coord,
+          capacity: 100,
+          memberCount: 1
+        };
 
-      try {
-        await api.clubs.create(newClubObj);
-      } catch (err) {}
+        try {
+          await api.clubs.create(newClubObj);
+        } catch (err) {}
 
-      const customClubs = JSON.parse(localStorage.getItem('ccms_custom_clubs') || '[]');
-      customClubs.push(newClubObj);
-      localStorage.setItem('ccms_custom_clubs', JSON.stringify(customClubs));
+        const customClubs = JSON.parse(localStorage.getItem('ccms_custom_clubs') || '[]');
+        customClubs.push(newClubObj);
+        localStorage.setItem('ccms_custom_clubs', JSON.stringify(customClubs));
 
-      showToast(`Club "${name}" created and published!`);
+        showToast(`Club "${name}" created and published!`);
+      } else {
+        // Student proposing new club
+        const s = session.get() || { username: 'student', fullName: 'Student' };
+        const newProposal = {
+          id: 'prop-' + Date.now(),
+          name: name,
+          category: cat,
+          icon: cat === 'Technical' ? '💻' : (cat === 'Cultural' ? '🎭' : (cat === 'Sports' ? '⚽' : '🌟')),
+          requester: s.fullName || s.username || 'Student',
+          username: s.username || 'student',
+          rollNumber: s.rollNumber || '26MCA001',
+          department: s.department || 'Computer Applications',
+          date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          description: tag,
+          status: 'PENDING'
+        };
+        const studentProposals = JSON.parse(localStorage.getItem('ccms_student_proposals') || '[]');
+        studentProposals.unshift(newProposal);
+        localStorage.setItem('ccms_student_proposals', JSON.stringify(studentProposals));
+
+        showToast(`Proposal for "${name}" submitted! Admin will review it.`);
+      }
+
       closeModal('createClubModal');
       renderClubs();
     });

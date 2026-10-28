@@ -459,6 +459,46 @@ function handleMockFallback(endpoint, options) {
   }
 
   if (endpoint.includes('clubs')) {
+    // 1. DELETE club (e.g. /api/admin/clubs/:id)
+    if (method === 'DELETE' && !endpoint.includes('/members/') && !endpoint.includes('/join')) {
+      const match = endpoint.match(/\/clubs\/(\d+)/);
+      const clubId = match ? parseInt(match[1], 10) : null;
+      if (clubId) {
+        let customClubs = JSON.parse(localStorage.getItem('ccms_custom_clubs') || '[]');
+        customClubs = customClubs.filter(c => (c.id !== clubId && c.clubId !== clubId));
+        localStorage.setItem('ccms_custom_clubs', JSON.stringify(customClubs));
+
+        let deletedClubs = JSON.parse(localStorage.getItem('ccms_deleted_clubs') || '[]');
+        if (!deletedClubs.includes(clubId)) deletedClubs.push(clubId);
+        localStorage.setItem('ccms_deleted_clubs', JSON.stringify(deletedClubs));
+      }
+      return { success: true, message: 'Club deleted successfully' };
+    }
+
+    // 2. POST create club (e.g. /api/clubs)
+    if (method === 'POST' && !endpoint.includes('/join') && !endpoint.includes('/leave') && !endpoint.includes('/members')) {
+      const newClubId = Date.now();
+      const newClub = {
+        id: newClubId,
+        clubId: newClubId,
+        name: body.name || body.clubName || 'New Campus Club',
+        clubName: body.name || body.clubName || 'New Campus Club',
+        category: body.category || 'Technical',
+        icon: body.icon || '🌟',
+        categoryIcon: body.icon || '🌟',
+        description: body.description || 'Student initiative club',
+        coordinatorName: body.coordinator || body.coordinatorName || 'Faculty Lead',
+        coordinatorEmail: body.coordinatorEmail || 'coordinator@college.edu',
+        capacity: body.capacity || 100,
+        memberCount: 1,
+        active: true
+      };
+      let customClubs = JSON.parse(localStorage.getItem('ccms_custom_clubs') || '[]');
+      customClubs.push(newClub);
+      localStorage.setItem('ccms_custom_clubs', JSON.stringify(customClubs));
+      return { success: true, message: 'Club registered successfully!', data: newClub };
+    }
+
     if (endpoint.includes('/join') && method === 'POST') {
       const myClubs = JSON.parse(localStorage.getItem('ccms_my_clubs') || '[]');
       const match = endpoint.match(/\/clubs\/(\d+)\/join/);
@@ -529,10 +569,64 @@ function handleMockFallback(endpoint, options) {
 
       return { success: true, message: 'Successfully left club!' };
     }
-    return { success: true, data: defaultClubs };
+
+    const customClubs = JSON.parse(localStorage.getItem('ccms_custom_clubs') || '[]');
+    const deletedClubs = JSON.parse(localStorage.getItem('ccms_deleted_clubs') || '[]');
+    const mergedClubs = [...defaultClubs, ...customClubs].filter(c => !deletedClubs.includes(c.id || c.clubId));
+
+    // GET single club details (e.g. /api/clubs/1)
+    const singleClubMatch = endpoint.match(/\/clubs\/(\d+)$/);
+    if (singleClubMatch && method === 'GET') {
+      const targetId = parseInt(singleClubMatch[1], 10);
+      const matched = mergedClubs.find(c => (c.id === targetId || c.clubId === targetId));
+      if (matched) return { success: true, data: matched };
+      return { success: true, data: mergedClubs[0] || defaultClubs[0] };
+    }
+
+    return { success: true, data: mergedClubs };
   }
 
   if (endpoint.includes('events')) {
+    // 1. DELETE event (e.g. /api/admin/events/:id)
+    if (method === 'DELETE' && !endpoint.includes('/register') && !endpoint.includes('/cancel')) {
+      const match = endpoint.match(/\/events\/(\d+)/);
+      const eventId = match ? parseInt(match[1], 10) : null;
+      if (eventId) {
+        let customEvents = JSON.parse(localStorage.getItem('ccms_custom_events') || '[]');
+        customEvents = customEvents.filter(e => (e.id !== eventId && e.eventId !== eventId));
+        localStorage.setItem('ccms_custom_events', JSON.stringify(customEvents));
+
+        let deletedEvents = JSON.parse(localStorage.getItem('ccms_deleted_events') || '[]');
+        if (!deletedEvents.includes(eventId)) deletedEvents.push(eventId);
+        localStorage.setItem('ccms_deleted_events', JSON.stringify(deletedEvents));
+      }
+      return { success: true, message: 'Event deleted successfully' };
+    }
+
+    // 2. POST create event (e.g. /api/events)
+    if (method === 'POST' && !endpoint.includes('/register')) {
+      const newEventId = Date.now();
+      const newEvent = {
+        id: newEventId,
+        eventId: newEventId,
+        title: body.title || 'Campus Event',
+        clubId: body.clubId || 1,
+        clubName: body.clubName || 'Campus Society',
+        category: body.category || 'Technical',
+        eventDate: body.eventDate || new Date().toISOString().slice(0, 10),
+        startTime: body.startTime || '10:00 AM',
+        venue: body.venue || 'Main Auditorium',
+        capacity: body.capacity || 100,
+        registeredCount: 0,
+        description: body.description || 'Official campus event.',
+        status: 'OPEN'
+      };
+      let customEvents = JSON.parse(localStorage.getItem('ccms_custom_events') || '[]');
+      customEvents.push(newEvent);
+      localStorage.setItem('ccms_custom_events', JSON.stringify(customEvents));
+      return { success: true, message: 'Event published successfully!', data: newEvent };
+    }
+
     if (endpoint.includes('/register') && method === 'POST') {
       const myEvts = JSON.parse(localStorage.getItem('ccms_my_events') || '[]');
       const match = endpoint.match(/\/events\/(\d+)\/register/);
@@ -544,7 +638,8 @@ function handleMockFallback(endpoint, options) {
       // Append to ccms_event_participants
       const s = session.get() || { username: 'student01', fullName: 'Rahul Kumar', email: 'rahul.kumar@college.edu', rollNumber: '26MCA001' };
       const parts = JSON.parse(localStorage.getItem('ccms_event_participants') || '[]');
-      const targetEv = defaultEvents.find(e => e.eventId === eventId) || { title: 'Campus Event #' + eventId, clubName: 'Campus Society' };
+      const allEvts = [...defaultEvents, ...(JSON.parse(localStorage.getItem('ccms_custom_events') || '[]'))];
+      const targetEv = allEvts.find(e => (e.eventId === eventId || e.id === eventId)) || { title: 'Campus Event #' + eventId, clubName: 'Campus Society' };
       if (!parts.some(p => p.eventId === eventId && (p.username === s.username || (s.userId && p.userId === s.userId)))) {
         parts.unshift({
           id: Date.now(),
@@ -607,7 +702,21 @@ function handleMockFallback(endpoint, options) {
 
       return { success: true, message: 'Registration cancelled.' };
     }
-    return { success: true, data: defaultEvents };
+
+    const customEvents = JSON.parse(localStorage.getItem('ccms_custom_events') || '[]');
+    const deletedEvents = JSON.parse(localStorage.getItem('ccms_deleted_events') || '[]');
+    const mergedEvents = [...defaultEvents, ...customEvents].filter(e => !deletedEvents.includes(e.id || e.eventId));
+
+    // GET single event details (e.g. /api/events/101)
+    const singleEventMatch = endpoint.match(/\/events\/(\d+)$/);
+    if (singleEventMatch && method === 'GET') {
+      const targetId = parseInt(singleEventMatch[1], 10);
+      const matched = mergedEvents.find(e => (e.id === targetId || e.eventId === targetId));
+      if (matched) return { success: true, data: matched };
+      return { success: true, data: mergedEvents[0] || defaultEvents[0] };
+    }
+
+    return { success: true, data: mergedEvents };
   }
 
   if (endpoint.includes('participants') || endpoint.includes('registrations')) {
