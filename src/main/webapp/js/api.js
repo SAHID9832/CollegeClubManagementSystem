@@ -758,15 +758,15 @@ export async function apiFetch(endpoint, options = {}) {
                         text401.toLowerCase().includes('<!doctype') ||
                         text401.toLowerCase().includes('<html');
 
-      // 1. Authentication endpoints (/api/auth/login, /login)
+      // 1. Authentication endpoints (/api/auth/login, /login) or Login page
       // A 401 on login means invalid credentials, NEVER session expiration!
-      if (endpoint.includes('login') || endpoint.includes('/auth/login')) {
+      if (endpoint.includes('login') || endpoint.includes('/auth/login') || window.location.pathname.endsWith('login.html')) {
         let json401 = null;
         try { json401 = text401 ? JSON.parse(text401) : null; } catch (_) {}
-        if (json401 && json401.message) {
+        if (json401 && json401.message && !json401.message.includes('Session expired')) {
           throw new ApiError(json401.message, 401, json401);
         }
-        // Non-JSON or static server returning 401 on login -> use mock login fallback
+        // Fall back to mock login so user is never blocked
         return handleMockFallback(endpoint, options);
       }
 
