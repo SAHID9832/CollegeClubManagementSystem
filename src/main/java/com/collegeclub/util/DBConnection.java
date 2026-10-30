@@ -20,18 +20,31 @@ public class DBConnection {
 
     static {
         try {
-            Class.forName(ConfigLoader.getDbDriver());
-        } catch (ClassNotFoundException e) {
-            System.err.println("Database driver not found on classpath: " + e.getMessage());
-        }
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException ignored) {}
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException ignored) {}
     }
 
     public static Connection getConnection() throws SQLException {
-        Connection connection = DriverManager.getConnection(
-                ConfigLoader.getDbUrl(),
-                ConfigLoader.getDbUser(),
-                ConfigLoader.getDbPassword()
-        );
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(
+                    ConfigLoader.getDbUrl(),
+                    ConfigLoader.getDbUser(),
+                    ConfigLoader.getDbPassword()
+            );
+        } catch (SQLException e) {
+            if (ConfigLoader.getDbUrl().startsWith("jdbc:mysql:")) {
+                System.err.println("Notice: Primary MySQL connection failed (" + e.getMessage() + "). Falling back to embedded H2 database.");
+                String userHome = System.getProperty("user.home", ".").replace("\\", "/");
+                String fallbackUrl = "jdbc:h2:" + userHome + "/collegeclub-data/collegeclub;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MODE=MySQL";
+                connection = DriverManager.getConnection(fallbackUrl, "sa", "");
+            } else {
+                throw e;
+            }
+        }
 
         if (!schemaInitialized.get()) {
             synchronized (DBConnection.class) {
